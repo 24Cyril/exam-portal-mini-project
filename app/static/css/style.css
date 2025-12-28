@@ -1,0 +1,232 @@
+/* =========================
+   RESET & GLOBAL
+   ========================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f4f6f8;
+  color: #333;
+}
+
+/* =========================
+   TOP NOTIFICATION BAR
+   ========================= */
+
+.top-notification {
+  background-color: #1e88e5;
+  color: white;
+  padding: 10px 20px;
+  font-size: 14px;
+}
+
+/* =========================
+   URGENT SCROLLING BAR
+   ========================= */
+
+.urgent-bar {
+  background-color: #ffeb3b;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 8px 0;
+}
+
+.urgent-text {
+  display: inline-block;
+  padding-left: 100%;
+  animation: scroll-left 15s linear infinite;
+  font-weight: bold;
+  color: #000;
+}
+
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* =========================
+   MAIN LAYOUT
+   ========================= */
+
+.main-content {
+  display: flex;
+  padding: 40px;
+  gap: 40px;
+}
+
+/* LEFT INFO SECTION */
+.info-section {
+  flex: 1;
+}
+
+.info-section h1 {
+  margin-bottom: 15px;
+}
+
+.info-section p {
+  margin-bottom: 10px;
+  line-height: 1.6;
+}
+
+/* RIGHT LOGIN SECTION */
+.login-section {
+  flex: 1;
+  background: white;
+  padding: 25px;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+}
+
+/* =========================
+   LOGIN TABS
+   ========================= */
+
+.login-tabs {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  background-color: #e0e0e0;
+  font-weight: bold;
+}
+
+.tab.active {
+  background-color: #1e88e5;
+  color: white;
+}
+
+/* =========================
+   LOGIN FORM
+   ========================= */
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: #1e88e5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+/* SETTINGS BUTTON FIX */
+.settings-btn {
+  width: auto;              /* override 100% width */
+  padding: 12px;
+  font-size: 18px;
+  border-radius: 50%;
+}
+
+button:hover {
+  background-color: #1565c0;
+}
+
+.login-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.login-links a {
+  font-size: 14px;
+  text-decoration: none;
+  color: #1e88e5;
+}
+
+/* =========================
+   SETTINGS PANEL
+   ========================= */
+
+.settings-panel {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  background: white;
+  padding: 15px;
+  width: 220px;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.settings-panel h3 {
+  margin-bottom: 10px;
+}
+
+.setting-item {
+  margin-bottom: 10px;
+}
+
+.setting-item label {
+  font-size: 14px;
+}
+
+.setting-item select {
+  width: 100%;
+  padding: 5px;
+}
+/* SETTINGS BUTTON */
+.settings-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  background-color: #1e88e5;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* HIDDEN STATE */
+.hidden {
+  display: none;
+}
+
+
+/* =========================
+   DARK MODE (for JS later)
+   ========================= */
+
+body.dark-mode {
+  background-color: #121212;
+  color: #ffffff;
+}
+
+body.dark-mode .login-section,
+body.dark-mode .settings-panel {
+  background-color: #1e1e1e;
+  color: white;
+}
