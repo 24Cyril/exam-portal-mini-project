@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Exam Portal | Home</title>
+  <link rel="stylesheet" href="../static/css/style.css">
+</head>
+
+<body class="home-page">
+
+  <!-- 🔝 Top Notification Bar -->
+  <header class="top-notification">
+    <p>📢 Notification: Exam Portal maintenance on Sunday (10 AM – 12 PM)</p>
+  </header>
+
+  <!-- 🟡 Urgent Scrolling Message -->
+  <section class="urgent-bar">
+    <div class="urgent-text">
+      ⚠️ Urgent: Final year mock exam starts tomorrow at 9 AM. Please be prepared.
+    </div>
+  </section>
+
+  <!-- 🧭 Main Content -->
+  <main class="main-content">
+
+    <!-- ⬅️ Left Info Section -->
+    <section class="info-section">
+      <h1>Welcome to the Exam Portal</h1>
+      <p>
+        This portal allows students to take online exams, practice mock tests,
+        and track their performance securely.
+      </p>
+      <p>
+        Administrators can manage exams, questions, and results.
+      </p>
+    </section>
+
+    <!-- ➡️ Right Login Section -->
+    <section class="login-section">
+
+      <!-- 🔹 Login Tabs -->
+      <div class="login-tabs">
+        <button class="tab active" id="studentTab">Student Login</button>
+        <button class="tab" id="adminTab">Admin Login</button>
+      </div>
+
+      <!-- 🔐 Login Form -->
+      <form id="loginForm" class="login-form">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" required>
+        </div>
+
+        <button type="submit">Login</button>
+
+        <div class="login-links">
+          <a href="#">Forgot Password?</a>
+          <a href="register.html">Sign Up</a>
+        </div>
+      </form>
+
+    </section>
+  </main>
+<!-- ⚙️ Settings Button -->
+<button id="settingsBtn" class="settings-btn">⚙️</button>
+
+<!-- ⚙️ Settings Panel (hidden by default) -->
+<aside class="settings-panel hidden" id="settingsPanel">
+  <h3>Settings</h3>
+
+  <div class="setting-item">
+    <label>Text Size</label>
+    <select>
+      <option>Small</option>
+      <option selected>Medium</option>
+      <option>Large</option>
+    </select>
+  </div>
+
+  <div class="setting-item">
+    <label>Theme</label>
+    <select>
+      <option>Light</option>
+      <option>Dark</option>
+    </select>
+  </div>
+
+  <div class="setting-item">
+    <label>Language</label>
+    <select>
+      <option>English</option>
+      <option>Hindi</option>
+      <option>Other</option>
+    </select>
+  </div>
+</aside>
+
+  <script src="../static/js/auth.js"></script>
+</body>
+</html>
