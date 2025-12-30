@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>Admin Panel</h2>
+    <ul>
+        <li onclick="openTab('profile')">👤 Profile</li>
+        <li onclick="openTab('settings')">⚙️ Settings</li>
+        <li onclick="openTab('permissions')">🛡️ Permissions</li>
+        <li onclick="openTab('reports')">📊 Reports</li>
+        <li onclick="openTab('errors')">❗ Error Logs</li>
+        <li onclick="openTab('messages')">💬 Messages</li>
+        <li onclick="openTab('notifications')">🔔 Notifications</li>
+        <li><a href="/logout">🚪 Logout</a></li>
+    </ul>
+</div>
+
+<div class="content">
+    <h2 id="tab-title">Dashboard</h2>
+    <div id="tab-content">Welcome Admin — Select a section to manage the system.</div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>
