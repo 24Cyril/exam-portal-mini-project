@@ -1,0 +1,9 @@
+body {margin:0; display:flex; font-family:Arial; background:#f2f5ff;}
+.sidebar {
+    width: 250px; background:#263159; color:white; height:100vh; padding:20px;
+}
+.sidebar ul li {
+    list-style:none; margin:10px 0; cursor:pointer; padding:8px; border-radius:5px;
+}
+.sidebar ul li:hover {background:#435681;}
+.content {padding:30px; flex:1;}
