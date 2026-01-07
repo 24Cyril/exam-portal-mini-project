@@ -66,40 +66,41 @@
 
     </section>
   </main>
-<!-- ⚙️ Settings Button -->
-<button id="settingsBtn" class="settings-btn">⚙️</button>
 
-<!-- ⚙️ Settings Panel (hidden by default) -->
-<aside class="settings-panel hidden" id="settingsPanel">
-  <h3>Settings</h3>
+  <!-- ⚙️ Settings Button -->
+  <button id="settingsBtn" class="settings-btn">⚙️</button>
 
-  <div class="setting-item">
-    <label>Text Size</label>
-    <select>
-      <option>Small</option>
-      <option selected>Medium</option>
-      <option>Large</option>
-    </select>
-  </div>
+  <!-- ⚙️ Settings Panel -->
+  <aside class="settings-panel" id="settingsPanel">
+    <h3>Settings</h3>
 
-  <div class="setting-item">
-    <label>Theme</label>
-    <select>
-      <option>Light</option>
-      <option>Dark</option>
-    </select>
-  </div>
+    <div class="setting-item">
+      <label>Text Size</label>
+      <select>
+        <option>Small</option>
+        <option selected>Medium</option>
+        <option>Large</option>
+      </select>
+    </div>
 
-  <div class="setting-item">
-    <label>Language</label>
-    <select>
-      <option>English</option>
-      <option>Hindi</option>
-      <option>Other</option>
-    </select>
-  </div>
-</aside>
+    <div class="setting-item">
+      <label>Theme</label>
+      <select id="themeSelect">
+        <option>Light</option>
+        <option>Dark</option>
+      </select>
+    </div>
 
-  <script src="../static/js/auth.js"></script>
+    <div class="setting-item">
+      <label>Language</label>
+      <select>
+        <option>English</option>
+        <option>Hindi</option>
+        <option>Other</option>
+      </select>
+    </div>
+  </aside>
+
+  <script src="../static/js/jsauth.js"></script>
 </body>
 </html>
