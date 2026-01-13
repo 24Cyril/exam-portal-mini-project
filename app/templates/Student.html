@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="../static/css/student.css">
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>Student Panel</h2>
+    <ul>
+        <li onclick="openTab('profile')">👤 Profile</li>
+        <li onclick="openTab('courses')">📚 Courses</li>
+        <li onclick="openTab('notes')">📄 Notes</li>
+        <li onclick="openTab('exam')">📝 Exam</li>
+        <li onclick="openTab('result')">📊 Result</li>
+        <li onclick="openTab('certificate')">🏅 Certificate</li>
+        <li onclick="openTab('messages')">💬 Messages</li>
+        <li onclick="openTab('notifications')">🔔 Notifications</li>
+        <li onclick="openTab('register')">🧾 Registration</li>
+        <li onclick="openTab('payment')">💳 Payment</li>
+        <li onclick="openTab('settings')">⚙️ Settings</li>
+        <li><a href="/logout">🚪 Logout</a></li>
+    </ul>
+</div>
+
+<div class="content">
+    <h2 id="page-title">Dashboard</h2>
+    <div id="tab-content">Welcome to Student Dashboard</div>
+</div>
+
+<script src="student.js"></script>
+</body>
+</html>
