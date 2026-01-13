@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Exam Portal | Home</title>
   <link rel="stylesheet" href="../static/css/style.css">
 </head>
@@ -15,9 +16,7 @@
 
   <!-- 🟡 Urgent Scrolling Message -->
   <section class="urgent-bar">
-    <div class="urgent-text">
-      ⚠️ Urgent: Final year mock exam starts tomorrow at 9 AM. Please be prepared.
-    </div>
+    <marquee>⚠️ Urgent: Final year mock exam starts tomorrow at 9 AM. Please be prepared.</marquee>
   </section>
 
   <!-- 🧭 Main Content -->
@@ -40,22 +39,27 @@
 
       <!-- 🔹 Login Tabs -->
       <div class="login-tabs">
-        <button class="tab active" onclick="setRole('student')">Student Login</button>
-        <button class="tab" onclick="setRole('admin')">Admin Login</button>
+        <button type="button" class="tab active" onclick="setRole('student')">
+          Student Login
+        </button>
+        <button type="button" class="tab" onclick="setRole('admin')">
+          Admin Login
+        </button>
       </div>
-      
-      <input type="hidden" id="role" value="student">
-      
+
       <!-- 🔐 Login Form -->
-      <form id="loginForm" class="login-form">
+      <form class="login-form" method="POST" action="/login">
+
+        <input type="hidden" name="role" id="role" value="student">
+
         <div class="form-group">
           <label for="username">Username</label>
-          <input type="text" id="username" required>
+          <input type="text" id="username" name="username" required>
         </div>
 
         <div class="form-group">
           <label for="password">Password</label>
-          <input type="password" id="password" required>
+          <input type="password" id="password" name="password" required>
         </div>
 
         <button type="submit">Login</button>
@@ -64,50 +68,45 @@
           <a href="#">Forgot Password?</a>
           <a href="register.html">Sign Up</a>
         </div>
-        <form method="POST" action="/login">
-          <input type="text" name="username" required>
-          <input type="password" name="password" required>
-          <input type="hidden" name="role" id="role" value="student">
-          <button type="submit">Login</button>
-        </form>
-        
+
       </form>
-
     </section>
+
   </main>
-<!-- ⚙️ Settings Button -->
-<button id="settingsBtn" class="settings-btn">⚙️</button>
 
-<!-- ⚙️ Settings Panel (hidden by default) -->
-<aside class="settings-panel hidden" id="settingsPanel">
-  <h3>Settings</h3>
+  <!-- ⚙️ Settings Button -->
+  <button id="settingsBtn" class="settings-btn" aria-label="Settings">⚙️</button>
 
-  <div class="setting-item">
-    <label>Text Size</label>
-    <select>
-      <option>Small</option>
-      <option selected>Medium</option>
-      <option>Large</option>
-    </select>
-  </div>
+  <!-- ⚙️ Settings Panel -->
+  <aside class="settings-panel hidden" id="settingsPanel">
+    <h3>Settings</h3>
 
-  <div class="setting-item">
-    <label>Theme</label>
-    <select>
-      <option>Light</option>
-      <option>Dark</option>
-    </select>
-  </div>
+    <div class="setting-item">
+      <label for="textSize">Text Size</label>
+      <select id="textSize">
+        <option>Small</option>
+        <option selected>Medium</option>
+        <option>Large</option>
+      </select>
+    </div>
 
-  <div class="setting-item">
-    <label>Language</label>
-    <select>
-      <option>English</option>
-      <option>Hindi</option>
-      <option>Other</option>
-    </select>
-  </div>
-</aside>
+    <div class="setting-item">
+      <label for="theme">Theme</label>
+      <select id="theme">
+        <option>Light</option>
+        <option>Dark</option>
+      </select>
+    </div>
+
+    <div class="setting-item">
+      <label for="language">Language</label>
+      <select id="language">
+        <option>English</option>
+        <option>Hindi</option>
+        <option>Other</option>
+      </select>
+    </div>
+  </aside>
 
   <script src="../static/js/auth.js"></script>
 </body>
