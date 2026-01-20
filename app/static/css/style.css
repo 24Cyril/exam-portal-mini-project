@@ -151,7 +151,7 @@ input {
 
 .settings-panel {
   position: fixed;
-  right: 20px;
+  left: 20px;
   bottom: 70px; /* a bit above the button */
   width: 240px;
   background: #ffffff;
@@ -203,7 +203,7 @@ input {
 /* SETTINGS BUTTON */
 .settings-btn {
   position: fixed;
-  right: 20px;
+  left: 20px;
   bottom: 20px;
   width: 48px;
   height: 48px;
