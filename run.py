@@ -93,6 +93,14 @@ def student_dashboard():
 def admin_dashboard():
     return render_template("admin.html")
 
+
+ 
+@app.route("/editpro")
+def student_dashboard():
+    return render_template("editpro.html")
+
+
+
 # -------------------------------
 # RUN SERVER
 # -------------------------------
