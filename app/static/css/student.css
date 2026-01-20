@@ -1,9 +1,122 @@
-body {margin:0; display:flex; font-family:Arial; background:#f2f5ff;}
+body {
+    margin: 0;
+    display: flex;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #eef1ff;
+}
+
+/* Sidebar */
 .sidebar {
-    width: 250px; background:#263159; color:white; height:100vh; padding:20px;
+    width: 260px;
+    background: #1f2a56;
+    color: white;
+    height: 100vh;
+    padding: 20px;
 }
+
+.sidebar ul {
+    padding: 0;
+}
+
 .sidebar ul li {
-    list-style:none; margin:10px 0; cursor:pointer; padding:8px; border-radius:5px;
+    list-style: none;
+    margin: 10px 0;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 6px;
 }
-.sidebar ul li:hover {background:#435681;}
-.content {padding:30px; flex:1;}
+
+.sidebar ul li:hover {
+    background: #3a4db7;
+}
+
+.sidebar a {
+    color: white;
+    text-decoration: none;
+}
+
+/* Content */
+.content {
+    padding: 30px;
+    flex: 1;
+}
+
+/* Profile Layout */
+.profile-wrapper {
+    display: flex;
+    gap: 25px;
+    flex-wrap: wrap;
+}
+
+.profile-left {
+    width: 260px;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+.profile-left img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
+.profile-left h3 {
+    margin: 8px 0;
+}
+
+.profile-right {
+    flex: 1;
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+.profile-section {
+    margin-bottom: 25px;
+}
+
+.profile-section h4 {
+    border-bottom: 2px solid #3a4db7;
+    padding-bottom: 5px;
+    color: #3a4db7;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.profile-item label {
+    font-weight: bold;
+    color: #333;
+}
+
+.profile-item span {
+    color: #555;
+}
+
+.profile-actions {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.profile-actions button {
+    padding: 10px 16px;
+    background: #263159;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.profile-actions button:hover {
+    background: #435681;
+}
