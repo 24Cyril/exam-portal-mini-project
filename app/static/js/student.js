@@ -1,6 +1,20 @@
+// ===============================
+// TAB SWITCH HANDLER
+// ===============================
 function openTab(tabName) {
+    // Update title
     document.getElementById("page-title").innerText = tabName.toUpperCase();
 
+    // Remove active from all tabs
+    document.querySelectorAll(".sidebar li").forEach(tab => {
+        tab.classList.remove("active");
+    });
+
+    // Add active to selected tab
+    const activeTab = document.getElementById(`tab-${tabName}`);
+    if (activeTab) activeTab.classList.add("active");
+
+    // Load content
     if (tabName === "profile") {
         loadProfile();
     } else {
@@ -8,6 +22,10 @@ function openTab(tabName) {
             `<h3>${tabName} section coming soon...</h3>`;
     }
 }
+
+// ===============================
+// LOAD PROFILE CONTENT
+// ===============================
 function loadProfile() {
     document.getElementById("tab-content").innerHTML = `
         <div class="profile-wrapper">
@@ -63,15 +81,18 @@ function loadProfile() {
                     </div>
                 </div>
 
-             <div class="profile-actions">
-    <a href="editpro.html" class="edit-btn">➕ Add / Edit Profile</a>
-</div>
+                <div class="profile-actions">
+                    <a href="/editpro" class="edit-btn">➕ Add / Edit Profile</a>
+                </div>
 
             </div>
         </div>
     `;
 }
 
-function goToEditProfile() {
-    window.location.href = "/editpro";
-}
+// ===============================
+// AUTO LOAD PROFILE ON PAGE LOAD
+// ===============================
+document.addEventListener("DOMContentLoaded", () => {
+    openTab("profile");
+});
