@@ -39,6 +39,12 @@ function openTab(tabName) {
                 <tr><td>Password Status</td><td>Encrypted</td></tr>
                 <tr><td>Session Status</td><td>Active</td></tr>
             </table>
+            <div style="margin-bottom: 15px;">
+    <a href="admin_update_profile.html" class="update-btn">
+        ✏️ Update Profile
+    </a>
+</div>
+
 
         </div>`;
     }
