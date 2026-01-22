@@ -15,9 +15,14 @@ while administrators can manage exams, questions, and evaluations.
 - Python
 - Flask
 - HTML, CSS, JavaScript
-- SQLite (for development)
+- Mysql (for development)
 
 ## Team
 - Team Leader: Cyril Poly
 - Team Members: Soundharya Gangadharan
 - Team Members: Vismaya k R
+
+## Branches
+- cyril - subbranch
+- soundharay - newbranch
+- vismaya - testbranch
