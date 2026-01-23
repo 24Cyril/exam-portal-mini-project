@@ -37,19 +37,21 @@ def register():
         db = get_db_connection()
         cursor = db.cursor()
 
-        cursor.execute(
-            "INSERT INTO users (username, password, role) VALUES (%s, %s, %s)",
-            (username, hashed_password, role)
-        )
-        db.commit()
-
-        cursor.close()
-        db.close()
+        try:
+            cursor.execute(
+                "INSERT INTO users(username, password, role) VALUES(%s, %s, %s)",
+                (username, hashed_password, role)
+            )
+            db.commit()
+        except mysql.connector.Error as err:
+            return f"MySQL Error: {err}"
+        finally:
+            cursor.close()
+            db.close()
 
         return redirect("/")
 
     return render_template("register.html")
-
 # -------------------------------
 # LOGIN
 # -------------------------------
