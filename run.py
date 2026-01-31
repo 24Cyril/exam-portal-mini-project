@@ -1,10 +1,17 @@
 from flask import Flask, request, redirect, render_template, session
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
+
 from admin import get_admin_profile_by_username, update_admin_profile
+from student import (
+    get_student_profile,
+    create_student_profile,
+    update_student_profile
+)
 
 app = Flask(__name__, template_folder="app/templates", static_folder="app/static")
 app.secret_key = "secret123"
+
 
 # -------------------------------
 # DATABASE CONNECTION
@@ -17,12 +24,14 @@ def get_db_connection():
         database="project"
     )
 
+
 # -------------------------------
 # HOME
 # -------------------------------
 @app.route("/")
 def home():
     return render_template("index.html")
+
 
 # -------------------------------
 # REGISTER
@@ -32,27 +41,34 @@ def register():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-        fname=request.form["fname"]
-        email=request.form["email"]
-        role = request.form["role"]
+        role = request.form["role"].lower()
+        email = request.form.get("email")   # ✅ EMAIL FROM FORM
 
         hashed_password = generate_password_hash(password)
 
         db = get_db_connection()
-        cursor = db.cursor(dictionary=True)
+        cursor = db.cursor()
 
-        # insert into users
+        # users table
         cursor.execute(
             "INSERT INTO users (username, password, role) VALUES (%s, %s, %s)",
             (username, hashed_password, role)
         )
+        user_id = cursor.lastrowid
 
-        # auto-create admin profile
-        if role.lower() == "admin":
+        # ---------------- ADMIN PROFILE AUTO-CREATE ----------------
+        if role == "admin":
             cursor.execute(
-                "INSERT INTO admin (username, password_hash, role,full_name,email) VALUES (%s, %s, %s,%s,%s)",
-                (username, hashed_password, "Admin",fname,email)
+                """
+                INSERT INTO admin (username, password_hash, role, full_name, email)
+                VALUES (%s, %s, %s, %s, %s)
+                """,
+                (username, hashed_password, "admin", username, email)
             )
+
+        # ---------------- STUDENT PROFILE AUTO-CREATE ----------------
+        if role == "student":
+            create_student_profile(cursor, user_id, email)
 
         db.commit()
         cursor.close()
@@ -61,6 +77,7 @@ def register():
         return redirect("/")
 
     return render_template("register.html")
+
 
 # -------------------------------
 # LOGIN
@@ -79,64 +96,78 @@ def login():
     cursor.close()
     db.close()
 
-    if not user:
-        return "User not found"
+    if not user or not check_password_hash(user["password"], password):
+        return "Invalid credentials"
 
-    if not check_password_hash(user["password"], password):
-        return "Incorrect password"
-
+    session["user_id"] = user["id"]
     session["username"] = user["username"]
     session["role"] = user["role"]
 
     if user["role"] == "admin":
         return redirect("/admin")
+
     return redirect("/student")
+
 
 # -------------------------------
 # ADMIN DASHBOARD
 # -------------------------------
 @app.route("/admin")
 def admin_dashboard():
-    if "username" not in session or session["role"] != "admin":
+    if "user_id" not in session or session["role"] != "admin":
         return redirect("/")
 
     admin = get_admin_profile_by_username(session["username"])
     return render_template("admin.html", admin=admin)
 
 
- 
-@app.route("/editpro")
+# -------------------------------
+# STUDENT DASHBOARD
+# -------------------------------
+@app.route("/student")
 def student_dashboard():
-    return render_template("editpro.html")
-
-
-
-# -------------------------------
-# UPDATE ADMIN PROFILE
-# -------------------------------
-@app.route("/admin/update", methods=["GET", "POST"])
-def admin_update():
-    if "username" not in session or session["role"] != "admin":
+    if "user_id" not in session or session["role"] != "student":
         return redirect("/")
 
-    admin = get_admin_profile_by_username(session["username"])
+    student = get_student_profile(session["user_id"])
+    return render_template("student.html", student=student)
 
-    if request.method == "POST":
-        data = {
-            "full_name": request.form["full_name"],
-            "dob": request.form["dob"],
-            "gender": request.form["gender"],
-            "contact_number": request.form["contact_number"],
-            "email": request.form["email"],
-            "institute_name": request.form["institute_name"],
-            "institute_code": request.form["institute_code"],
-            "institute_email": request.form["institute_email"]
-        }
 
-        update_admin_profile(session["username"], data)
-        return redirect("/admin")
+# -------------------------------
+# SAVE STUDENT PROFILE (AJAX)
+# -------------------------------
+@app.route("/save-profile", methods=["POST"])
+def save_student_profile():
+    if "user_id" not in session or session["role"] != "student":
+        return "Unauthorized"
 
-    return render_template("admin_update_profile.html", admin=admin)
+    data = {
+        "full_name": request.form.get("full_name"),
+        "age": request.form.get("age"),
+        "gender": request.form.get("gender"),
+        "email": request.form.get("email"),  # still editable later
+        "phone": request.form.get("phone"),
+        "address": request.form.get("address"),
+        "course": request.form.get("course"),
+        "department": request.form.get("department"),
+        "institute_name": request.form.get("institute_name"),
+        "year_of_study": request.form.get("year_of_study")
+    }
+
+    update_student_profile(session["user_id"], data)
+    return "Profile saved successfully"
+
+
+# -------------------------------
+# EDIT STUDENT PROFILE PAGE
+# -------------------------------
+@app.route("/editpro")
+def edit_student_profile_page():
+    if "user_id" not in session or session["role"] != "student":
+        return redirect("/")
+
+    return render_template("editpro.html")
+
 
 # -------------------------------
 # LOGOUT
@@ -145,6 +176,7 @@ def admin_update():
 def logout():
     session.clear()
     return redirect("/")
+
 
 # -------------------------------
 # RUN
