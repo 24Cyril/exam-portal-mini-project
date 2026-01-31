@@ -2,19 +2,30 @@
 // TAB SWITCH HANDLER
 // ===============================
 function openTab(tabName) {
-    // Update title
+
     document.getElementById("page-title").innerText = tabName.toUpperCase();
 
-    // Remove active from all tabs
     document.querySelectorAll(".sidebar li").forEach(tab => {
         tab.classList.remove("active");
     });
+if (tabName === "home") {
+    document.getElementById("tab-content").innerHTML = `
+        <h3>Student Dashboard</h3>
+        <p>Welcome to the online exam portal.</p>
 
-    // Add active to selected tab
+        <div style="display:flex; gap:15px; flex-wrap:wrap;">
+            <button class="edit-btn">My Courses</button>
+            <button class="edit-btn">Upcoming Exams</button>
+            <button class="edit-btn">Results</button>
+            <button class="edit-btn">Payments</button>
+        </div>
+    `;
+    return;
+}
+
     const activeTab = document.getElementById(`tab-${tabName}`);
     if (activeTab) activeTab.classList.add("active");
 
-    // Load content
     if (tabName === "profile") {
         loadProfile();
     } else {
@@ -27,65 +38,50 @@ function openTab(tabName) {
 // LOAD PROFILE CONTENT
 // ===============================
 function loadProfile() {
+
+    const data = studentData || {};
+
     document.getElementById("tab-content").innerHTML = `
-        <div class="profile-wrapper">
+        <div class="admin-profile">
 
-            <div class="profile-left">
-                <img src="../static/images/profile.png" alt="Profile">
-                <h3>Student Profile</h3>
-                <p>Profile details not added</p>
+            <h3>Student Profile</h3>
+
+            <!-- PERSONAL DETAILS -->
+            <h4>Personal Details</h4>
+            <table class="profile-table">
+                <tr><td>Full Name</td><td>${data.full_name || ""}</td></tr>
+                <tr><td>Age</td><td>${data.age || ""}</td></tr>
+                <tr><td>Gender</td><td>${data.gender || ""}</td></tr>
+            </table>
+
+            <!-- ACADEMIC DETAILS -->
+            <h4>Academic Details</h4>
+            <table class="profile-table">
+                <tr><td>Course</td><td>${data.course || ""}</td></tr>
+                <tr><td>Department</td><td>${data.department || ""}</td></tr>
+                <tr><td>Year of Study</td><td>${data.year_of_study || ""}</td></tr>
+                <tr><td>Institute Name</td><td>${data.institute_name || ""}</td></tr>
+            </table>
+
+            <!-- CONTACT DETAILS -->
+            <h4>Contact Details</h4>
+            <table class="profile-table">
+                <tr><td>Email</td><td>${data.email || ""}</td></tr>
+                <tr><td>Phone</td><td>${data.phone || ""}</td></tr>
+                <tr><td>Address</td><td>${data.address || ""}</td></tr>
+            </table>
+
+            <!-- SYSTEM DETAILS -->
+            <h4>System Information</h4>
+            <table class="profile-table">
+                <tr><td>Profile Created</td><td>${data.created_at || "-"}</td></tr>
+                <tr><td>Last Updated</td><td>${data.updated_at || "-"}</td></tr>
+            </table>
+
+            <div style="margin-top:15px;">
+                <a href="/editpro" class="update-btn">✏️ Update Profile</a>
             </div>
 
-            <div class="profile-right">
-
-                <div class="profile-section">
-                    <h4>Personal Details</h4>
-                    <div class="profile-grid">
-                        <div class="profile-item"><label>First Name</label><span></span></div>
-                        <div class="profile-item"><label>Last Name</label><span></span></div>
-                        <div class="profile-item"><label>Date of Birth</label><span></span></div>
-                        <div class="profile-item"><label>Age</label><span></span></div>
-                        <div class="profile-item"><label>Gender</label><span></span></div>
-                        <div class="profile-item"><label>Blood Group</label><span></span></div>
-                    </div>
-                </div>
-
-                <div class="profile-section">
-                    <h4>Academic Details</h4>
-                    <div class="profile-grid">
-                        <div class="profile-item"><label>Course</label><span></span></div>
-                        <div class="profile-item"><label>Year</label><span></span></div>
-                        <div class="profile-item"><label>Semester</label><span></span></div>
-                        <div class="profile-item"><label>CGPA</label><span></span></div>
-                        <div class="profile-item"><label>Institute Name</label><span></span></div>
-                    </div>
-                </div>
-
-                <div class="profile-section">
-                    <h4>Contact Details</h4>
-                    <div class="profile-grid">
-                        <div class="profile-item"><label>Email</label><span></span></div>
-                        <div class="profile-item"><label>Phone</label><span></span></div>
-                        <div class="profile-item"><label>Address</label><span></span></div>
-                        <div class="profile-item"><label>District</label><span></span></div>
-                    </div>
-                </div>
-
-                <div class="profile-section">
-                    <h4>Guardian Details</h4>
-                    <div class="profile-grid">
-                        <div class="profile-item"><label>Guardian Name</label><span></span></div>
-                        <div class="profile-item"><label>Relation</label><span></span></div>
-                        <div class="profile-item"><label>Contact</label><span></span></div>
-                        <div class="profile-item"><label>Occupation</label><span></span></div>
-                    </div>
-                </div>
-
-                <div class="profile-actions">
-                    <a href="/editpro" class="edit-btn">➕ Add / Edit Profile</a>
-                </div>
-
-            </div>
         </div>
     `;
 }
@@ -94,5 +90,5 @@ function loadProfile() {
 // AUTO LOAD PROFILE ON PAGE LOAD
 // ===============================
 document.addEventListener("DOMContentLoaded", () => {
-    openTab("profile");
+    openTab("home");
 });

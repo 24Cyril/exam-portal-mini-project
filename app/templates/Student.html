@@ -10,7 +10,8 @@
 <div class="sidebar">
     <h2>Student Panel</h2>
     <ul>
-        <li id="tab-profile" class="active" onclick="openTab('profile')">👤 Profile</li>
+<li id="tab-home" onclick="openTab('home')">🏠 Home</li>
+<li id="tab-profile" onclick="openTab('profile')">👤 Profile</li>
         <li id="tab-courses" onclick="openTab('courses')">📚 Courses</li>
         <li id="tab-notes" onclick="openTab('notes')">📄 Notes</li>
         <li id="tab-exam" onclick="openTab('exam')">📝 Exam</li>
@@ -28,6 +29,11 @@
     <h2 id="page-title">PROFILE</h2>
     <div id="tab-content"></div>
 </div>
+
+<!-- 🔒 Inject student data from backend -->
+<script>
+    const studentData = {{ student | tojson }};
+</script>
 
 <script src="../static/js/student.js"></script>
 </body>
