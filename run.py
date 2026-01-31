@@ -103,6 +103,14 @@ def admin_dashboard():
     admin = get_admin_profile_by_username(session["username"])
     return render_template("admin.html", admin=admin)
 
+
+ 
+@app.route("/editpro")
+def student_dashboard():
+    return render_template("editpro.html")
+
+
+
 # -------------------------------
 # UPDATE ADMIN PROFILE
 # -------------------------------
