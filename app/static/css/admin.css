@@ -1,62 +1,73 @@
-body {
+* {
     margin: 0;
-    display: flex;
-    font-family: Arial, sans-serif;
-    background: #eef1ff;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
 }
 
+body {
+    display: flex;
+    background: #f4f6fb;
+}
+
+/* ===== SIDEBAR ===== */
 .sidebar {
-    width: 230px;
-    background: #121536;
-    color: white;
+    width: 240px;
     height: 100vh;
+    background: #0f172a;   /* dark blue */
+    color: #fff;
     padding: 20px;
 }
 
-.sidebar ul {
-    padding: 0;
+.logo {
+    font-size: 22px;
+    margin-bottom: 25px;
 }
 
-.sidebar ul li {
+.nav-list {
     list-style: none;
-    margin: 8px 0;
-    padding: 10px;
+}
+
+.nav-list li {
+    padding: 12px 10px;
+    margin-bottom: 6px;
     cursor: pointer;
     border-radius: 6px;
+    font-size: 15px;
 }
 
-.sidebar ul li:hover {
-    background: #394375;
+.nav-list li:hover {
+    background: #1e293b;
 }
 
-.sidebar ul li a {
+.nav-list li a {
     color: white;
     text-decoration: none;
 }
 
-.content {
-    padding: 30px;
-    width: 100%;
+.logout {
+    margin-top: 20px;
+    background: #1e293b;
 }
 
-#tab-content {
-    margin-top: 20px;
-    background: white;
+/* ===== MAIN CONTENT ===== */
+.main-content {
+    flex: 1;
+    padding: 30px;
+}
+
+#tab-title {
+    font-size: 22px;
+    margin-bottom: 15px;
+}
+
+.card {
+    background: #ffffff;
     padding: 20px;
     border-radius: 8px;
 }
 
-/* ===== Admin Profile Styles ===== */
-
-.admin-profile h3 {
-    margin-bottom: 15px;
-}
-
-.admin-profile h4 {
-    margin-top: 20px;
-    color: #121536;
-}
-
+/* ===== PROFILE TABLE ===== */
 .profile-table {
     width: 100%;
     border-collapse: collapse;
@@ -70,6 +81,33 @@ body {
 
 .profile-table td:first-child {
     width: 30%;
-    font-weight: bold;
-    color: #333;
+    font-weight: 600;
+}
+
+/* ===== UPDATE BUTTON ===== */
+.update-btn {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 8px 14px;
+    background: #0f172a;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.update-btn:hover {
+    background: #1e293b;
+}
+
+/* ===== SEARCH & FILTER ===== */
+.search-box {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.search-box input,
+.search-box select {
+    padding: 8px;
+    width: 200px;
 }

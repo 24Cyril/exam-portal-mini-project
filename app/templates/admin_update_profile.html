@@ -3,49 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <title>Update Admin Profile</title>
-    <link rel="stylesheet" href="../static/css/admin.css">
+    <link rel="stylesheet" href="../static/css/adm.css">
 </head>
 <body>
 
 <div class="content">
     <h2>Update Admin Profile</h2>
 
-    <form action="#" method="post" class="update-form">
+    <!-- IMPORTANT: action points to Flask route -->
+    <form action="/admin/update" method="post" class="update-form">
 
+        <!-- Personal Details -->
         <h4>Personal Details</h4>
+
         <label>Full Name</label>
-        <input type="text" placeholder="Enter full name">
+        <input type="text" name="full_name" value="{{ admin.full_name }}">
 
         <label>Date of Birth</label>
-        <input type="date">
+        <input type="date" name="dob" value="{{ admin.dob }}">
 
         <label>Gender</label>
-        <select>
-            <option>Select</option>
-            <option>Male</option>
-            <option>Female</option>
-            <option>Other</option>
+        <select name="gender">
+            <option value="Male" {% if admin.gender == "Male" %}selected{% endif %}>Male</option>
+            <option value="Female" {% if admin.gender == "Female" %}selected{% endif %}>Female</option>
+            <option value="Other" {% if admin.gender == "Other" %}selected{% endif %}>Other</option>
         </select>
 
         <label>Contact Number</label>
-        <input type="text" placeholder="Enter contact number">
+        <input type="text" name="contact_number" value="{{ admin.contact_number }}">
 
         <label>Email</label>
-        <input type="email" placeholder="Enter email">
+        <input type="email" name="email" value="{{ admin.email }}">
 
+        <!-- Account Information (Read Only) -->
+        <h4>Account Information (Read Only)</h4>
+
+        <label>Admin ID</label>
+        <input type="text" value="{{ admin.admin_id }}" disabled>
+
+        <label>Username</label>
+        <input type="text" value="{{ admin.username }}" disabled>
+
+        <label>Role</label>
+        <input type="text" value="{{ admin.role }}" disabled>
+
+        <label>Account Status</label>
+        <input type="text" value="{{ admin.account_status }}" disabled>
+
+        <!-- Institution Details -->
         <h4>Institution Details</h4>
+
         <label>Institute Name</label>
-        <input type="text" placeholder="Institute name">
+        <input type="text" name="institute_name" value="{{ admin.institute_name }}">
 
         <label>Institute Code</label>
-        <input type="text" placeholder="Institute code">
+        <input type="text" name="institute_code" value="{{ admin.institute_code }}">
 
         <label>Institute Email</label>
-        <input type="email" placeholder="Institute email">
+        <input type="email" name="institute_email" value="{{ admin.institute_email }}">
 
         <div style="margin-top: 20px;">
             <button type="submit">Update Profile</button>
-            <a href="admin.html" style="margin-left: 15px;">Cancel</a>
+            <a href="/admin" style="margin-left: 15px;">Cancel</a>
         </div>
 
     </form>
