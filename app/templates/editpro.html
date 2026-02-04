@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Profile</title>
+  <link rel="stylesheet" href="../static/css/editpro.css">
+</head>
+
+<body>
+
+<div class="profile-container">
+  <h2>Edit Profile</h2>
+
+  <form id="profileForm">
+
+    <h3>Personal Details</h3>
+    <div class="row">
+      <input type="text" name="first_name" placeholder="First Name">
+      <input type="text" name="last_name" placeholder="Last Name">
+    </div>
+
+    <div class="row">
+      <input type="number" name="age" placeholder="Age">
+      <select name="gender">
+        <option value="">Gender</option>
+        <option>Male</option>
+        <option>Female</option>
+        <option>Other</option>
+      </select>
+    </div>
+
+    <h3>Contact Details</h3>
+    <div class="row">
+      <input type="email" name="email" placeholder="Email">
+      <input type="text" name="phone" placeholder="Phone">
+    </div>
+
+    <textarea name="address" placeholder="Address"></textarea>
+
+    <h3>Academic Details</h3>
+    <div class="row">
+      <input type="text" name="course" placeholder="Course">
+      <input type="text" name="department" placeholder="Department">
+    </div>
+
+    <div class="row">
+      <input type="text" name="institute_name" placeholder="Institute Name">
+      <input type="number" name="year_of_study" placeholder="Year of Study">
+    </div>
+
+    <button type="submit">Save Profile</button>
+
+    <p id="statusMsg"></p>
+  </form>
+</div>
+
+<script src="../static/js/editpro.js"></script>
+</body>
+</html>
