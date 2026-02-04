@@ -1,8 +1,17 @@
-from flask import Flask, request, redirect, render_template
+from flask import Flask, request, redirect, render_template, session
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 
+from admin import get_admin_profile_by_username, update_admin_profile
+from student import (
+    get_student_profile,
+    create_student_profile,
+    update_student_profile
+)
+
 app = Flask(__name__, template_folder="app/templates", static_folder="app/static")
+app.secret_key = "secret123"
+
 
 # -------------------------------
 # DATABASE CONNECTION
@@ -11,16 +20,18 @@ def get_db_connection():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="edun",
+        password="Jec@023",
         database="project"
     )
 
+
 # -------------------------------
-# HOME (LOGIN)
+# HOME
 # -------------------------------
 @app.route("/")
 def home():
     return render_template("index.html")
+
 
 # -------------------------------
 # REGISTER
@@ -30,25 +41,43 @@ def register():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-        role = request.form["role"]
+        role = request.form["role"].lower()
+        email = request.form.get("email")   # ✅ EMAIL FROM FORM
 
         hashed_password = generate_password_hash(password)
 
         db = get_db_connection()
         cursor = db.cursor()
 
+        # users table
         cursor.execute(
             "INSERT INTO users (username, password, role) VALUES (%s, %s, %s)",
             (username, hashed_password, role)
         )
-        db.commit()
+        user_id = cursor.lastrowid
 
+        # ---------------- ADMIN PROFILE AUTO-CREATE ----------------
+        if role == "admin":
+            cursor.execute(
+                """
+                INSERT INTO admin (username, password_hash, role, full_name, email)
+                VALUES (%s, %s, %s, %s, %s)
+                """,
+                (username, hashed_password, "admin", username, email)
+            )
+
+        # ---------------- STUDENT PROFILE AUTO-CREATE ----------------
+        if role == "student":
+            create_student_profile(cursor, user_id, email)
+
+        db.commit()
         cursor.close()
         db.close()
 
         return redirect("/")
 
     return render_template("register.html")
+
 
 # -------------------------------
 # LOGIN
@@ -67,34 +96,90 @@ def login():
     cursor.close()
     db.close()
 
-    if not user:
-        return "User not found"
+    if not user or not check_password_hash(user["password"], password):
+        return "Invalid credentials"
 
-    if not check_password_hash(user["password"], password):
-        return "Incorrect password"
+    session["user_id"] = user["id"]
+    session["username"] = user["username"]
+    session["role"] = user["role"]
 
-    # ✅ ROLE BASED REDIRECT
     if user["role"] == "admin":
         return redirect("/admin")
-    else:
-        return redirect("/student")
+
+    return redirect("/student")
+
 
 # -------------------------------
-# STUDENT PAGE
-# -------------------------------
-@app.route("/student")
-def student_dashboard():
-    return render_template("student.html")
-
-# -------------------------------
-# ADMIN PAGE
+# ADMIN DASHBOARD
 # -------------------------------
 @app.route("/admin")
 def admin_dashboard():
-    return render_template("admin.html")
+    if "user_id" not in session or session["role"] != "admin":
+        return redirect("/")
+
+    admin = get_admin_profile_by_username(session["username"])
+    return render_template("admin.html", admin=admin)
+
 
 # -------------------------------
-# RUN SERVER
+# STUDENT DASHBOARD
+# -------------------------------
+@app.route("/student")
+def student_dashboard():
+    if "user_id" not in session or session["role"] != "student":
+        return redirect("/")
+
+    student = get_student_profile(session["user_id"])
+    return render_template("student.html", student=student)
+
+
+# -------------------------------
+# SAVE STUDENT PROFILE (AJAX)
+# -------------------------------
+@app.route("/save-profile", methods=["POST"])
+def save_student_profile():
+    if "user_id" not in session or session["role"] != "student":
+        return "Unauthorized"
+
+    data = {
+        "full_name": request.form.get("full_name"),
+        "age": request.form.get("age"),
+        "gender": request.form.get("gender"),
+        "email": request.form.get("email"),  # still editable later
+        "phone": request.form.get("phone"),
+        "address": request.form.get("address"),
+        "course": request.form.get("course"),
+        "department": request.form.get("department"),
+        "institute_name": request.form.get("institute_name"),
+        "year_of_study": request.form.get("year_of_study")
+    }
+
+    update_student_profile(session["user_id"], data)
+    return "Profile saved successfully"
+
+
+# -------------------------------
+# EDIT STUDENT PROFILE PAGE
+# -------------------------------
+@app.route("/editpro")
+def edit_student_profile_page():
+    if "user_id" not in session or session["role"] != "student":
+        return redirect("/")
+
+    return render_template("editpro.html")
+
+
+# -------------------------------
+# LOGOUT
+# -------------------------------
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/")
+
+
+# -------------------------------
+# RUN
 # -------------------------------
 if __name__ == "__main__":
     app.run(debug=True)
