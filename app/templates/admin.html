@@ -3,30 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>
-       <link rel="stylesheet" href="../static/css/admin.css">
-
+    <link rel="stylesheet" href="../static/css/admin.css">
 </head>
 <body>
 
 <div class="sidebar">
-    <h2>Admin Panel</h2>
-    <ul>
+    <h2 class="logo">Admin Panel</h2>
+    <ul class="nav-list">
+        <li onclick="openTab('home')">🏠 Home</li>
         <li onclick="openTab('profile')">👤 Profile</li>
-        <li onclick="openTab('settings')">⚙️ Settings</li>
-        <li onclick="openTab('permissions')">🛡️ Permissions</li>
-        <li onclick="openTab('reports')">📊 Reports</li>
-        <li onclick="openTab('errors')">❗ Error Logs</li>
-        <li onclick="openTab('messages')">💬 Messages</li>
-        <li onclick="openTab('notifications')">🔔 Notifications</li>
-        <li><a href="/logout">🚪 Logout</a></li>
+        <li onclick="openTab('students')">🎓 Students</li>
+        <li onclick="openTab('courses')">📚 Student Courses</li>
+        <li onclick="openTab('registration')">📝 Registration</li>
+        <li onclick="openTab('exam')">🧪 Exam</li>
+        <li onclick="openTab('result')">📊 Result</li>
+        <li onclick="openTab('payment')">💳 Payment</li>
+        <li class="logout"><a href="/logout">🚪 Logout</a></li>
     </ul>
 </div>
 
-<div class="content">
+<div class="main-content">
     <h2 id="tab-title">Dashboard</h2>
-    <div id="tab-content">Welcome Admin — Select a section to manage the system.</div>
+
+    <!-- PROFILE CONTENT PRE-RENDERED -->
+    <div id="profile-content" style="display:none">
+        <h3>Admin Profile</h3>
+
+        <table class="profile-table">
+            <tr><td>Full Name</td><td>{{ admin.full_name }}</td></tr>
+            <tr><td>Date of Birth</td><td>{{ admin.dob }}</td></tr>
+            <tr><td>Gender</td><td>{{ admin.gender }}</td></tr>
+            <tr><td>Contact Number</td><td>{{ admin.contact_number }}</td></tr>
+            <tr><td>Email</td><td>{{ admin.email }}</td></tr>
+
+            <tr><td>Admin ID</td><td>{{ admin.admin_id }}</td></tr>
+            <tr><td>Username</td><td>{{ admin.username }}</td></tr>
+            <tr><td>Role</td><td>{{ admin.role }}</td></tr>
+            <tr><td>Account Status</td><td>{{ admin.account_status }}</td></tr>
+
+            <tr><td>Institute Name</td><td>{{ admin.institute_name }}</td></tr>
+            <tr><td>Institute Code</td><td>{{ admin.institute_code }}</td></tr>
+            <tr><td>Institute Email</td><td>{{ admin.institute_email }}</td></tr>
+        </table>
+
+        <a href="/admin/update" class="update-btn">✏️ Update Profile</a>
+    </div>
+
+    <div id="tab-content" class="card"></div>
 </div>
 
-<script src="admin.js"></script>
+<script src="../static/js/admin.js"></script>
 </body>
 </html>
