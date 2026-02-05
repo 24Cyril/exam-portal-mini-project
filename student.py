@@ -71,3 +71,35 @@ def update_student_profile(user_id, data):
     db.commit()
     cursor.close()
     db.close()
+# ===============================
+# COURSES (STUDENT SIDE)
+# ===============================
+
+def get_all_courses():
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT 
+            c.course_id,
+            c.course_name,
+            c.course_code,
+            c.description,
+            c.duration,
+            c.fee,
+            c.status,
+            CASE 
+                WHEN sc.id IS NULL THEN 'Not Registered'
+                ELSE 'Registered'
+            END AS registration_status
+        FROM courses c
+        LEFT JOIN student_courses sc
+            ON c.course_id = sc.course_id
+    """)
+
+    courses = cursor.fetchall()
+
+    cursor.close()
+    db.close()
+
+    return courses
