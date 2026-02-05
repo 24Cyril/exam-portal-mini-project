@@ -167,6 +167,71 @@ def edit_student_profile_page():
         return redirect("/")
 
     return render_template("editpro.html")
+@app.route("/admin/students")
+def fetch_students():
+    if "user_id" not in session or session["role"] != "admin":
+        return {"error": "Unauthorized"}
+
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM student")
+
+    students = cursor.fetchall()
+
+    cursor.close()
+    db.close()
+
+    return {"students": students}
+@app.route("/admin/courses")
+def fetch_courses():
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM courses")
+    data = cursor.fetchall()
+
+    cursor.close()
+    db.close()
+    return {"courses": data}
+@app.route("/admin/registrations")
+def fetch_registrations():
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT s.full_name, c.course_name,
+               sc.enrollment_status, sc.payment_status, sc.registered_at
+        FROM student_courses sc
+        JOIN student s ON sc.student_id = s.id
+        JOIN courses c ON sc.course_id = c.course_id
+    """)
+
+    data = cursor.fetchall()
+    cursor.close()
+    db.close()
+
+    return {"registrations": data}
+
+@app.route("/admin/payments")
+def fetch_payments():
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT s.full_name, c.course_name,
+               p.amount, p.payment_method, p.payment_status, p.payment_date
+        FROM payments p
+        JOIN student s ON p.student_id = s.id
+        JOIN courses c ON p.course_id = c.course_id
+    """)
+
+    data = cursor.fetchall()
+    cursor.close()
+    db.close()
+
+    return {"payments": data}
+
 
 
 # -------------------------------
