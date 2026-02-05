@@ -49,7 +49,6 @@ body {
 
 .sidebar li.active {
     background-color: #1e88e5;
-    color: white;
     font-weight: bold;
 }
 
@@ -74,7 +73,7 @@ body {
 }
 
 /* ===============================
-   HOME DASHBOARD
+   DASHBOARD BUTTONS
 ================================ */
 .dashboard-buttons {
     display: flex;
@@ -89,7 +88,6 @@ body {
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 14px;
 }
 
 .dashboard-buttons button:hover {
@@ -97,7 +95,7 @@ body {
 }
 
 /* ===============================
-   PROFILE TABLE (ADMIN STYLE)
+   PROFILE TABLE
 ================================ */
 .profile-table {
     width: 100%;
@@ -120,50 +118,164 @@ body {
     width: 35%;
 }
 
-.profile-table tr:last-child td {
-    border-bottom: none;
-}
-
 /* ===============================
-   BUTTONS
+   COMMON BUTTONS
 ================================ */
-.update-btn {
-    display: inline-block;
-    margin-top: 15px;
-    padding: 10px 18px;
-    background: #1e88e5;
-    color: white;
+.update-btn,
+.edit-btn,
+.attend-btn,
+.result-btn {
+    border: none;
+    padding: 8px 14px;
     border-radius: 6px;
-    text-decoration: none;
-    font-size: 14px;
+    cursor: pointer;
+    color: white;
 }
 
-.update-btn:hover {
+.update-btn,
+.attend-btn {
+    background: #1e88e5;
+}
+
+.update-btn:hover,
+.attend-btn:hover {
     background: #1565c0;
 }
 
 .edit-btn {
-    padding: 10px 16px;
     background: #263159;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
 }
 
 .edit-btn:hover {
     background: #435681;
 }
 
+.result-btn {
+    background: #2e7d32;
+}
+
+.result-btn:hover {
+    background: #1b5e20;
+}
+
 /* ===============================
-   CARD / SECTION BOX
+   CARD
 ================================ */
 .card {
     background: white;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+/* ===============================
+   COURSES
+================================ */
+.course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.course-card {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+}
+
+.course-card img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.course-card h4 {
+    margin: 10px 0 5px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.badge.active {
+    background: #c8e6c9;
+    color: #256029;
+}
+
+.badge.inactive {
+    background: #ffcdd2;
+    color: #b71c1c;
+}
+
+/* ===============================
+   INPUTS
+================================ */
+input,
+select {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+/* ===============================
+   COMMON TABLE (EXAM + RESULT)
+================================ */
+.table-wrapper {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+.common-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.common-table th {
+    background: #1f2a56;
+    color: white;
+    padding: 12px;
+}
+
+.common-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    text-align: center;
+}
+
+.common-table tr:hover {
+    background: #f5f7ff;
+}
+
+/* ===============================
+   STATUS BADGES
+================================ */
+.status,
+.attendance {
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status.done,
+.attendance.yes {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status.pending,
+.attendance.no {
+    background: #fdecea;
+    color: #c82333;
 }
 
 /* ===============================
