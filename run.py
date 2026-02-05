@@ -232,6 +232,24 @@ def fetch_payments():
 
     return {"payments": data}
 
+    
+@app.route("/admin/courses")
+def fetch_courses():
+    if "user_id" not in session or session["role"] != "admin":
+        return {"error": "Unauthorized"}
+
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM courses")
+    courses = cursor.fetchall()
+
+    cursor.close()
+    db.close()
+
+    return {"courses": courses}
+
+
 
 
 # -------------------------------

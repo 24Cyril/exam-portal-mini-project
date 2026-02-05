@@ -121,3 +121,95 @@ body {
     padding: 8px;
     width: 200px;
 }
+
+/* ======================================
+   ADMIN DATA TABLES (ALL TABS)
+====================================== */
+
+.profile-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.profile-table th {
+    background: #0f172a;
+    color: white;
+    padding: 10px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.profile-table th:hover {
+    background: #1e293b;
+}
+
+.profile-table td {
+    padding: 10px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.profile-table tr:nth-child(even) {
+    background: #f8f9ff;
+}
+
+.profile-table tr:hover {
+    background: #eef2ff;
+}
+
+/* ======================================
+   SEARCH + FILTER BAR
+====================================== */
+
+.search-box {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.search-box input {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    width: 240px;
+    outline: none;
+}
+
+.search-box select {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.search-box input:focus,
+.search-box select:focus {
+    border-color: #0f172a;
+}
+
+/* ======================================
+   RESPONSIVE TABLE
+====================================== */
+
+@media (max-width: 900px) {
+    .profile-table {
+        font-size: 12px;
+    }
+
+    .search-box input {
+        width: 100%;
+    }
+}
+
+/* ======================================
+   EMPTY STATE (IF NO DATA)
+====================================== */
+
+.empty-msg {
+    padding: 20px;
+    color: #666;
+    font-style: italic;
+}
+
