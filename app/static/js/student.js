@@ -2,21 +2,19 @@
 // TAB SWITCH HANDLER
 // ===============================
 function openTab(tabName) {
-    // Update title
     document.getElementById("page-title").innerText = tabName.toUpperCase();
 
-    // Remove active from all tabs
     document.querySelectorAll(".sidebar li").forEach(tab => {
         tab.classList.remove("active");
     });
 
-    // Add active to selected tab
     const activeTab = document.getElementById(`tab-${tabName}`);
     if (activeTab) activeTab.classList.add("active");
 
-    // Load content
     if (tabName === "profile") {
         loadProfile();
+    } else if (tabName === "courses") {
+        loadCourses();
     } else {
         document.getElementById("tab-content").innerHTML =
             `<h3>${tabName} section coming soon...</h3>`;
@@ -24,74 +22,119 @@ function openTab(tabName) {
 }
 
 // ===============================
-// LOAD PROFILE CONTENT
+// LOAD PROFILE
 // ===============================
 function loadProfile() {
     document.getElementById("tab-content").innerHTML = `
-        <div class="profile-wrapper">
-
-            <div class="profile-left">
-                <img src="../static/images/profile.png" alt="Profile">
-                <h3>Student Profile</h3>
-                <p>Profile details not added</p>
-            </div>
-
-            <div class="profile-right">
-
-                <div class="profile-section">
-                    <h4>Personal Details</h4>
-                    <div class="profile-grid">
-                        <div class="profile-item"><label>First Name</label><span></span></div>
-                        <div class="profile-item"><label>Last Name</label><span></span></div>
-                        <div class="profile-item"><label>Date of Birth</label><span></span></div>
-                        <div class="profile-item"><label>Age</label><span></span></div>
-                        <div class="profile-item"><label>Gender</label><span></span></div>
-                        <div class="profile-item"><label>Blood Group</label><span></span></div>
-                    </div>
-                </div>
-
-                <div class="profile-section">
-                    <h4>Academic Details</h4>
-                    <div class="profile-grid">
-                        <div class="profile-item"><label>Course</label><span></span></div>
-                        <div class="profile-item"><label>Year</label><span></span></div>
-                        <div class="profile-item"><label>Semester</label><span></span></div>
-                        <div class="profile-item"><label>CGPA</label><span></span></div>
-                        <div class="profile-item"><label>Institute Name</label><span></span></div>
-                    </div>
-                </div>
-
-                <div class="profile-section">
-                    <h4>Contact Details</h4>
-                    <div class="profile-grid">
-                        <div class="profile-item"><label>Email</label><span></span></div>
-                        <div class="profile-item"><label>Phone</label><span></span></div>
-                        <div class="profile-item"><label>Address</label><span></span></div>
-                        <div class="profile-item"><label>District</label><span></span></div>
-                    </div>
-                </div>
-
-                <div class="profile-section">
-                    <h4>Guardian Details</h4>
-                    <div class="profile-grid">
-                        <div class="profile-item"><label>Guardian Name</label><span></span></div>
-                        <div class="profile-item"><label>Relation</label><span></span></div>
-                        <div class="profile-item"><label>Contact</label><span></span></div>
-                        <div class="profile-item"><label>Occupation</label><span></span></div>
-                    </div>
-                </div>
-
-                <div class="profile-actions">
-                    <a href="/editpro" class="edit-btn">➕ Add / Edit Profile</a>
-                </div>
-
-            </div>
-        </div>
+        <p>Profile loaded (same as before)</p>
     `;
 }
 
 // ===============================
-// AUTO LOAD PROFILE ON PAGE LOAD
+// LOAD COURSES
+// ===============================
+function loadCourses() {
+    document.getElementById("tab-content").innerHTML = `
+        <div class="courses-header">
+            <input type="text" id="searchInput" placeholder="Search courses..." onkeyup="searchCourses()">
+            <button onclick="toggleFilter()">🔍 Filter</button>
+        </div>
+
+        <div id="filterPanel" class="filter-panel hidden">
+            <select id="semesterFilter" onchange="applyFilters()">
+                <option value="">All Semesters</option>
+                <option value="1">Semester 1</option>
+                <option value="2">Semester 2</option>
+                <option value="3">Semester 3</option>
+            </select>
+
+            <select id="statusFilter" onchange="applyFilters()">
+                <option value="">All Status</option>
+                <option value="completed">Completed</option>
+                <option value="incomplete">Incomplete</option>
+            </select>
+
+            <select id="registerFilter" onchange="applyFilters()">
+                <option value="">All</option>
+                <option value="registered">Registered</option>
+                <option value="not">Not Registered</option>
+            </select>
+
+            <select id="sortFilter" onchange="applyFilters()">
+                <option value="">Sort</option>
+                <option value="az">A - Z</option>
+            </select>
+        </div>
+
+        <div class="courses-grid" id="coursesGrid"></div>
+    `;
+
+    renderCourses();
+}
+
+// ===============================
+// SAMPLE COURSE DATA
+// ===============================
+const courses = [
+    { name: "Data Structures", sem: "3", status: "completed", registered: true, img: "course1.jpg" },
+    { name: "Database Systems", sem: "3", status: "incomplete", registered: true, img: "course2.jpg" },
+    { name: "Python Programming", sem: "2", status: "completed", registered: false, img: "course3.jpg" },
+    { name: "Web Development", sem: "1", status: "incomplete", registered: true, img: "course4.jpg" }
+];
+
+// ===============================
+// RENDER COURSES
+// ===============================
+function renderCourses(filtered = courses) {
+    const grid = document.getElementById("coursesGrid");
+    grid.innerHTML = "";
+
+    filtered.forEach(course => {
+        grid.innerHTML += `
+            <div class="course-card">
+                <img src="../static/images/${course.img}">
+                <h4>${course.name}</h4>
+                <p>Semester ${course.sem}</p>
+                <span class="${course.status}">${course.status}</span>
+            </div>
+        `;
+    });
+}
+
+// ===============================
+// SEARCH
+// ===============================
+function searchCourses() {
+    const text = document.getElementById("searchInput").value.toLowerCase();
+    const filtered = courses.filter(c => c.name.toLowerCase().includes(text));
+    renderCourses(filtered);
+}
+
+// ===============================
+// FILTER PANEL
+// ===============================
+function toggleFilter() {
+    document.getElementById("filterPanel").classList.toggle("hidden");
+}
+
+function applyFilters() {
+    let result = [...courses];
+
+    const sem = document.getElementById("semesterFilter").value;
+    const status = document.getElementById("statusFilter").value;
+    const reg = document.getElementById("registerFilter").value;
+    const sort = document.getElementById("sortFilter").value;
+
+    if (sem) result = result.filter(c => c.sem === sem);
+    if (status) result = result.filter(c => c.status === status);
+    if (reg) result = result.filter(c => reg === "registered" ? c.registered : !c.registered);
+    if (sort === "az") result.sort((a, b) => a.name.localeCompare(b.name));
+
+    renderCourses(result);
+}
+
+// ===============================
+// DEFAULT LOAD
 // ===============================
 document.addEventListener("DOMContentLoaded", () => {
     openTab("profile");
