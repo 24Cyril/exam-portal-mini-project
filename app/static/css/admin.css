@@ -10,6 +10,16 @@ body {
     background: #f4f6fb;
 }
 
+#studentTable th {
+    cursor: pointer;
+    background: #f1f1f1;
+}
+#studentTable th:hover {
+    background: #ddd;
+}
+
+
+
 /* ===== SIDEBAR ===== */
 .sidebar {
     width: 240px;
