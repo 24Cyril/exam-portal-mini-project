@@ -39,52 +39,35 @@ if (tabName === "home") {
 // ===============================
 // LOAD PROFILE
 // ===============================
+// ===============================
+// LOAD PROFILE CONTENT (ADMIN STYLE)
+// ===============================
 function loadProfile() {
 
     const data = studentData || {};
 
     document.getElementById("tab-content").innerHTML = `
-        <div class="admin-profile">
+        <h3>Student Profile</h3>
 
-            <h3>Student Profile</h3>
+        <table class="profile-table">
+            <tr><td>Full Name</td><td>${data.full_name || "-"}</td></tr>
+            <tr><td>Age</td><td>${data.age || "-"}</td></tr>
+            <tr><td>Gender</td><td>${data.gender || "-"}</td></tr>
 
-            <!-- PERSONAL DETAILS -->
-            <h4>Personal Details</h4>
-            <table class="profile-table">
-                <tr><td>Full Name</td><td>${data.full_name || ""}</td></tr>
-                <tr><td>Age</td><td>${data.age || ""}</td></tr>
-                <tr><td>Gender</td><td>${data.gender || ""}</td></tr>
-            </table>
+            <tr><td>Email</td><td>${data.email || "-"}</td></tr>
+            <tr><td>Phone</td><td>${data.phone || "-"}</td></tr>
+            <tr><td>Address</td><td>${data.address || "-"}</td></tr>
 
-            <!-- ACADEMIC DETAILS -->
-            <h4>Academic Details</h4>
-            <table class="profile-table">
-                <tr><td>Course</td><td>${data.course || ""}</td></tr>
-                <tr><td>Department</td><td>${data.department || ""}</td></tr>
-                <tr><td>Year of Study</td><td>${data.year_of_study || ""}</td></tr>
-                <tr><td>Institute Name</td><td>${data.institute_name || ""}</td></tr>
-            </table>
+            <tr><td>Course</td><td>${data.course || "-"}</td></tr>
+            <tr><td>Department</td><td>${data.department || "-"}</td></tr>
+            <tr><td>Year of Study</td><td>${data.year_of_study || "-"}</td></tr>
+            <tr><td>Institute Name</td><td>${data.institute_name || "-"}</td></tr>
 
-            <!-- CONTACT DETAILS -->
-            <h4>Contact Details</h4>
-            <table class="profile-table">
-                <tr><td>Email</td><td>${data.email || ""}</td></tr>
-                <tr><td>Phone</td><td>${data.phone || ""}</td></tr>
-                <tr><td>Address</td><td>${data.address || ""}</td></tr>
-            </table>
+            <tr><td>Profile Created</td><td>${data.created_at || "-"}</td></tr>
+            <tr><td>Last Updated</td><td>${data.updated_at || "-"}</td></tr>
+        </table>
 
-            <!-- SYSTEM DETAILS -->
-            <h4>System Information</h4>
-            <table class="profile-table">
-                <tr><td>Profile Created</td><td>${data.created_at || "-"}</td></tr>
-                <tr><td>Last Updated</td><td>${data.updated_at || "-"}</td></tr>
-            </table>
-
-            <div style="margin-top:15px;">
-                <a href="/editpro" class="update-btn">✏️ Update Profile</a>
-            </div>
-
-        </div>
+        <a href="/editpro" class="update-btn">✏️ Update Profile</a>
     `;
 }
 
