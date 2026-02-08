@@ -1,16 +1,21 @@
+/* ===============================
+   GLOBAL
+================================ */
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
     display: flex;
     font-family: Arial, Helvetica, sans-serif;
     background: #eef1ff;
-}
-.sidebar li.active {
-    background-color: #1e88e5;
-    color: white;
-    font-weight: bold;
+    color: #222;
 }
 
-/* Sidebar */
+/* ===============================
+   SIDEBAR
+================================ */
 .sidebar {
     width: 260px;
     background: #1f2a56;
@@ -19,109 +24,274 @@ body {
     padding: 20px;
 }
 
+.sidebar h2 {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
 .sidebar ul {
     padding: 0;
+    margin: 0;
 }
 
 .sidebar ul li {
     list-style: none;
-    margin: 10px 0;
+    margin: 8px 0;
     cursor: pointer;
-    padding: 10px;
+    padding: 10px 12px;
     border-radius: 6px;
+    transition: background 0.2s ease;
 }
 
 .sidebar ul li:hover {
     background: #3a4db7;
 }
 
+.sidebar li.active {
+    background-color: #1e88e5;
+    font-weight: bold;
+}
+
 .sidebar a {
     color: white;
     text-decoration: none;
+    display: block;
 }
 
-/* Content */
+/* ===============================
+   MAIN CONTENT
+================================ */
 .content {
     padding: 30px;
     flex: 1;
 }
 
-/* Profile Layout */
-.profile-wrapper {
+#page-title {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #1f2a56;
+}
+
+/* ===============================
+   DASHBOARD BUTTONS
+================================ */
+.dashboard-buttons {
     display: flex;
-    gap: 25px;
+    gap: 15px;
     flex-wrap: wrap;
 }
 
-.profile-left {
-    width: 260px;
-    background: white;
-    padding: 20px;
-    border-radius: 10px;
-    text-align: center;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-}
-
-.profile-left img {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-bottom: 10px;
-}
-
-.profile-left h3 {
-    margin: 8px 0;
-}
-
-.profile-right {
-    flex: 1;
-    background: white;
-    padding: 25px;
-    border-radius: 10px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
-}
-
-.profile-section {
-    margin-bottom: 25px;
-}
-
-.profile-section h4 {
-    border-bottom: 2px solid #3a4db7;
-    padding-bottom: 5px;
-    color: #3a4db7;
-}
-
-.profile-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-}
-
-.profile-item label {
-    font-weight: bold;
-    color: #333;
-}
-
-.profile-item span {
-    color: #555;
-}
-
-.profile-actions {
-    margin-top: 20px;
-    text-align: right;
-}
-
-.profile-actions button {
-    padding: 10px 16px;
-    background: #263159;
+.dashboard-buttons button {
+    padding: 12px 20px;
+    background: #1e88e5;
     color: white;
     border: none;
     border-radius: 6px;
     cursor: pointer;
+}
+
+.dashboard-buttons button:hover {
+    background: #1565c0;
+}
+
+/* ===============================
+   PROFILE TABLE
+================================ */
+.profile-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    margin-top: 15px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.profile-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #ddd;
+}
+
+.profile-table tr td:first-child {
+    font-weight: bold;
+    background: #f5f7ff;
+    width: 35%;
+}
+
+/* ===============================
+   COMMON BUTTONS
+================================ */
+.update-btn,
+.edit-btn,
+.attend-btn,
+.result-btn {
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: white;
+}
+
+.update-btn,
+.attend-btn {
+    background: #1e88e5;
+}
+
+.update-btn:hover,
+.attend-btn:hover {
+    background: #1565c0;
+}
+
+.edit-btn {
+    background: #263159;
+}
+
+.edit-btn:hover {
+    background: #435681;
+}
+
+.result-btn {
+    background: #2e7d32;
+}
+
+.result-btn:hover {
+    background: #1b5e20;
+}
+
+/* ===============================
+   CARD
+================================ */
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+/* ===============================
+   COURSES
+================================ */
+.course-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.course-card {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+}
+
+.course-card img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.course-card h4 {
+    margin: 10px 0 5px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.badge.active {
+    background: #c8e6c9;
+    color: #256029;
+}
+
+.badge.inactive {
+    background: #ffcdd2;
+    color: #b71c1c;
+}
+
+/* ===============================
+   INPUTS
+================================ */
+input,
+select {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+/* ===============================
+   COMMON TABLE (EXAM + RESULT)
+================================ */
+.table-wrapper {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+.common-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
     font-size: 14px;
 }
 
-.profile-actions button:hover {
-    background: #435681;
+.common-table th {
+    background: #1f2a56;
+    color: white;
+    padding: 12px;
+}
+
+.common-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    text-align: center;
+}
+
+.common-table tr:hover {
+    background: #f5f7ff;
+}
+
+/* ===============================
+   STATUS BADGES
+================================ */
+.status,
+.attendance {
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status.done,
+.attendance.yes {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status.pending,
+.attendance.no {
+    background: #fdecea;
+    color: #c82333;
+}
+
+/* ===============================
+   RESPONSIVE
+================================ */
+@media (max-width: 900px) {
+    body {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+    }
+
+    .content {
+        padding: 20px;
+    }
 }
