@@ -1,16 +1,13 @@
+
 from flask import Flask, request, redirect, render_template, session
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from admin import get_admin_profile_by_username, update_admin_profile
-from student import (
+from student import(
     get_student_profile,
     create_student_profile,
     update_student_profile,
-    get_all_courses,
-    edit_student_profile_page,
-    student_courses_api,
-    student_exam_api
 )
 
 app = Flask(__name__, template_folder="app/templates", static_folder="app/static")
@@ -141,6 +138,137 @@ def student_dashboard():
     return render_template("student.html", student=student)
 
 
+
+
+# ===============================
+# COURSES (STUDENT SIDE)
+# ===============================
+@app.route("/api/student/courses")
+def get_all_courses():
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT 
+            c.course_id,
+            c.course_name,
+            c.course_code,
+            c.description,
+            c.duration,
+            c.fee,
+            c.status,
+            CASE 
+                WHEN sc.id IS NULL THEN 'Not Registered'
+                ELSE 'Registered'
+            END AS registration_status
+        FROM courses c
+        LEFT JOIN student_courses sc
+            ON c.course_id = sc.course_id
+    """)
+
+    courses = cursor.fetchall()
+
+    cursor.close()
+    db.close()
+
+    return courses
+
+
+
+# -------------------------------
+# EDIT STUDENT PROFILE PAGE
+# -------------------------------
+@app.route("/editpro", methods=["GET","POST"])
+def edit_student_profile_page():
+    if "user_id" not in session or session["role"] != "student":
+        return redirect("/")
+
+    return render_template("editpro.html")
+
+
+@app.route("/api/student/exams")
+def student_exam_api():
+    if "user_id" not in session:
+        return []
+
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT course_name, exam_date, marks, grade, attended, status
+        FROM exam_results
+        WHERE student_id = %s
+    """, (session["user_id"],))
+
+    data = cursor.fetchall()
+    cursor.close()
+    db.close()
+    return data
+
+
+@app.route("/admin/students")
+def admin_students():
+    if "user_id" not in session or session["role"] != "admin":
+        return {"error": "Unauthorized"}, 401
+
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT
+            s.id,
+            s.full_name,
+            s.email,
+            s.phone,
+            s.gender,
+            s.course,
+            s.department,
+            s.year_of_study,
+            s.institute_name,
+            s.created_at
+        FROM student s
+        ORDER BY s.created_at DESC
+    """)
+
+    students = cursor.fetchall()
+    cursor.close()
+    db.close()
+
+    return {"students": students}
+
+
+
+
+
+@app.route("/admin/courses")
+def admin_courses():
+    if "user_id" not in session or session["role"] != "admin":
+        return {"error": "Unauthorized"}, 401
+
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT
+            course_id,
+            course_name,
+            course_code,
+            duration,
+            fee,
+            status,
+            created_at
+        FROM courses
+        ORDER BY created_at DESC
+    """)
+
+    courses = cursor.fetchall()
+    cursor.close()
+    db.close()
+
+    return {"courses": courses}
+
+
+
 # -------------------------------
 # LOGOUT
 # -------------------------------
@@ -155,3 +283,6 @@ def logout():
 # -------------------------------
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+

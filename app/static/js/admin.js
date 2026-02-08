@@ -2,14 +2,12 @@ function openTab(tabName) {
 
     document.getElementById("tab-title").innerText = tabName.toUpperCase();
 
-    /* ---------- PROFILE ---------- */
     if (tabName === "profile") {
         document.getElementById("tab-content").innerHTML =
             document.getElementById("profile-content").innerHTML;
         return;
     }
 
-    /* ---------- HOME ---------- */
     if (tabName === "home") {
         document.getElementById("tab-content").innerHTML = `
             <h3>Admin Dashboard</h3>
@@ -18,13 +16,11 @@ function openTab(tabName) {
         return;
     }
 
-    /* ---------- STUDENTS ---------- */
     if (tabName === "students") {
         loadStudents();
         return;
     }
 
-    /* ---------- COURSES ---------- */
     if (tabName === "courses") {
         loadCourses();
         return;
