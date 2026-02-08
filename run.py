@@ -7,7 +7,10 @@ from student import (
     get_student_profile,
     create_student_profile,
     update_student_profile,
-    get_all_courses     # ✅ ADD THIS
+    get_all_courses,
+    edit_student_profile_page,
+    student_courses_api,
+    student_exam_api
 )
 
 app = Flask(__name__, template_folder="app/templates", static_folder="app/static")
@@ -24,7 +27,7 @@ def get_db_connection():
         port=3306,
         user="root",
         password="edun",
-        database="project"
+        database="project",
          use_pure=True,
     )
 
@@ -113,6 +116,7 @@ def login():
     return redirect("/student")
 
 
+
 # -------------------------------
 # ADMIN DASHBOARD
 # -------------------------------
@@ -136,72 +140,6 @@ def student_dashboard():
     student = get_student_profile(session["user_id"])
     return render_template("student.html", student=student)
 
-
-# -------------------------------
-# SAVE STUDENT PROFILE (AJAX)
-# -------------------------------
-@app.route("/save-profile", methods=["POST"])
-def save_student_profile():
-    if "user_id" not in session or session["role"] != "student":
-        return "Unauthorized"
-
-    data = {
-        "full_name": request.form.get("full_name"),
-        "age": request.form.get("age"),
-        "gender": request.form.get("gender"),
-        "email": request.form.get("email"),  # still editable later
-        "phone": request.form.get("phone"),
-        "address": request.form.get("address"),
-        "course": request.form.get("course"),
-        "department": request.form.get("department"),
-        "institute_name": request.form.get("institute_name"),
-        "year_of_study": request.form.get("year_of_study")
-    }
-
-    update_student_profile(session["user_id"], data)
-    return "Profile saved successfully"
-
-
-# -------------------------------
-# EDIT STUDENT PROFILE PAGE
-# -------------------------------
-@app.route("/editpro")
-def edit_student_profile_page():
-    if "user_id" not in session or session["role"] != "student":
-        return redirect("/")
-
-    return render_template("editpro.html")
-
-# -------------------------------
-# STUDENT COURSES API
-# -------------------------------
-@app.route("/api/student/courses")
-def student_courses_api():
-    if "user_id" not in session or session["role"] != "student":
-        return {"error": "Unauthorized"}
-
-    courses = get_all_courses()
-    return courses
-@app.route("/api/student/exams")
-def student_exam_api():
-    if "user_id" not in session or session["role"] != "student":
-        return {"error": "Unauthorized"}
-
-    db = get_db_connection()
-    cursor = db.cursor(dictionary=True)
-
-    cursor.execute("""
-        SELECT course_name, exam_date, marks, grade, attended, status
-        FROM exam_results
-        WHERE student_id = %s
-        ORDER BY exam_date DESC
-    """, (session["user_id"],))
-
-    data = cursor.fetchall()
-    cursor.close()
-    db.close()
-
-    return data
 
 # -------------------------------
 # LOGOUT
