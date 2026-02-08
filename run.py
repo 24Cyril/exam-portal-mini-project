@@ -179,6 +179,26 @@ def student_courses_api():
 
     courses = get_all_courses()
     return courses
+@app.route("/api/student/exams")
+def student_exam_api():
+    if "user_id" not in session or session["role"] != "student":
+        return {"error": "Unauthorized"}
+
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT course_name, exam_date, marks, grade, attended, status
+        FROM exam_results
+        WHERE student_id = %s
+        ORDER BY exam_date DESC
+    """, (session["user_id"],))
+
+    data = cursor.fetchall()
+    cursor.close()
+    db.close()
+
+    return data
 
 # -------------------------------
 # LOGOUT
