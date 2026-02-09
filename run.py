@@ -267,6 +267,81 @@ def admin_courses():
 
     return {"courses": courses}
 
+import razorpay
+from flask import Blueprint, request, jsonify
+
+
+razorpay_client = razorpay.Client(auth=("rzp_test_xxxxx", "xxxxx"))
+
+# ---------------------------
+# FETCH STUDENT PAYMENTS
+# ---------------------------
+@app.route("/api/student/payments")
+def student_payments():
+    student_id = session.get("user_id")
+    if not student_id:
+        return jsonify({"error": "Unauthorized"}), 401
+    db = get_db_connection()
+    cur = db.cursor(dictionary=True)
+
+    cur.execute("""
+        SELECT 
+            p.course_id,
+            c.course_name,
+            p.amount,
+            p.payment_method,
+            p.transaction_id,
+            p.payment_status,
+            DATE(p.payment_date) AS payment_date
+        FROM payments p
+        JOIN courses c ON p.course_id = c.course_id
+        WHERE p.student_id = %s
+    """, (student_id,))
+
+    return jsonify(cur.fetchall())
+
+
+
+@app.route("/api/payment/create-order", methods=["POST"])
+def create_order():
+    data = request.json
+    amount = int(float(data["amount"]) * 100)
+
+    order = razorpay_client.order.create({
+        "amount": amount,
+        "currency": "INR",
+        "payment_capture": 1
+    })
+
+    return jsonify({
+        "order_id": order["id"],
+        "amount": amount,
+        "key": "rzp_test_xxxxx"
+    })
+
+
+@app.route("/api/payment/verify", methods=["POST"])
+def verify_payment():
+    data = request.json
+
+    payment_id = data["razorpay_payment_id"]
+    order_id = data["razorpay_order_id"]
+
+    db = get_db_connection()
+    cur = db.cursor()
+
+    cur.execute("""
+        UPDATE payments
+        SET 
+            payment_status = 'Verified',
+            payment_method = 'Razorpay',
+            transaction_id = %s
+        WHERE payment_status = 'Pending'
+        LIMIT 1
+    """, (payment_id,))
+
+    db.commit()
+    return jsonify({"status": "success"})
 
 
 # -------------------------------
