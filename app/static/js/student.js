@@ -240,7 +240,107 @@ function loadResults() {
 // CERTIFICATES + PAYMENTS (unchanged)
 // ===============================
 function loadCertificates(){ document.getElementById("tab-content").innerHTML="<h3>Certificates</h3>"; }
-function loadPayments(){ document.getElementById("tab-content").innerHTML="<h3>Payments</h3>"; }
+// ===============================
+// PAYMENTS
+// ===============================
+function loadPayments() {
+
+    fetch("/api/student/payments")
+        .then(res => res.json())
+        .then(data => {
+
+            if (!data.length) {
+                document.getElementById("tab-content").innerHTML =
+                    "<h3>No payment records found</h3>";
+                return;
+            }
+
+            let rows = data.map((p, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${p.course_name}</td>
+                    <td>₹${p.amount}</td>
+                    <td>${p.payment_method || "-"}</td>
+                    <td>${p.transaction_id || "-"}</td>
+                   <td>
+    ${
+        p.payment_status === "Pending"
+        ? `<button class="pay-btn" onclick="payNow(${p.course_id}, ${p.amount})">Pay Now</button>`
+        : `<span class="status done">Verified</span>`
+    }
+</td>
+
+                    <td>${p.payment_date}</td>
+                </tr>
+            `).join("");
+
+            document.getElementById("tab-content").innerHTML = `
+                <div class="table-wrapper">
+                    <h3>Payment History</h3>
+                    <table class="common-table">
+                        <thead>
+                            <tr>
+                                <th>Sl No</th>
+                                <th>Course</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Transaction ID</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            `;
+        })
+        .catch(() => {
+            document.getElementById("tab-content").innerHTML =
+                "<h3>Error loading payments</h3>";
+        });
+}
+
+function payNow(courseId, amount) {
+
+    fetch("/api/payment/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ course_id: courseId, amount: amount })
+    })
+    .then(res => res.json())
+    .then(order => {
+
+        const options = {
+            key: order.key, // Razorpay TEST key
+            amount: order.amount,
+            currency: "INR",
+            name: "Exam Portal",
+            description: "Course Registration Fee",
+            order_id: order.order_id,
+
+            handler: function (response) {
+                fetch("/api/payment/verify", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(response)
+                }).then(() => {
+                    alert("Payment Successful!");
+                    loadPayments();
+                });
+            }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+    });
+}
+
+
+
+
+
+
+
 
 // ===============================
 // DEFAULT LOAD

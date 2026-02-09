@@ -74,3 +74,26 @@ INSERT INTO exam_results (
     'Attended',
     'Pass'
 );
+
+
+INSERT INTO payments (
+    student_id,
+    course_id,
+    amount,
+    payment_status
+)
+VALUES (
+    1,        -- student id
+    1,        -- course id
+    5000.00,  -- amount
+    'Pending'
+);
+
+
+card :
+
+4242 4242 4242 4242
+exp : 12/25
+cvv : 123
+
+otp: 123456
