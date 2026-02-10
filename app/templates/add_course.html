@@ -1,7 +1,14 @@
-<form method="post" action="/admin/add-course">
-<input name="course_name" placeholder="Course Name">
-<input name="course_code" placeholder="Course Code">
-<input name="duration" placeholder="Duration">
-<input name="fee" placeholder="Fee">
-<button>Add Course</button>
-</form>
+<link rel="stylesheet" href="../static/css/course_form.css">
+
+<div class="course-form-container">
+    <h2>Add New Course</h2>
+
+    <form method="post" action="/admin/add-course">
+        <input name="course_name" placeholder="Course Name" required>
+        <input name="course_code" placeholder="Course Code" required>
+        <input name="duration" placeholder="Duration">
+        <input name="fee" placeholder="Fee" type="number">
+
+        <button>Add Course</button>
+    </form>
+</div>

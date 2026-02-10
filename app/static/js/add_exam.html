@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Add Exam</title>
+<link rel="stylesheet" href="../static/css/admin.css">
+</head>
+<body>
+
+<div class="card" style="max-width:500px;margin:40px auto">
+<h3>Add Exam</h3>
+
+<form method="post" enctype="multipart/form-data">
+<input name="exam_name" placeholder="Exam Name" required><br><br>
+
+<select name="course_id" required>
+{% for c in courses %}
+<option value="{{ c.course_id }}">{{ c.course_name }}</option>
+{% endfor %}
+</select><br><br>
+
+<input type="date" name="exam_date"><br><br>
+<label>Question Paper</label><br>
+<input type="file" name="question_file"><br><br>
+<label>Answer Sheet</label><br>
+<input type="file" name="answer_file"><br><br>
+
+<button type="submit">Save Exam</button>
+</form>
+</div>
+
+</body>
+</html>

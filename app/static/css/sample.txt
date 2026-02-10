@@ -1,0 +1,17 @@
+INSERT INTO exams 
+(exam_name, course_id, exam_date, question_file, answer_file, status)
+VALUES
+('Mid Term Examination', 1, '2026-03-15',
+ 'midterm_cs_qp.pdf', NULL, 'Scheduled'),
+
+('Internal Assessment 1', 2, '2026-02-25',
+ 'ia1_dbms_qp.pdf', NULL, 'Scheduled'),
+
+('Semester Final Exam', 1, '2026-04-20',
+ 'final_cs_qp.pdf', 'final_cs_answers.pdf', 'Completed'),
+
+('Practical Examination', 3, '2026-03-05',
+ 'practical_java_qp.pdf', 'practical_java_ans.pdf', 'Completed'),
+
+('Supplementary Exam', 2, '2026-05-10',
+ 'supp_dbms_qp.pdf', NULL, 'Draft');

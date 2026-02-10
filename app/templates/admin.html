@@ -13,36 +13,40 @@
         <li onclick="openTab('home')">🏠 Home</li>
         <li onclick="openTab('profile')">👤 Profile</li>
         <li onclick="openTab('students')">🎓 Students</li>
-        <li onclick="openTab('courses')">📚 Student Courses</li>
+        <li onclick="openTab('courses')">📚 Courses</li>
         <li onclick="openTab('registration')">📝 Registration</li>
         <li onclick="openTab('exam')">🧪 Exam</li>
         <li onclick="openTab('result')">📊 Result</li>
         <li onclick="openTab('payment')">💳 Payment</li>
+        <li onclick="openTab('student_courses')">📘 Student Courses</li>
+        <li onclick="openTab('question')">📄 Question Papers</li>
+        <li onclick="openTab('sheet')">📝 Answer Sheets</li>
         <li class="logout"><a href="/logout">🚪 Logout</a></li>
     </ul>
 </div>
 
 <div class="main-content">
-<h2 id="tab-title">HOME</h2>
+    <h2 id="tab-title">HOME</h2>
 
-<div id="profile-content" style="display:none">
-<h3>Admin Profile</h3>
-<table class="profile-table">
-<tr><td>Full Name</td><td>{{ admin.full_name }}</td></tr>
-<tr><td>DOB</td><td>{{ admin.dob }}</td></tr>
-<tr><td>Gender</td><td>{{ admin.gender }}</td></tr>
-<tr><td>Contact</td><td>{{ admin.contact_number }}</td></tr>
-<tr><td>Email</td><td>{{ admin.email }}</td></tr>
-<tr><td>Admin ID</td><td>{{ admin.admin_id }}</td></tr>
-<tr><td>Username</td><td>{{ admin.username }}</td></tr>
-<tr><td>Role</td><td>{{ admin.role }}</td></tr>
-<tr><td>Status</td><td>{{ admin.account_status }}</td></tr>
-<tr><td>Institute</td><td>{{ admin.institute_name }}</td></tr>
-</table>
-<a href="/admin/update" class="update-btn">✏️ Update Profile</a>
-</div>
+    <!-- PROFILE -->
+    <div id="profile-content" style="display:none">
+        <h3>Admin Profile</h3>
+        <table class="profile-table">
+            <tr><td>Full Name</td><td>{{ admin.full_name }}</td></tr>
+            <tr><td>DOB</td><td>{{ admin.dob }}</td></tr>
+            <tr><td>Gender</td><td>{{ admin.gender }}</td></tr>
+            <tr><td>Contact</td><td>{{ admin.contact_number }}</td></tr>
+            <tr><td>Email</td><td>{{ admin.email }}</td></tr>
+            <tr><td>Admin ID</td><td>{{ admin.admin_id }}</td></tr>
+            <tr><td>Username</td><td>{{ admin.username }}</td></tr>
+            <tr><td>Role</td><td>{{ admin.role }}</td></tr>
+            <tr><td>Status</td><td>{{ admin.account_status }}</td></tr>
+            <tr><td>Institute</td><td>{{ admin.institute_name }}</td></tr>
+        </table>
+        <a href="/admin/update" class="update-btn">✏️ Update Profile</a>
+    </div>
 
-<div id="tab-content" class="card"></div>
+    <div id="tab-content" class="card"></div>
 </div>
 
 <script src="../static/js/admin.js"></script>
