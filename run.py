@@ -6,7 +6,8 @@ from admin import get_admin_profile_by_username, update_admin_profile
 from student import (
     get_student_profile,
     create_student_profile,
-    update_student_profile
+    update_student_profile,
+    get_all_courses     # ✅ ADD THIS
 )
 
 app = Flask(__name__, template_folder="app/templates", static_folder="app/static")
@@ -17,7 +18,7 @@ def get_db_connection():
     return mysql.connector.connect(
         host="localhost",
         user="root",
-        password="Jec@023",
+        password="123",
         database="project"
     )
 
@@ -136,6 +137,36 @@ def edit_student_profile_page():
         return redirect("/")
     return render_template("editpro.html")
 
+# -------------------------------
+# STUDENT COURSES API
+# -------------------------------
+@app.route("/api/student/courses")
+def student_courses_api():
+    if "user_id" not in session or session["role"] != "student":
+        return {"error": "Unauthorized"}
+
+    courses = get_all_courses()
+    return courses
+@app.route("/api/student/exams")
+def student_exam_api():
+    if "user_id" not in session or session["role"] != "student":
+        return {"error": "Unauthorized"}
+
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT course_name, exam_date, marks, grade, attended, status
+        FROM exam_results
+        WHERE student_id = %s
+        ORDER BY exam_date DESC
+    """, (session["user_id"],))
+
+    data = cursor.fetchall()
+    cursor.close()
+    db.close()
+
+    return data
 
 # ================= ADMIN DATA APIs =================
 
