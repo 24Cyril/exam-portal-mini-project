@@ -240,6 +240,10 @@ function loadResults() {
 // CERTIFICATES + PAYMENTS (unchanged)
 // ===============================
 function loadCertificates(){ document.getElementById("tab-content").innerHTML="<h3>Certificates</h3>"; }
+
+
+
+
 // ===============================
 // PAYMENTS
 // ===============================
@@ -262,14 +266,13 @@ function loadPayments() {
                     <td>₹${p.amount}</td>
                     <td>${p.payment_method || "-"}</td>
                     <td>${p.transaction_id || "-"}</td>
-                   <td>
-    ${
-        p.payment_status === "Pending"
-        ? `<button class="pay-btn" onclick="payNow(${p.course_id}, ${p.amount})">Pay Now</button>`
-        : `<span class="status done">Verified</span>`
-    }
-</td>
-
+                    <td>
+                        ${
+                            p.verification_status === "Pending"
+                            ? `<button class="pay-btn" onclick="submitPayment(${p.course_id})">Submit Payment</button>`
+                            : `<span class="status done">Verified</span>`
+                        }
+                    </td>
                     <td>${p.payment_date}</td>
                 </tr>
             `).join("");
@@ -300,42 +303,22 @@ function loadPayments() {
         });
 }
 
-function payNow(courseId, amount) {
-
-    fetch("/api/payment/create-order", {
+function submitPayment(courseId) {
+    fetch("/api/payment/manual", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ course_id: courseId, amount: amount })
+        body: JSON.stringify({
+            course_id: courseId,
+            payment_method: "UPI",
+            transaction_id: "REF" + Date.now()
+        })
     })
     .then(res => res.json())
-    .then(order => {
-
-        const options = {
-            key: order.key, // Razorpay TEST key
-            amount: order.amount,
-            currency: "INR",
-            name: "Exam Portal",
-            description: "Course Registration Fee",
-            order_id: order.order_id,
-
-            handler: function (response) {
-                fetch("/api/payment/verify", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(response)
-                }).then(() => {
-                    alert("Payment Successful!");
-                    loadPayments();
-                });
-            }
-        };
-
-        const rzp = new Razorpay(options);
-        rzp.open();
+    .then(data => {
+        alert("Payment submitted. Waiting for admin verification.");
+        loadPayments();
     });
 }
-
-
 
 
 

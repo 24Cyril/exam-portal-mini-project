@@ -80,7 +80,7 @@ INSERT INTO payments (
     student_id,
     course_id,
     amount,
-    payment_status
+    verification_status
 )
 VALUES (
     1,        -- student id
