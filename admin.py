@@ -5,7 +5,7 @@ def get_db_connection():
         host="127.0.0.1",
         port=3306,
         user="root",
-        password="edun",
+        password="123",
         database="project",
         use_pure=True,
         connection_timeout=5

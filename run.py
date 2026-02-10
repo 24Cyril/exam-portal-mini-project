@@ -23,7 +23,7 @@ def get_db_connection():
         host="127.0.0.1",
         port=3306,
         user="root",
-        password="edun",
+        password="123",
         database="project",
          use_pure=True,
     )
@@ -267,11 +267,9 @@ def admin_courses():
 
     return {"courses": courses}
 
-import razorpay
 from flask import Blueprint, request, jsonify
 
 
-razorpay_client = razorpay.Client(auth=("rzp_test_xxxxx", "xxxxx"))
 
 # ---------------------------
 # FETCH STUDENT PAYMENTS
@@ -280,7 +278,8 @@ razorpay_client = razorpay.Client(auth=("rzp_test_xxxxx", "xxxxx"))
 def student_payments():
     student_id = session.get("user_id")
     if not student_id:
-        return jsonify({"error": "Unauthorized"}), 401
+        return {"error": "Unauthorized"}, 401
+
     db = get_db_connection()
     cur = db.cursor(dictionary=True)
 
@@ -291,57 +290,44 @@ def student_payments():
             p.amount,
             p.payment_method,
             p.transaction_id,
-            p.payment_status,
+            p.verification_status,
             DATE(p.payment_date) AS payment_date
         FROM payments p
         JOIN courses c ON p.course_id = c.course_id
         WHERE p.student_id = %s
     """, (student_id,))
 
-    return jsonify(cur.fetchall())
+    return cur.fetchall()
 
 
+@app.route("/api/payment/manual", methods=["POST"])
+def manual_payment():
+    if "user_id" not in session:
+        return {"error": "Unauthorized"}, 401
 
-@app.route("/api/payment/create-order", methods=["POST"])
-def create_order():
     data = request.json
-    amount = int(float(data["amount"]) * 100)
-
-    order = razorpay_client.order.create({
-        "amount": amount,
-        "currency": "INR",
-        "payment_capture": 1
-    })
-
-    return jsonify({
-        "order_id": order["id"],
-        "amount": amount,
-        "key": "rzp_test_xxxxx"
-    })
-
-
-@app.route("/api/payment/verify", methods=["POST"])
-def verify_payment():
-    data = request.json
-
-    payment_id = data["razorpay_payment_id"]
-    order_id = data["razorpay_order_id"]
+    student_id = session["user_id"]
 
     db = get_db_connection()
     cur = db.cursor()
 
     cur.execute("""
-        UPDATE payments
-        SET 
-            payment_status = 'Verified',
-            payment_method = 'Razorpay',
-            transaction_id = %s
-        WHERE payment_status = 'Pending'
-        LIMIT 1
-    """, (payment_id,))
+        INSERT INTO payments
+        (student_id, course_id, amount, payment_method, transaction_id)
+        SELECT %s, course_id, fee, %s, %s
+        FROM courses WHERE course_id = %s
+    """, (
+        student_id,
+        data["payment_method"],
+        data.get("transaction_id"),
+        data["course_id"]
+    ))
 
     db.commit()
-    return jsonify({"status": "success"})
+    return {"status": "Payment submitted"}
+
+
+
 
 
 # -------------------------------
