@@ -1,215 +1,149 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Segoe UI", sans-serif;
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Segoe UI,sans-serif;
 }
 
-body {
-    display: flex;
-    background: #f4f6fb;
+body{
+display:flex;
+background:#f4f6fb;
 }
 
-#studentTable th {
-    cursor: pointer;
-    background: #f1f1f1;
-}
-#studentTable th:hover {
-    background: #ddd;
-}
-
-
-
-/* ===== SIDEBAR ===== */
-.sidebar {
-    width: 240px;
-    height: 100vh;
-    background: #0f172a;   /* dark blue */
-    color: #fff;
-    padding: 20px;
+.sidebar{
+width:240px;
+background:#0f172a;
+color:white;
+padding:20px;
+height:100vh;
 }
 
-.logo {
-    font-size: 22px;
-    margin-bottom: 25px;
+.logo{
+font-size:22px;
+margin-bottom:25px;
 }
 
-.nav-list {
-    list-style: none;
+.nav-list{
+list-style:none;
 }
 
-.nav-list li {
-    padding: 12px 10px;
-    margin-bottom: 6px;
-    cursor: pointer;
-    border-radius: 6px;
-    font-size: 15px;
+.nav-list li{
+padding:12px;
+margin-bottom:6px;
+border-radius:6px;
+cursor:pointer;
 }
 
-.nav-list li:hover {
-    background: #1e293b;
+.nav-list li:hover{
+background:#1e293b;
 }
 
-.nav-list li a {
-    color: white;
-    text-decoration: none;
+.logout{
+margin-top:20px;
+background:#1e293b;
 }
 
-.logout {
-    margin-top: 20px;
-    background: #1e293b;
+.nav-list a{
+color:white;
+text-decoration:none;
 }
 
-/* ===== MAIN CONTENT ===== */
-.main-content {
-    flex: 1;
-    padding: 30px;
+.main-content{
+flex:1;
+padding:30px;
 }
 
-#tab-title {
-    font-size: 22px;
-    margin-bottom: 15px;
+#tab-title{
+font-size:22px;
+margin-bottom:15px;
 }
 
-.card {
-    background: #ffffff;
-    padding: 20px;
-    border-radius: 8px;
+.card{
+background:white;
+padding:20px;
+border-radius:8px;
 }
 
-/* ===== PROFILE TABLE ===== */
-.profile-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
+/* tables */
+
+.profile-table{
+width:100%;
+border-collapse:collapse;
+margin-top:15px;
 }
 
-.profile-table td {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
+.profile-table th,
+.profile-table td{
+padding:10px;
+border-bottom:1px solid #ddd;
 }
 
-.profile-table td:first-child {
-    width: 30%;
-    font-weight: 600;
+.profile-table th{
+background:#f1f1f1;
+cursor:pointer;
 }
 
-/* ===== UPDATE BUTTON ===== */
-.update-btn {
-    display: inline-block;
-    margin-top: 15px;
-    padding: 8px 14px;
-    background: #0f172a;
-    color: white;
-    border-radius: 5px;
-    text-decoration: none;
+.profile-table th:hover{
+background:#ddd;
 }
 
-.update-btn:hover {
-    background: #1e293b;
+.update-btn{
+display:inline-block;
+margin-top:15px;
+padding:8px 14px;
+background:#0f172a;
+color:white;
+border-radius:6px;
+text-decoration:none;
 }
 
-/* ===== SEARCH & FILTER ===== */
-.search-box {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
+/* HOME BAR */
+
+.home-tools{
+display:flex;
+gap:12px;
+margin-bottom:25px;
 }
 
-.search-box input,
-.search-box select {
-    padding: 8px;
-    width: 200px;
+.home-tools input,
+.home-tools select{
+padding:8px 12px;
+border-radius:6px;
+border:1px solid #ccc;
+width:180px;
 }
 
-/* ======================================
-   ADMIN DATA TABLES (ALL TABS)
-====================================== */
+/* HOME BUTTONS */
 
-.profile-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-    font-size: 14px;
+.home-row{
+display:flex;
+gap:18px;
 }
 
-.profile-table th {
-    background: #0f172a;
-    color: white;
-    padding: 10px;
-    text-align: left;
-    cursor: pointer;
+.home-box{
+background:#f8fafc;
+padding:18px 26px;
+border-radius:10px;
+min-width:180px;
+box-shadow:0 4px 12px rgba(0,0,0,.08);
+font-weight:600;
+text-align:center;
+cursor:pointer;
 }
 
-.profile-table th:hover {
-    background: #1e293b;
+.home-box:hover{
+background:#eef1ff;
 }
 
-.profile-table td {
-    padding: 10px;
-    border-bottom: 1px solid #e0e0e0;
+/* SEARCH */
+
+.search-box{
+margin-bottom:15px;
 }
 
-.profile-table tr:nth-child(even) {
-    background: #f8f9ff;
+.search-box input{
+padding:8px;
+border:1px solid #ccc;
+border-radius:5px;
+width:220px;
 }
-
-.profile-table tr:hover {
-    background: #eef2ff;
-}
-
-/* ======================================
-   SEARCH + FILTER BAR
-====================================== */
-
-.search-box {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
-}
-
-.search-box input {
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    width: 240px;
-    outline: none;
-}
-
-.search-box select {
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    cursor: pointer;
-}
-
-.search-box input:focus,
-.search-box select:focus {
-    border-color: #0f172a;
-}
-
-/* ======================================
-   RESPONSIVE TABLE
-====================================== */
-
-@media (max-width: 900px) {
-    .profile-table {
-        font-size: 12px;
-    }
-
-    .search-box input {
-        width: 100%;
-    }
-}
-
-/* ======================================
-   EMPTY STATE (IF NO DATA)
-====================================== */
-
-.empty-msg {
-    padding: 20px;
-    color: #666;
-    font-style: italic;
-}
-

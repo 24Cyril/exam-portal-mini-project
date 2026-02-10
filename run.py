@@ -13,9 +13,6 @@ app = Flask(__name__, template_folder="app/templates", static_folder="app/static
 app.secret_key = "secret123"
 
 
-# -------------------------------
-# DATABASE CONNECTION
-# -------------------------------
 def get_db_connection():
     return mysql.connector.connect(
         host="localhost",
@@ -25,63 +22,47 @@ def get_db_connection():
     )
 
 
-# -------------------------------
-# HOME
-# -------------------------------
 @app.route("/")
 def home():
     return render_template("index.html")
 
 
-# -------------------------------
-# REGISTER
-# -------------------------------
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
         role = request.form["role"].lower()
-        email = request.form.get("email")   # ✅ EMAIL FROM FORM
+        email = request.form.get("email")
 
         hashed_password = generate_password_hash(password)
 
         db = get_db_connection()
         cursor = db.cursor()
 
-        # users table
         cursor.execute(
-            "INSERT INTO users (username, password, role) VALUES (%s, %s, %s)",
+            "INSERT INTO users (username, password, role) VALUES (%s,%s,%s)",
             (username, hashed_password, role)
         )
         user_id = cursor.lastrowid
 
-        # ---------------- ADMIN PROFILE AUTO-CREATE ----------------
         if role == "admin":
-            cursor.execute(
-                """
-                INSERT INTO admin (username, password_hash, role, full_name, email)
-                VALUES (%s, %s, %s, %s, %s)
-                """,
-                (username, hashed_password, "admin", username, email)
-            )
+            cursor.execute("""
+                INSERT INTO admin (username,password_hash,role,full_name,email)
+                VALUES (%s,%s,%s,%s,%s)
+            """, (username, hashed_password, "admin", username, email))
 
-        # ---------------- STUDENT PROFILE AUTO-CREATE ----------------
         if role == "student":
             create_student_profile(cursor, user_id, email)
 
         db.commit()
         cursor.close()
         db.close()
-
         return redirect("/")
 
     return render_template("register.html")
 
 
-# -------------------------------
-# LOGIN
-# -------------------------------
 @app.route("/login", methods=["POST"])
 def login():
     username = request.form["username"]
@@ -109,9 +90,6 @@ def login():
     return redirect("/student")
 
 
-# -------------------------------
-# ADMIN DASHBOARD
-# -------------------------------
 @app.route("/admin")
 def admin_dashboard():
     if "user_id" not in session or session["role"] != "admin":
@@ -121,9 +99,6 @@ def admin_dashboard():
     return render_template("admin.html", admin=admin)
 
 
-# -------------------------------
-# STUDENT DASHBOARD
-# -------------------------------
 @app.route("/student")
 def student_dashboard():
     if "user_id" not in session or session["role"] != "student":
@@ -133,9 +108,6 @@ def student_dashboard():
     return render_template("student.html", student=student)
 
 
-# -------------------------------
-# SAVE STUDENT PROFILE (AJAX)
-# -------------------------------
 @app.route("/save-profile", methods=["POST"])
 def save_student_profile():
     if "user_id" not in session or session["role"] != "student":
@@ -145,7 +117,7 @@ def save_student_profile():
         "full_name": request.form.get("full_name"),
         "age": request.form.get("age"),
         "gender": request.form.get("gender"),
-        "email": request.form.get("email"),  # still editable later
+        "email": request.form.get("email"),
         "phone": request.form.get("phone"),
         "address": request.form.get("address"),
         "course": request.form.get("course"),
@@ -158,15 +130,15 @@ def save_student_profile():
     return "Profile saved successfully"
 
 
-# -------------------------------
-# EDIT STUDENT PROFILE PAGE
-# -------------------------------
 @app.route("/editpro")
 def edit_student_profile_page():
     if "user_id" not in session or session["role"] != "student":
         return redirect("/")
-
     return render_template("editpro.html")
+
+
+# ================= ADMIN DATA APIs =================
+
 @app.route("/admin/students")
 def fetch_students():
     if "user_id" not in session or session["role"] != "admin":
@@ -174,26 +146,29 @@ def fetch_students():
 
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
-
     cursor.execute("SELECT * FROM student")
-
     students = cursor.fetchall()
-
     cursor.close()
     db.close()
 
     return {"students": students}
+
+
 @app.route("/admin/courses")
 def fetch_courses():
+    if "user_id" not in session or session["role"] != "admin":
+        return {"error": "Unauthorized"}
+
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
-
     cursor.execute("SELECT * FROM courses")
-    data = cursor.fetchall()
-
+    courses = cursor.fetchall()
     cursor.close()
     db.close()
-    return {"courses": data}
+
+    return {"courses": courses}
+
+
 @app.route("/admin/registrations")
 def fetch_registrations():
     db = get_db_connection()
@@ -212,6 +187,7 @@ def fetch_registrations():
     db.close()
 
     return {"registrations": data}
+
 
 @app.route("/admin/payments")
 def fetch_payments():
@@ -232,37 +208,108 @@ def fetch_payments():
 
     return {"payments": data}
 
-    
-@app.route("/admin/courses")
-def fetch_courses():
+
+# =========================
+# ADD COURSE
+# =========================
+
+@app.route("/admin/add-course", methods=["GET", "POST"])
+def add_course():
     if "user_id" not in session or session["role"] != "admin":
-        return {"error": "Unauthorized"}
+        return redirect("/")
+
+    if request.method == "POST":
+        name = request.form["course_name"]
+        code = request.form["course_code"]
+        duration = request.form["duration"]
+        fee = request.form["fee"]
+
+        db = get_db_connection()
+        cursor = db.cursor()
+
+        cursor.execute("""
+            INSERT INTO courses (course_name, course_code, duration, fee, status)
+            VALUES (%s,%s,%s,%s,'Active')
+        """, (name, code, duration, fee))
+
+        db.commit()
+        cursor.close()
+        db.close()
+
+        return redirect("/admin")
+
+    return render_template("add_course.html")
+
+
+# =========================
+# EDIT COURSE
+# =========================
+
+@app.route("/admin/edit-course/<int:course_id>", methods=["GET", "POST"])
+def edit_course(course_id):
+    if "user_id" not in session or session["role"] != "admin":
+        return redirect("/")
 
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
 
-    cursor.execute("SELECT * FROM courses")
-    courses = cursor.fetchall()
+    if request.method == "POST":
+        name = request.form["course_name"]
+        code = request.form["course_code"]
+        duration = request.form["duration"]
+        fee = request.form["fee"]
+
+        cursor.execute("""
+            UPDATE courses 
+            SET course_name=%s, course_code=%s, duration=%s, fee=%s
+            WHERE course_id=%s
+        """, (name, code, duration, fee, course_id))
+
+        db.commit()
+        cursor.close()
+        db.close()
+
+        return redirect("/admin")
+
+    cursor.execute("SELECT * FROM courses WHERE course_id=%s", (course_id,))
+    course = cursor.fetchone()
 
     cursor.close()
     db.close()
 
-    return {"courses": courses}
+    return render_template("edit_course.html", course=course)
+
+
+# =========================
+# DELETE COURSE
+# =========================
+
+@app.route("/admin/delete-course/<int:course_id>", methods=["POST"])
+def delete_course(course_id):
+    if "user_id" not in session or session["role"] != "admin":
+        return {"error": "Unauthorized"}
+
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    cursor.execute("DELETE FROM courses WHERE course_id=%s", (course_id,))
+
+    db.commit()
+    cursor.close()
+    db.close()
+
+    return {"success": True}
 
 
 
 
-# -------------------------------
-# LOGOUT
-# -------------------------------
+
+
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect("/")
 
 
-# -------------------------------
-# RUN
-# -------------------------------
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="../static/css/admin.css">
+<meta charset="UTF-8">
+<title>Admin Dashboard</title>
+<link rel="stylesheet" href="../static/css/admin.css">
 </head>
 <body>
 
@@ -23,35 +23,26 @@
 </div>
 
 <div class="main-content">
-    <h2 id="tab-title">Dashboard</h2>
+<h2 id="tab-title">HOME</h2>
 
-    <!-- ===== ADMIN PROFILE (RESTORED) ===== -->
-    <div id="profile-content" style="display:none">
+<div id="profile-content" style="display:none">
+<h3>Admin Profile</h3>
+<table class="profile-table">
+<tr><td>Full Name</td><td>{{ admin.full_name }}</td></tr>
+<tr><td>DOB</td><td>{{ admin.dob }}</td></tr>
+<tr><td>Gender</td><td>{{ admin.gender }}</td></tr>
+<tr><td>Contact</td><td>{{ admin.contact_number }}</td></tr>
+<tr><td>Email</td><td>{{ admin.email }}</td></tr>
+<tr><td>Admin ID</td><td>{{ admin.admin_id }}</td></tr>
+<tr><td>Username</td><td>{{ admin.username }}</td></tr>
+<tr><td>Role</td><td>{{ admin.role }}</td></tr>
+<tr><td>Status</td><td>{{ admin.account_status }}</td></tr>
+<tr><td>Institute</td><td>{{ admin.institute_name }}</td></tr>
+</table>
+<a href="/admin/update" class="update-btn">✏️ Update Profile</a>
+</div>
 
-        <h3>Admin Profile</h3>
-
-        <table class="profile-table">
-            <tr><td>Full Name</td><td>{{ admin.full_name }}</td></tr>
-            <tr><td>Date of Birth</td><td>{{ admin.dob }}</td></tr>
-            <tr><td>Gender</td><td>{{ admin.gender }}</td></tr>
-            <tr><td>Contact Number</td><td>{{ admin.contact_number }}</td></tr>
-            <tr><td>Email</td><td>{{ admin.email }}</td></tr>
-
-            <tr><td>Admin ID</td><td>{{ admin.admin_id }}</td></tr>
-            <tr><td>Username</td><td>{{ admin.username }}</td></tr>
-            <tr><td>Role</td><td>{{ admin.role }}</td></tr>
-            <tr><td>Account Status</td><td>{{ admin.account_status }}</td></tr>
-
-            <tr><td>Institute Name</td><td>{{ admin.institute_name }}</td></tr>
-            <tr><td>Institute Code</td><td>{{ admin.institute_code }}</td></tr>
-            <tr><td>Institute Email</td><td>{{ admin.institute_email }}</td></tr>
-        </table>
-
-        <a href="/admin/update" class="update-btn">✏️ Update Profile</a>
-    </div>
-
-    <!-- ===== DYNAMIC CONTENT ===== -->
-    <div id="tab-content" class="card"></div>
+<div id="tab-content" class="card"></div>
 </div>
 
 <script src="../static/js/admin.js"></script>
