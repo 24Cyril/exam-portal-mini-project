@@ -1,5 +1,5 @@
-
 import mysql.connector
+from flask import request,session
 
 def get_db_connection():
     return mysql.connector.connect(
@@ -11,6 +11,8 @@ def get_db_connection():
         use_pure=True,
         connection_timeout=5
     )
+
+
 
 
 def create_student_profile(cursor, user_id, email):

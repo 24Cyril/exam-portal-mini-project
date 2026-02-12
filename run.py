@@ -8,6 +8,7 @@ from student import(
     get_student_profile,
     create_student_profile,
     update_student_profile,
+    save_student_profile
 )
 
 app = Flask(__name__, template_folder="app/templates", static_folder="app/static")
@@ -138,6 +139,30 @@ def student_dashboard():
     return render_template("student.html", student=student)
 
 
+@app.route("/save-profile", methods=["POST"])
+def save_profile():
+    return save_student_profile()
+
+
+def create_pending_payment(student_id, course_id):
+    db = get_db_connection()
+    cur = db.cursor()
+
+    cur.execute("""
+        INSERT INTO payments
+        (student_id, course_id, amount, verification_status)
+        SELECT %s, course_id, fee, 'Pending'
+        FROM courses
+        WHERE course_id = %s
+        AND NOT EXISTS (
+            SELECT 1 FROM payments
+            WHERE student_id = %s AND course_id = %s
+        )
+    """, (student_id, course_id, student_id, course_id))
+
+    db.commit()
+    cur.close()
+    db.close()
 
 
 # ===============================
@@ -299,7 +324,6 @@ def student_payments():
 
     return cur.fetchall()
 
-
 @app.route("/api/payment/manual", methods=["POST"])
 def manual_payment():
     if "user_id" not in session:
@@ -312,20 +336,24 @@ def manual_payment():
     cur = db.cursor()
 
     cur.execute("""
-        INSERT INTO payments
-        (student_id, course_id, amount, payment_method, transaction_id)
-        SELECT %s, course_id, fee, %s, %s
-        FROM courses WHERE course_id = %s
+        UPDATE payments
+        SET 
+            payment_method = %s,
+            transaction_id = %s,
+            verification_status = 'Submitted',
+            payment_date = NOW()
+        WHERE student_id = %s
+        AND course_id = %s
+        AND verification_status = 'Pending'
     """, (
-        student_id,
         data["payment_method"],
         data.get("transaction_id"),
+        student_id,
         data["course_id"]
     ))
 
     db.commit()
     return {"status": "Payment submitted"}
-
 
 
 
