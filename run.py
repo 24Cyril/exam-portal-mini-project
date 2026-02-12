@@ -164,6 +164,14 @@ def create_pending_payment(student_id, course_id):
     cur.close()
     db.close()
 
+@app.route("/api/student/profile")
+def api_student_profile():
+    if "user_id" not in session or session["role"] != "student":
+        return {"error": "Unauthorized"}, 401
+
+    student = get_student_profile(session["user_id"])
+    return student
+
 
 # ===============================
 # COURSES (STUDENT SIDE)

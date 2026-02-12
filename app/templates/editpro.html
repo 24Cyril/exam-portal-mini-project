@@ -15,8 +15,7 @@
 
     <h3>Personal Details</h3>
     <div class="row">
-      <input type="text" name="full_name" placeholder="full Name">
-\    </div>
+      <input type="text" name="full_name" placeholder="full Name">   </div>
 
     <div class="row">
       <input type="number" name="age" placeholder="Age">
@@ -30,7 +29,7 @@
 
     <h3>Contact Details</h3>
     <div class="row">
-      <input type="email" name="email" placeholder="Email">
+      <input type="email" name="email" placeholder="Email" readonly>
       <input type="text" name="phone" placeholder="Phone">
     </div>
 
@@ -48,11 +47,16 @@
     </div>
 
     <button type="submit">Save Profile</button>
+    <button type="button" class="back-btn" onclick="goBackToProfile()">
+      back to profile
+    </button>
 
     <p id="statusMsg"></p>
   </form>
 </div>
 
 <script src="../static/js/editpro.js"></script>
+
+
 </body>
 </html>
