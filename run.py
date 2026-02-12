@@ -4,7 +4,18 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import os
 
-from admin import get_admin_profile_by_username
+from admin import (
+    get_admin_profile_by_username,
+    update_admin_profile,
+    get_all_students,
+    get_all_courses,
+    get_all_registrations,
+    get_all_payments,
+    get_all_exams,
+    add_exam,
+    delete_exam
+)
+
 from student import (
     get_student_profile,
     create_student_profile,
@@ -19,6 +30,8 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 
+# ================= DATABASE =================
+
 def get_db_connection():
     return mysql.connector.connect(
         host="localhost",
@@ -28,15 +41,19 @@ def get_db_connection():
     )
 
 
+# ================= HOME =================
+
 @app.route("/")
 def home():
     return render_template("index.html")
 
 
 # ================= REGISTER =================
-@app.route("/register", methods=["GET","POST"])
+
+@app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
+
         username = request.form["username"]
         password = request.form["password"]
         role = request.form["role"].lower()
@@ -45,42 +62,46 @@ def register():
         hashed = generate_password_hash(password)
 
         db = get_db_connection()
-        cursor = db.cursor()
+        c = db.cursor()
 
-        cursor.execute(
+        c.execute(
             "INSERT INTO users(username,password,role) VALUES(%s,%s,%s)",
             (username, hashed, role)
         )
-        user_id = cursor.lastrowid
+        user_id = c.lastrowid
 
         if role == "admin":
-            cursor.execute("""
+            c.execute("""
                 INSERT INTO admin(username,password_hash,role,full_name,email)
                 VALUES(%s,%s,%s,%s,%s)
-            """,(username, hashed, "admin", username, email))
+            """, (username, hashed, "admin", username, email))
 
         if role == "student":
-            create_student_profile(cursor, user_id, email)
+            create_student_profile(c, user_id, email)
 
         db.commit()
-        cursor.close()
+        c.close()
         db.close()
+
         return redirect("/")
 
     return render_template("register.html")
 
 
 # ================= LOGIN =================
+
 @app.route("/login", methods=["POST"])
 def login():
     username = request.form["username"]
     password = request.form["password"]
 
     db = get_db_connection()
-    cursor = db.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM users WHERE username=%s",(username,))
-    user = cursor.fetchone()
-    cursor.close()
+    c = db.cursor(dictionary=True)
+
+    c.execute("SELECT * FROM users WHERE username=%s", (username,))
+    user = c.fetchone()
+
+    c.close()
     db.close()
 
     if not user or not check_password_hash(user["password"], password):
@@ -90,59 +111,67 @@ def login():
     session["username"] = user["username"]
     session["role"] = user["role"]
 
-    return redirect("/admin" if user["role"]=="admin" else "/student")
+    return redirect("/admin" if user["role"] == "admin" else "/student")
 
 
-# ================= ADMIN =================
+# ================= ADMIN DASHBOARD =================
+
 @app.route("/admin")
 def admin_dashboard():
-    if "user_id" not in session or session["role"]!="admin":
+    if session.get("role") != "admin":
         return redirect("/")
+
     admin = get_admin_profile_by_username(session["username"])
     return render_template("admin.html", admin=admin)
 
 
-# ================= ADMIN APIs =================
+# ✅ FIXED UPDATE ROUTE (THIS WAS YOUR ERROR)
+
+@app.route("/admin/update", methods=["POST"])
+def admin_update():
+    if session.get("role") != "admin":
+        return redirect("/")
+
+    update_admin_profile(session["username"], request.form)
+    return redirect("/admin")
+
+
+# ================= ADMIN API =================
+
 @app.route("/admin/students")
 def admin_students():
-    db = get_db_connection()
-    c = db.cursor(dictionary=True)
-    c.execute("SELECT * FROM student")
-    data = c.fetchall()
-    c.close(); db.close()
-    return jsonify({"students":data})
+    return jsonify({"students": get_all_students()})
 
 
 @app.route("/admin/courses")
 def admin_courses():
-    db = get_db_connection()
-    c = db.cursor(dictionary=True)
-    c.execute("SELECT * FROM courses")
-    data = c.fetchall()
-    c.close(); db.close()
-    return jsonify({"courses":data})
+    return jsonify({"courses": get_all_courses()})
 
 
-# ================= EXAMS =================
+@app.route("/admin/registrations")
+def admin_registrations():
+    return jsonify({"registrations": get_all_registrations()})
+
+
+@app.route("/admin/payments")
+def admin_payments():
+    return jsonify({"payments": get_all_payments()})
+
+
 @app.route("/admin/exams")
 def admin_exams():
-    db = get_db_connection()
-    c = db.cursor(dictionary=True)
-    c.execute("""
-        SELECT e.exam_id, e.exam_name, c.course_name,
-               e.exam_date, e.status,
-               e.question_file, e.answer_file
-        FROM exams e
-        JOIN courses c ON e.course_id = c.course_id
-    """)
-    data = c.fetchall()
-    c.close(); db.close()
-    return jsonify({"exams":data})
+    return jsonify({"exams": get_all_exams()})
 
 
-@app.route("/admin/add-exam", methods=["GET","POST"])
-def add_exam():
-    if request.method=="POST":
+# ================= ADD EXAM =================
+
+@app.route("/admin/add-exam", methods=["GET", "POST"])
+def add_exam_route():
+    if session.get("role") != "admin":
+        return redirect("/")
+
+    if request.method == "POST":
+
         exam_name = request.form["exam_name"]
         course_id = request.form["course_id"]
         exam_date = request.form["exam_date"]
@@ -153,36 +182,48 @@ def add_exam():
         qname = secure_filename(q.filename) if q else None
         aname = secure_filename(a.filename) if a else None
 
-        if q: q.save(os.path.join(app.config["UPLOAD_FOLDER"], qname))
-        if a: a.save(os.path.join(app.config["UPLOAD_FOLDER"], aname))
+        if q:
+            q.save(os.path.join(app.config["UPLOAD_FOLDER"], qname))
+        if a:
+            a.save(os.path.join(app.config["UPLOAD_FOLDER"], aname))
 
-        db = get_db_connection()
-        c = db.cursor()
-        c.execute("""
-            INSERT INTO exams(exam_name,course_id,exam_date,question_file,answer_file)
-            VALUES(%s,%s,%s,%s,%s)
-        """,(exam_name,course_id,exam_date,qname,aname))
-        db.commit()
-        c.close(); db.close()
+        add_exam(exam_name, course_id, exam_date, qname, aname)
         return redirect("/admin")
 
     db = get_db_connection()
     c = db.cursor(dictionary=True)
     c.execute("SELECT course_id,course_name FROM courses")
     courses = c.fetchall()
-    c.close(); db.close()
+    c.close()
+    db.close()
+
     return render_template("add_exam.html", courses=courses)
 
 
 @app.route("/admin/delete-exam/<int:id>", methods=["POST"])
-def delete_exam(id):
-    db = get_db_connection()
-    c = db.cursor()
-    c.execute("DELETE FROM exams WHERE exam_id=%s",(id,))
-    db.commit()
-    c.close(); db.close()
-    return jsonify({"success":True})
+def delete_exam_route(id):
+    delete_exam(id)
+    return jsonify({"success": True})
 
+
+# ================= STUDENT =================
+
+@app.route("/student")
+def student_dashboard():
+    if session.get("role") != "student":
+        return redirect("/")
+
+    student = get_student_profile(session["user_id"])
+    return render_template("student.html", student=student)
+
+
+@app.route("/save-profile", methods=["POST"])
+def save_student_profile():
+    update_student_profile(session["user_id"], request.form)
+    return "Saved"
+
+
+# ================= LOGOUT =================
 
 @app.route("/logout")
 def logout():
@@ -190,5 +231,5 @@ def logout():
     return redirect("/")
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     app.run(debug=True)

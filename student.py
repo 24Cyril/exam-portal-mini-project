@@ -1,6 +1,6 @@
 import mysql.connector
 
-def get_db_connection():
+def get_db():
     return mysql.connector.connect(
         host="localhost",
         user="root",
@@ -9,37 +9,36 @@ def get_db_connection():
     )
 
 
-def create_student_profile(cursor, user_id, email):
-    cursor.execute(
-        """
-        INSERT INTO student (user_id, email)
-        VALUES (%s, %s)
-        """,
-        (user_id, email)
-    )
+# ================= CREATE PROFILE =================
 
+def create_student_profile(cursor, user_id, email):
+    cursor.execute("""
+        INSERT INTO student(user_id,email)
+        VALUES(%s,%s)
+    """, (user_id, email))
+
+
+# ================= FETCH PROFILE =================
 
 def get_student_profile(user_id):
-    db = get_db_connection()
-    cursor = db.cursor(dictionary=True)
+    db = get_db()
+    c = db.cursor(dictionary=True)
 
-    cursor.execute(
-        "SELECT * FROM student WHERE user_id=%s",
-        (user_id,)
-    )
-    student = cursor.fetchone()
+    c.execute("SELECT * FROM student WHERE user_id=%s", (user_id,))
+    student = c.fetchone()
 
-    cursor.close()
+    c.close()
     db.close()
     return student
 
 
-def update_student_profile(user_id, data):
-    db = get_db_connection()
-    cursor = db.cursor()
+# ================= UPDATE PROFILE =================
 
-    cursor.execute(
-        """
+def update_student_profile(user_id, data):
+    db = get_db()
+    c = db.cursor()
+
+    c.execute("""
         UPDATE student SET
             full_name=%s,
             age=%s,
@@ -52,54 +51,20 @@ def update_student_profile(user_id, data):
             institute_name=%s,
             year_of_study=%s
         WHERE user_id=%s
-        """,
-        (
-            data["full_name"],
-            data["age"],
-            data["gender"],
-            data["email"],
-            data["phone"],
-            data["address"],
-            data["course"],
-            data["department"],
-            data["institute_name"],
-            data["year_of_study"],
-            user_id
-        )
-    )
+    """, (
+        data.get("full_name"),
+        data.get("age"),
+        data.get("gender"),
+        data.get("email"),
+        data.get("phone"),
+        data.get("address"),
+        data.get("course"),
+        data.get("department"),
+        data.get("institute_name"),
+        data.get("year_of_study"),
+        user_id
+    ))
 
     db.commit()
-    cursor.close()
+    c.close()
     db.close()
-# ===============================
-# COURSES (STUDENT SIDE)
-# ===============================
-
-def get_all_courses():
-    db = get_db_connection()
-    cursor = db.cursor(dictionary=True)
-
-    cursor.execute("""
-        SELECT 
-            c.course_id,
-            c.course_name,
-            c.course_code,
-            c.description,
-            c.duration,
-            c.fee,
-            c.status,
-            CASE 
-                WHEN sc.id IS NULL THEN 'Not Registered'
-                ELSE 'Registered'
-            END AS registration_status
-        FROM courses c
-        LEFT JOIN student_courses sc
-            ON c.course_id = sc.course_id
-    """)
-
-    courses = cursor.fetchall()
-
-    cursor.close()
-    db.close()
-
-    return courses
