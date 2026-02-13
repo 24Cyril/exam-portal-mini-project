@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Add Student</title>
+<link rel="stylesheet" href="../static/css/admin.css">
+</head>
+<body>
+
+<div class="form-card">
+
+<h2>Add Student</h2>
+
+<form method="post" onsubmit="return validateStudent()">
+
+<input name="full_name" placeholder="Full Name">
+<input name="email" placeholder="Email">
+<input name="phone" placeholder="Phone">
+
+<select name="gender">
+<option value="">Select Gender</option>
+<option>Male</option>
+<option>Female</option>
+<option>Other</option>
+</select>
+
+<input name="course" placeholder="Course">
+<input name="department" placeholder="Department">
+<input name="year" placeholder="Year of Study">
+<label>Password</label>
+<input type="password" name="password">
+
+<label>Confirm Password</label>
+<input type="password" name="confirm_password">
+
+<button>Add Student</button>
+
+</form>
+
+<a href="/admin" class="back-link">⬅ Back</a>
+
+</div>
+
+<script src="../static/js/student_form.js"></script>
+</body>
+</html>

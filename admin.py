@@ -22,37 +22,62 @@ def get_admin_profile_by_username(username):
     return data
 
 
-def update_admin_profile(username, data):
+def update_admin_profile(username, data, new_password=None):
     db = get_db()
     c = db.cursor()
 
-    c.execute("""
-        UPDATE admin SET
-            full_name=%s,
-            dob=%s,
-            gender=%s,
-            contact_number=%s,
-            email=%s,
-            institute_name=%s,
-            institute_code=%s,
-            institute_email=%s
-        WHERE username=%s
-    """, (
-        data["full_name"],
-        data["dob"],
-        data["gender"],
-        data["contact_number"],
-        data["email"],
-        data["institute_name"],
-        data["institute_code"],
-        data["institute_email"],
-        username
-    ))
+    if new_password:
+        c.execute("""
+            UPDATE admin SET
+                full_name=%s,
+                dob=%s,
+                gender=%s,
+                contact_number=%s,
+                email=%s,
+                institute_name=%s,
+                institute_code=%s,
+                institute_email=%s,
+                password_hash=%s
+            WHERE username=%s
+        """, (
+            data["full_name"],
+            data["dob"],
+            data["gender"],
+            data["contact_number"],
+            data["email"],
+            data["institute_name"],
+            data["institute_code"],
+            data["institute_email"],
+            new_password,
+            username
+        ))
+    else:
+        c.execute("""
+            UPDATE admin SET
+                full_name=%s,
+                dob=%s,
+                gender=%s,
+                contact_number=%s,
+                email=%s,
+                institute_name=%s,
+                institute_code=%s,
+                institute_email=%s
+            WHERE username=%s
+        """, (
+            data["full_name"],
+            data["dob"],
+            data["gender"],
+            data["contact_number"],
+            data["email"],
+            data["institute_name"],
+            data["institute_code"],
+            data["institute_email"],
+            username
+        ))
 
     db.commit()
     c.close()
     db.close()
-
 
 # ================= TABLE FETCH =================
 
@@ -139,6 +164,24 @@ def delete_exam(id):
     db = get_db()
     c = db.cursor()
     c.execute("DELETE FROM exams WHERE exam_id=%s", (id,))
+    db.commit()
+    c.close()
+    db.close()
+
+
+from werkzeug.security import generate_password_hash
+
+def update_student_password(user_id, password):
+    db = get_db()
+    c = db.cursor()
+
+    hashed = generate_password_hash(password)
+
+    c.execute(
+        "UPDATE users SET password=%s WHERE id=%s",
+        (hashed, user_id)
+    )
+
     db.commit()
     c.close()
     db.close()

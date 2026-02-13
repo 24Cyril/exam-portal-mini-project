@@ -26,8 +26,9 @@ return;
 if(tab==="students"){
 fetch("/admin/students")
 .then(r=>r.json())
-.then(d=>renderTable(d.students,
-["id","full_name","email","phone","gender","course","department","year_of_study","institute_name"]));
+.then(d=>{
+renderStudentsTable(d.students);
+});
 return;
 }
 
@@ -172,5 +173,51 @@ if(confirm("Delete?")){
 fetch("/admin/delete-course/"+id,{method:"POST"}).then(()=>openTab("courses"));
 }
 }
+
+function renderStudentsTable(data){
+
+let rows = data.map(s=>`
+<tr>
+<td>${s.id}</td>
+<td>${s.full_name}</td>
+<td>${s.email}</td>
+<td>${s.phone || ""}</td>
+<td>${s.gender || ""}</td>
+<td>${s.course || ""}</td>
+<td>${s.department || ""}</td>
+<td>${s.year_of_study || ""}</td>
+<td>
+<button class="edit-btn" onclick="editStudent(${s.id})">✏ Edit</button>
+</td>
+</tr>
+`).join("");
+
+document.getElementById("tab-content").innerHTML = `
+<div class="search-box">
+<input placeholder="Search..." onkeyup="searchTable()">
+<button class="add-btn" onclick="openAddStudent()">➕ Add Student</button>
+</div>
+
+<table class="profile-table" id="adminTable">
+<tr>
+<th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Gender</th>
+<th>Course</th><th>Dept</th><th>Year</th><th>Action</th>
+</tr>
+${rows}
+</table>`;
+}
+
+function openAddStudent(){
+location.href="/admin/add-student";
+}
+
+function editStudent(id){
+location.href="/admin/edit-student/"+id;
+}
+
+function openAddStudent(){
+window.location.href="/admin/add-student";
+}
+
 
 window.onload=()=>openTab("home");

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Edit Student</title>
+<link rel="stylesheet" href="../static/css/admin.css">
+</head>
+<body>
+
+<div class="form-card">
+
+<h2>Edit Student</h2>
+
+<form method="post" onsubmit="return validateStudent()">
+
+<input name="full_name" value="{{student.full_name}}">
+<input name="email" value="{{student.email}}">
+<input name="phone" value="{{student.phone}}">
+
+<select name="gender">
+<option {{'selected' if student.gender=='Male'}}>Male</option>
+<option {{'selected' if student.gender=='Female'}}>Female</option>
+<option {{'selected' if student.gender=='Other'}}>Other</option>
+</select>
+
+<input name="course" value="{{student.course}}">
+<input name="department" value="{{student.department}}">
+<input name="year" value="{{student.year_of_study}}">
+
+<label>Password</label>
+<input type="password" name="password">
+
+<label>Confirm Password</label>
+<input type="password" name="confirm_password">
+
+
+<button>Update Student</button>
+
+</form>
+
+<a href="/admin" class="back-link">⬅ Back</a>
+
+</div>
+<script src="../static/js/student_form.js"></script>
+
+</body>
+</html>

@@ -31,3 +31,85 @@ body{display:flex;background:#f4f6fb}
 .home-row{display:flex;gap:18px}
 .home-box{background:#fff;padding:18px 26px;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.08);cursor:pointer}
 .home-box:hover{background:#eef1ff}
+
+
+form input, form select{
+width:100%;
+padding:10px;
+margin-bottom:12px;
+border:1px solid #ccc;
+border-radius:6px;
+}
+
+form button{
+background:#0f172a;
+color:white;
+padding:10px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+.form-card{
+max-width:600px;
+margin:50px auto;
+background:white;
+padding:30px;
+border-radius:12px;
+box-shadow:0 6px 20px rgba(0,0,0,.1);
+}
+
+.form-card h2{
+margin-bottom:20px;
+}
+
+.form-card input,
+.form-card select{
+width:100%;
+padding:12px;
+margin-bottom:14px;
+border:1px solid #ccc;
+border-radius:8px;
+font-size:14px;
+}
+
+.form-card button{
+background:#0f172a;
+color:white;
+padding:12px;
+border:none;
+border-radius:8px;
+width:100%;
+font-size:15px;
+cursor:pointer;
+}
+
+.form-card button:hover{
+opacity:.9;
+}
+
+.back-link{
+display:inline-block;
+margin-top:15px;
+color:#0f172a;
+font-weight:600;
+text-decoration:none;
+}
+
+.add-btn{
+background:#0f172a;
+color:white;
+padding:8px 14px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+.edit-btn{
+background:#2563eb;
+color:white;
+padding:6px 12px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
