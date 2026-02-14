@@ -13,6 +13,15 @@ def get_db_connection():
     )
 
 
+def get_student_id(user_id):
+    db = get_db_connection()
+    cur = db.cursor()
+    cur.execute("SELECT id FROM student WHERE user_id=%s", (user_id,))
+    row = cur.fetchone()
+    cur.close()
+    db.close()
+    return row[0] if row else None
+
 
 
 def create_student_profile(cursor, user_id, email):

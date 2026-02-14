@@ -6,12 +6,12 @@
     <link rel="stylesheet" href="../static/css/student.css">
 </head>
 <body>
-
 <div class="sidebar">
     <h2>Student Panel</h2>
+
     <ul>
-<li id="tab-home" onclick="openTab('home')">🏠 Home</li>
-<li id="tab-profile" onclick="openTab('profile')">👤 Profile</li>
+        <li id="tab-home" onclick="openTab('home')">🏠 Home</li>
+        <li id="tab-profile" onclick="openTab('profile')">👤 Profile</li>
         <li id="tab-courses" onclick="openTab('courses')">📚 Courses</li>
         <li id="tab-notes" onclick="openTab('notes')">📄 Notes</li>
         <li id="tab-exam" onclick="openTab('exam')">📝 Exam</li>
@@ -21,8 +21,14 @@
         <li id="tab-notifications" onclick="openTab('notifications')">🔔 Notifications</li>
         <li id="tab-payment" onclick="openTab('payment')">💳 Payment</li>
         <li id="tab-settings" onclick="openTab('settings')">⚙️ Settings</li>
-        <li class="logout"><a href="/logout">🚪 Logout</a></li>    </ul>
+
+        <!-- LOGOUT INSIDE NAV -->
+        <li id="logout">
+            <a href="/logout">🚪 Logout</a>
+        </li>
+    </ul>
 </div>
+
 
 <div class="content">
     <h2 id="page-title">PROFILE</h2>

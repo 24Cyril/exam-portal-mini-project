@@ -1,0 +1,167 @@
+1️⃣  users — Authentication & Role Gateway
+What it currently does
+
+This is the entry point table for login.
+
+Used in:
+
+/login
+
+session creation
+
+role-based redirection
+
+Current responsibility
+
+Stores login credentials
+
+Stores role (student / admin)
+
+Nothing domain-specific
+
+Important detail
+
+Every student and admin must exist here first
+
+Other tables depend on users.id
+
+2️⃣ admin — Admin Profile & Institution Metadata
+What it currently does
+
+This stores admin profile details, not authentication logic.
+
+Used in:
+
+/admin dashboard
+
+admin profile display
+
+Current responsibility
+
+Admin personal info
+
+Institute details
+
+Admin identity beyond login
+
+Relationship
+
+Linked by username, not user_id (important design note)
+
+Login still happens via users
+
+
+3️⃣ student — Student Master Profile
+What it currently does
+
+This is the core student identity table.
+
+Used in:
+
+Student dashboard (/student)
+
+Profile tab
+
+Edit profile
+
+Foreign key base for enrollments, payments, certificates
+
+Current responsibility
+
+Stores personal + academic profile
+
+Maps users.id → student.id
+
+ 4️⃣   courses — Course Catalog
+What it currently does
+
+Defines all available courses.
+
+Used in:
+
+Courses tab (student)
+
+Admin course listing
+
+Enrollment
+
+Payment generation
+
+Current responsibility
+
+Course metadata
+
+Fee
+
+Status (Active / Inactive)
+
+5️⃣ student_courses — Enrollment Record (BUT incomplete state)
+What it currently does
+
+Courses tab (LEFT JOIN)
+
+Enrollment / unenrollment
+
+Current responsibility
+
+Tracks student ↔ course relationship
+
+Prevents duplicate enrollment
+
+Records enrollment time
+
+
+6️⃣ payments — Payment Lifecycle Table (Main state holder)
+What it currently does
+
+This table actually drives the payment tab and most logic.
+
+Used in:
+
+Payment tab
+
+Payment submission
+
+Course enrollment side-effects
+
+Current responsibility
+
+Stores fee per course per student
+
+Tracks payment progress
+
+
+7️⃣ exam_results — Exam Attempts + Results
+What it currently does
+
+Stores exam participation and result outcomes.
+
+Used in:
+
+Exam tab
+
+Results tab
+
+Current responsibility
+
+Exam date
+
+Marks, grade
+
+Attendance
+
+Pass/Fail status
+
+
+
+9️⃣ course_enrollment_summary (VIEW) — Reporting Only
+What it currently does
+
+Aggregates enrollment counts per course.
+
+Used for:
+
+Admin dashboards (future / optional)
+
+Analytics
+

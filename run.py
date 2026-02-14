@@ -7,7 +7,6 @@ from admin import get_admin_profile_by_username, update_admin_profile
 from student import(
     get_student_profile,
     create_student_profile,
-    update_student_profile,
     save_student_profile
 )
 
@@ -178,33 +177,39 @@ def api_student_profile():
 # ===============================
 @app.route("/api/student/courses")
 def get_all_courses():
+    student_user_id = session.get("user_id")
+    if not student_user_id:
+        return []
+    student_id = get_student_id(student_user_id)
+
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
 
     cursor.execute("""
-        SELECT 
-            c.course_id,
-            c.course_name,
-            c.course_code,
-            c.description,
-            c.duration,
-            c.fee,
-            c.status,
-            CASE 
-                WHEN sc.id IS NULL THEN 'Not Registered'
-                ELSE 'Registered'
-            END AS registration_status
-        FROM courses c
+    SELECT 
+    c.course_id,
+    c.course_name,
+    c.description,
+    c.duration,
+    c.fee,
+    c.status,
+    CASE 
+        WHEN sc.id IS NULL THEN 'Not Enrolled'
+        ELSE 'Registered'
+    END AS enrollment_status,
+    sc.enrollment_verification_status,
+    sc.payment_verification_status
+    FROM courses c
         LEFT JOIN student_courses sc
-            ON c.course_id = sc.course_id
-    """)
+    ON c.course_id = sc.course_id
+    AND sc.student_id = %s
 
-    courses = cursor.fetchall()
+    """, (student_id,))
 
+    data = cursor.fetchall()
     cursor.close()
     db.close()
-
-    return courses
+    return data
 
 
 
@@ -309,59 +314,238 @@ from flask import Blueprint, request, jsonify
 # ---------------------------
 @app.route("/api/student/payments")
 def student_payments():
-    student_id = session.get("user_id")
-    if not student_id:
+    if "user_id" not in session:
         return {"error": "Unauthorized"}, 401
+
+    student_id = get_student_id(session["user_id"])
 
     db = get_db_connection()
     cur = db.cursor(dictionary=True)
 
     cur.execute("""
         SELECT 
-            p.course_id,
+            c.course_id,
             c.course_name,
             p.amount,
             p.payment_method,
             p.transaction_id,
-            p.verification_status,
+            sc.payment_verification_status,
             DATE(p.payment_date) AS payment_date
-        FROM payments p
-        JOIN courses c ON p.course_id = c.course_id
-        WHERE p.student_id = %s
+        FROM student_courses sc
+        JOIN courses c 
+            ON sc.course_id = c.course_id
+        LEFT JOIN payments p 
+            ON p.student_id = sc.student_id
+            AND p.course_id = sc.course_id
+        WHERE sc.student_id = %s
     """, (student_id,))
 
-    return cur.fetchall()
+    data = cur.fetchall()
+    cur.close()
+    db.close()
 
+    return data
+
+
+#payment manual
 @app.route("/api/payment/manual", methods=["POST"])
 def manual_payment():
     if "user_id" not in session:
         return {"error": "Unauthorized"}, 401
 
     data = request.json
-    student_id = session["user_id"]
+    student_id = get_student_id(session["user_id"])
+    course_id = data["course_id"]
+
+    db = get_db_connection()
+    cur = db.cursor()
+
+    # 1️⃣ Insert or update payment details
+    cur.execute("""
+        INSERT INTO payments 
+            (student_id, course_id, amount, payment_method, transaction_id, payment_date)
+        SELECT 
+            %s, c.course_id, c.fee, %s, %s, NOW()
+        FROM courses c
+        WHERE c.course_id = %s
+        ON DUPLICATE KEY UPDATE
+            payment_method = VALUES(payment_method),
+            transaction_id = VALUES(transaction_id),
+            payment_date = NOW()
+    """, (
+        student_id,
+        data["payment_method"],
+        data.get("transaction_id"),
+        course_id
+    ))
+
+    # 2️⃣ Update COURSE STATE (THIS IS THE KEY)
+    cur.execute("""
+        UPDATE student_courses
+        SET payment_verification_status = 'Submitted'
+        WHERE student_id = %s AND course_id = %s
+    """, (student_id, course_id))
+
+    db.commit()
+    cur.close()
+    db.close()
+
+    return {"status": "Payment submitted"}
+
+
+#student id
+def get_student_id(user_id):
+    db = get_db_connection()
+    cur = db.cursor()
+    cur.execute("SELECT id FROM student WHERE user_id=%s", (user_id,))
+    row = cur.fetchone()
+    cur.close()
+    db.close()
+    return row[0] if row else None
+
+
+#stufent enroll
+@app.route("/api/student/enroll", methods=["POST"])
+def enroll_course():
+    if "user_id" not in session:
+        return {"error": "Unauthorized"}, 401
+
+    student_id = get_student_id(session["user_id"])
+    course_id = request.json["course_id"]
+
+    db = get_db_connection()
+    cur = db.cursor()
+
+    # 1️⃣ Enroll student
+    cur.execute("""
+       INSERT IGNORE INTO student_courses
+        (student_id, course_id, enrollment_status, enrollment_verification_status, payment_verification_status)
+            VALUES (%s, %s, 'Enrolled', 'Pending', 'Pending')
+
+    """, (student_id, course_id))
+
+    # 2️⃣ Create pending payment (your existing logic)
+    cur.execute("""
+        INSERT INTO payments (student_id, course_id, amount, verification_status)
+        SELECT %s, course_id, fee, 'Pending'
+        FROM courses
+        WHERE course_id = %s
+        AND NOT EXISTS (
+            SELECT 1 FROM payments
+            WHERE student_id=%s AND course_id=%s
+        )
+    """, (student_id, course_id, student_id, course_id))
+
+    db.commit()
+    cur.close()
+    db.close()
+
+    return {"status": "enrolled"}
+
+
+#un enroll
+@app.route("/api/student/unenroll", methods=["POST"])
+def unenroll_course():
+    student_id = get_student_id(session["user_id"])
+    course_id = request.json["course_id"]
 
     db = get_db_connection()
     cur = db.cursor()
 
     cur.execute("""
-        UPDATE payments
-        SET 
-            payment_method = %s,
-            transaction_id = %s,
-            verification_status = 'Submitted',
-            payment_date = NOW()
-        WHERE student_id = %s
-        AND course_id = %s
-        AND verification_status = 'Pending'
-    """, (
-        data["payment_method"],
-        data.get("transaction_id"),
-        student_id,
-        data["course_id"]
-    ))
+        DELETE FROM student_courses
+        WHERE student_id=%s AND course_id=%s
+    """, (student_id, course_id))
 
     db.commit()
-    return {"status": "Payment submitted"}
+    cur.close()
+    db.close()
+
+    return {"status": "unenrolled"}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
