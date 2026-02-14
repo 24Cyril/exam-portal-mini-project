@@ -81,26 +81,43 @@ function loadCourses() {
             renderCourses(data);
         });
 }
-
 function renderCourses(courses) {
     const container = document.getElementById("course-list");
     container.innerHTML = "";
 
     courses.forEach(c => {
+
+        let actionBtn = "";
+        let paymentBadge = "";
+
+        if (c.enrollment_status === "Not Enrolled") {
+            actionBtn = `<button class="attend-btn" onclick="enroll(${c.course_id})">
+                            Enroll
+                         </button>`;
+        } else {
+          paymentBadge = `
+    <span class="badge ${
+        c.payment_verification_status === "Verified" ? "active" : "inactive"
+    }">
+        ${c.payment_verification_status}
+    </span>
+`;
+
+        }
+
         container.innerHTML += `
             <div class="course-card">
-                <img src="../static/images/course.png">
                 <h4>${c.course_name}</h4>
                 <p>${c.description}</p>
-                <p><b>Duration:</b> ${c.duration}</p>
                 <p><b>Fee:</b> ₹${c.fee}</p>
-                <span class="badge ${c.status === "Active" ? "active" : "inactive"}">
-                    ${c.status}
-                </span>
+
+                ${paymentBadge}
+                ${actionBtn}
             </div>
         `;
     });
 }
+
 
 function applyFilters() {
     let filtered = [...allCourses];
@@ -263,17 +280,21 @@ function loadPayments() {
                 <tr>
                     <td>${i + 1}</td>
                     <td>${p.course_name}</td>
-                    <td>₹${p.amount}</td>
+                    <td>₹${p.amount || "-"}</td>
                     <td>${p.payment_method || "-"}</td>
                     <td>${p.transaction_id || "-"}</td>
                     <td>
                         ${
-                            p.verification_status === "Pending"
-                            ? `<button class="pay-btn" onclick="submitPayment(${p.course_id})">Submit Payment</button>`
-                            : `<span class="status done">Verified</span>`
+                            p.payment_verification_status === "Pending"
+                                ? `<button class="pay-btn" onclick="submitPayment(${p.course_id})">
+                                        Submit Payment
+                                   </button>`
+                                : `<span class="status done">
+                                        ${p.payment_verification_status}
+                                   </span>`
                         }
                     </td>
-                    <td>${p.payment_date}</td>
+                    <td>${p.payment_date || "-"}</td>
                 </tr>
             `).join("");
 
@@ -321,13 +342,37 @@ function submitPayment(courseId) {
 }
 
 
-
-
-
+    function logout() {
+  window.location.href = "/logout";
+}
 
 // ===============================
 // DEFAULT LOAD
 // ===============================
 document.addEventListener("DOMContentLoaded", () => {
-    openTab("profile");
+    openTab("home");
 });
+
+
+
+
+function enroll(courseId) {
+    fetch("/api/student/enroll", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ course_id: courseId })
+    })
+    .then(() => {
+        loadCourses();     // update payment badge
+        loadPayments();    // payment row appears automatically
+    });
+}
+
+function unenroll(courseId) {
+    fetch("/api/student/unenroll", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({course_id: courseId})
+    })
+    .then(() => loadCourses());   // 🔥 refresh
+}

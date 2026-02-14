@@ -313,3 +313,12 @@ select {
 .pay-btn:hover {
     background: #f57c00;
 }
+
+#logout {
+    margin-top: 20px;
+    background: #b71c1c;
+}
+
+#logout:hover {
+    background: #d32f2f;
+}
