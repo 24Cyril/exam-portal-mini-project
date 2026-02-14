@@ -188,6 +188,7 @@ let rows = data.map(s=>`
 <td>${s.year_of_study || ""}</td>
 <td>
 <button class="edit-btn" onclick="editStudent(${s.id})">✏ Edit</button>
+<button class="delete-btn" onclick="deleteStudent(${s.id})">🗑 Delete</button>
 </td>
 </tr>
 `).join("");
@@ -221,3 +222,10 @@ window.location.href="/admin/add-student";
 
 
 window.onload=()=>openTab("home");
+function deleteStudent(id){
+    if(confirm("Delete this student?")){
+        fetch("/admin/delete-student/" + id, {method:"POST"})
+        .then(()=>openTab("students"));
+    }
+}
+

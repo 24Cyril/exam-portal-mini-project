@@ -32,7 +32,6 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 
 # ================= DATABASE =================
-
 def get_db_connection():
     return mysql.connector.connect(
         host="localhost",
@@ -43,14 +42,12 @@ def get_db_connection():
 
 
 # ================= HOME =================
-
 @app.route("/")
 def home():
     return render_template("index.html")
 
 
 # ================= REGISTER =================
-
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -90,7 +87,6 @@ def register():
 
 
 # ================= LOGIN =================
-
 @app.route("/login", methods=["POST"])
 def login():
     username = request.form["username"]
@@ -115,19 +111,7 @@ def login():
     return redirect("/admin" if user["role"] == "admin" else "/student")
 
 
-
-@app.route("/admin/update", methods=["GET"])
-def admin_update_page():
-    if session.get("role") != "admin":
-        return redirect("/")
-
-    admin = get_admin_profile_by_username(session["username"])
-    return render_template("admin_update_profile.html", admin=admin)
-
-
-
 # ================= ADMIN DASHBOARD =================
-
 @app.route("/admin")
 def admin_dashboard():
     if session.get("role") != "admin":
@@ -137,52 +121,32 @@ def admin_dashboard():
     return render_template("admin.html", admin=admin)
 
 
-# ✅ FIXED UPDATE ROUTE (THIS WAS YOUR ERROR)
-@app.route("/admin/update", methods=["POST"])
+# ================= ADMIN UPDATE PROFILE =================
+@app.route("/admin/update", methods=["GET", "POST"])
 def admin_update():
     if session.get("role") != "admin":
         return redirect("/")
 
-    new_password = request.form.get("new_password")
-    confirm_password = request.form.get("confirm_password")
+    if request.method == "POST":
 
-    if new_password:
-        if new_password != confirm_password:
-            return "Passwords do not match"
+        new_password = request.form.get("new_password")
+        confirm_password = request.form.get("confirm_password")
 
-        hashed = generate_password_hash(new_password)
-    else:
         hashed = None
+        if new_password:
+            if new_password != confirm_password:
+                return "Passwords do not match"
+            hashed = generate_password_hash(new_password)
 
-    update_admin_profile(
-        session["username"],
-        request.form,
-        hashed
-    )
+        update_admin_profile(session["username"], request.form, hashed)
 
-    return redirect("/admin")
+        return redirect("/admin")
 
-
-@app.route("/admin/update-student-password", methods=["POST"])
-def update_student_pass():
-    if session.get("role") != "admin":
-        return redirect("/")
-
-    user_id = request.form["user_id"]
-    password = request.form["password"]
-    confirm = request.form["confirm_password"]
-
-    if password != confirm:
-        return "Passwords do not match"
-
-    update_student_password(user_id, password)
-
-    return redirect("/admin")
+    admin = get_admin_profile_by_username(session["username"])
+    return render_template("admin_update_profile.html", admin=admin)
 
 
-
-# ================= ADMIN API =================
-
+# ================= ADMIN APIs =================
 @app.route("/admin/students")
 def admin_students():
     return jsonify({"students": get_all_students()})
@@ -209,9 +173,9 @@ def admin_exams():
 
 
 # ================= ADD EXAM =================
-
 @app.route("/admin/add-exam", methods=["GET", "POST"])
 def add_exam_route():
+
     if session.get("role") != "admin":
         return redirect("/")
 
@@ -233,6 +197,7 @@ def add_exam_route():
             a.save(os.path.join(app.config["UPLOAD_FOLDER"], aname))
 
         add_exam(exam_name, course_id, exam_date, qname, aname)
+
         return redirect("/admin")
 
     db = get_db_connection()
@@ -251,8 +216,102 @@ def delete_exam_route(id):
     return jsonify({"success": True})
 
 
-# ================= STUDENT =================
+# ================= ADD STUDENT =================
+@app.route("/admin/add-student", methods=["GET", "POST"])
+def add_student_admin():
 
+    if session.get("role") != "admin":
+        return redirect("/")
+
+    if request.method == "POST":
+
+        username = request.form["username"]
+        password = request.form["password"]
+
+        name = request.form["full_name"]
+        email = request.form["email"]
+        phone = request.form["phone"]
+        gender = request.form["gender"]
+        course = request.form["course"]
+        department = request.form["department"]
+        year = request.form["year"]
+
+        hashed_password = generate_password_hash(password)
+
+        db = get_db_connection()
+        c = db.cursor()
+
+        c.execute(
+            "INSERT INTO users(username,password,role) VALUES(%s,%s,%s)",
+            (username, hashed_password, "student")
+        )
+
+        user_id = c.lastrowid
+
+        c.execute("""
+            INSERT INTO student
+            (user_id,full_name,email,phone,gender,course,department,year_of_study)
+            VALUES(%s,%s,%s,%s,%s,%s,%s,%s)
+        """, (user_id, name, email, phone, gender, course, department, year))
+
+        db.commit()
+        c.close()
+        db.close()
+
+        return redirect("/admin")
+
+    return render_template("add_student.html")
+
+
+# ================= EDIT STUDENT =================
+@app.route("/admin/edit-student/<int:id>", methods=["GET", "POST"])
+def edit_student_admin(id):
+
+    if session.get("role") != "admin":
+        return redirect("/")
+
+    db = get_db_connection()
+    c = db.cursor(dictionary=True)
+
+    if request.method == "POST":
+
+        c.execute("""
+            UPDATE student SET
+            full_name=%s,
+            email=%s,
+            phone=%s,
+            gender=%s,
+            course=%s,
+            department=%s,
+            year_of_study=%s
+            WHERE id=%s
+        """, (
+            request.form["full_name"],
+            request.form["email"],
+            request.form["phone"],
+            request.form["gender"],
+            request.form["course"],
+            request.form["department"],
+            request.form["year"],
+            id
+        ))
+
+        db.commit()
+        c.close()
+        db.close()
+
+        return redirect("/admin")
+
+    c.execute("SELECT * FROM student WHERE id=%s", (id,))
+    student = c.fetchone()
+
+    c.close()
+    db.close()
+
+    return render_template("edit_student.html", student=student)
+
+
+# ================= STUDENT DASHBOARD =================
 @app.route("/student")
 def student_dashboard():
     if session.get("role") != "student":
@@ -268,122 +327,7 @@ def save_student_profile():
     return "Saved"
 
 
-
-@app.route("/admin/add-student", methods=["GET","POST"])
-def add_student_admin():
-
-    if session.get("role") != "admin":
-        return redirect("/")
-
-    if request.method == "POST":
-
-        name = request.form["full_name"]
-        email = request.form["email"]
-        phone = request.form["phone"]
-        gender = request.form["gender"]
-        course = request.form["course"]
-        department = request.form["department"]
-        year = request.form["year"]
-        password = request.form["password"]
-
-        hashed_password = generate_password_hash(password)
-
-        db = get_db_connection()
-        c = db.cursor()
-
-        # create user login for student
-        
-        c.execute(
-            "INSERT INTO users(username,password,role) VALUES(%s,%s,%s)",
-        (username, hashed_password, "student")
-        )
-
-        user_id = c.lastrowid
-
-        c.execute("""
-            INSERT INTO student
-            (user_id,full_name,email,phone,gender,course,department,year_of_study)
-            VALUES(%s,%s,%s,%s,%s,%s,%s,%s)
-        """,(user_id,name,email,phone,gender,course,department,year))
-
-        db.commit()
-        c.close()
-        db.close()
-
-        return redirect("/admin")
-
-    return render_template("add_student.html")
-
-
-@app.route("/admin/edit-student/<int:id>", methods=["GET","POST"])
-def edit_student_admin(id):
-
-    if session.get("role")!="admin":
-        return redirect("/")
-
-    db = get_db_connection()
-    c = db.cursor(dictionary=True)
-
-    if request.method=="POST":
-
-        c.execute("""
-        UPDATE student SET
-        full_name=%s,
-        email=%s,
-        phone=%s,
-        gender=%s,
-        course=%s,
-        department=%s,
-        year_of_study=%s
-        WHERE id=%s
-        """,(
-        request.form["full_name"],
-        request.form["email"],
-        request.form["phone"],
-        request.form["gender"],
-        request.form["course"],
-        request.form["department"],
-        request.form["year"],
-        id))
-
-        db.commit()
-        c.close(); db.close()
-        return redirect("/admin")
-
-    c.execute("SELECT * FROM student WHERE id=%s",(id,))
-
-    student = c.fetchone()
-    hashed = generate_password_hash(password)
-
-        c.execute(
-        "UPDATE users SET password=%s WHERE id=%s",
-            (hashed, user_id)
-            )
-
-    c.close(); db.close()
-
-    return render_template("edit_student.html", student=student)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # ================= LOGOUT =================
-
 @app.route("/logout")
 def logout():
     session.clear()
