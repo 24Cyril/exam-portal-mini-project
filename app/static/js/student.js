@@ -280,6 +280,121 @@ function unenroll(courseId) {
 }
 
 // ===============================
+// EXAMS (FETCH FROM DB + REMOVE DUPES)
+// ===============================
+function loadExams() {
+
+    fetch("/api/student/exams")
+        .then(res => res.json())
+        .then(data => {
+
+            // 🔥 REMOVE DUPLICATES (course + date)
+            const unique = {};
+            data.forEach(e => {
+                const key = e.course_name + e.exam_date;
+                if (!unique[key]) unique[key] = e;
+            });
+
+            const exams = Object.values(unique);
+
+            let rows = exams.map((e, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${e.course_name}</td>
+                    <td>--</td>
+                    <td>${e.exam_date}</td>
+                    <td>
+                        <span class="attendance ${e.attended === "Attended" ? "yes" : "no"}">
+                            ${e.attended}
+                        </span>
+                    </td>
+                    <td>--</td>
+                    <td>--</td>
+                    <td>
+                        ${
+                            e.attended === "Attended"
+                            ? `<button class="result-btn" onclick="openTab('result')">View Result</button>`
+                            : `<button class="attend-btn">Attend</button>`
+                        }
+                    </td>
+                </tr>
+            `).join("");
+
+            document.getElementById("tab-content").innerHTML = `
+                <div class="table-wrapper">
+                    <h3>Exam Status</h3>
+                    <table class="common-table">
+                        <thead>
+                            <tr>
+                                <th>Sl No</th>
+                                <th>Course</th>
+                                <th>Duration</th>
+                                <th>Date</th>
+                                <th>Attendance</th>
+                                <th>Start</th>
+                                <th>End</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            `;
+        });
+}
+
+// ===============================
+// RESULTS (FROM SAME TABLE)
+// ===============================
+function loadResults() {
+
+    fetch("/api/student/exams")
+        .then(res => res.json())
+        .then(data => {
+
+            let rows = data.map((r, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${r.course_name}</td>
+                    <td>${r.exam_date}</td>
+                    <td>${r.marks}</td>
+                    <td>${r.grade}</td>
+                    <td>
+                        <span class="attendance ${r.attended === "Attended" ? "yes" : "no"}">
+                            ${r.attended}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="status ${r.status === "Pass" ? "done" : "pending"}">
+                            ${r.status}
+                        </span>
+                    </td>
+                </tr>
+            `).join("");
+
+            document.getElementById("tab-content").innerHTML = `
+                <div class="table-wrapper">
+                    <h3>Exam Results</h3>
+                    <table class="common-table">
+                        <thead>
+                            <tr>
+                                <th>Sl No</th>
+                                <th>Course</th>
+                                <th>Date</th>
+                                <th>Marks</th>
+                                <th>Grade</th>
+                                <th>Attendance</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            `;
+        });
+}
+
+// ===============================
 // OTHERS
 // ===============================
 function loadCertificates() {
