@@ -33,32 +33,58 @@ def get_admin_profile_by_username(username):
 # -------------------------------
 # UPDATE ADMIN PROFILE
 # -------------------------------
-def update_admin_profile(username, data):
+def update_admin_profile(username, data, new_password=None):
     db = get_db_connection()
     cursor = db.cursor()
 
-    cursor.execute("""
-        UPDATE admin
-        SET full_name=%s,
-            dob=%s,
-            gender=%s,
-            contact_number=%s,
-            email=%s,
-            institute_name=%s,
-            institute_code=%s,
-            institute_email=%s
-        WHERE username=%s
-    """, (
-        data["full_name"],
-        data["dob"],
-        data["gender"],
-        data["contact_number"],
-        data["email"],
-        data["institute_name"],
-        data["institute_code"],
-        data["institute_email"],
-        username
-    ))
+    if new_password:
+        cursor.execute("""
+            UPDATE admin
+            SET full_name=%s,
+                dob=%s,
+                gender=%s,
+                contact_number=%s,
+                email=%s,
+                institute_name=%s,
+                institute_code=%s,
+                institute_email=%s,
+                password_hash=%s
+            WHERE username=%s
+        """, (
+            data["full_name"],
+            data["dob"],
+            data["gender"],
+            data["contact_number"],
+            data["email"],
+            data["institute_name"],
+            data["institute_code"],
+            data["institute_email"],
+            new_password,
+            username
+        ))
+    else:
+        cursor.execute("""
+            UPDATE admin
+            SET full_name=%s,
+                dob=%s,
+                gender=%s,
+                contact_number=%s,
+                email=%s,
+                institute_name=%s,
+                institute_code=%s,
+                institute_email=%s
+            WHERE username=%s
+        """, (
+            data["full_name"],
+            data["dob"],
+            data["gender"],
+            data["contact_number"],
+            data["email"],
+            data["institute_name"],
+            data["institute_code"],
+            data["institute_email"],
+            username
+        ))
 
     db.commit()
     cursor.close()
@@ -317,6 +343,83 @@ def reject_payment(payment_id):
             WHERE payment_id = %s
         """, (payment_id,))
 
+    db.commit()
+    cursor.close()
+    db.close()
+  
+# -------------------------------  
+# FETCH ALL REGISTRATIONS  
+# -------------------------------  
+def get_all_registrations():  
+    db = get_db_connection()  
+    cursor = db.cursor(dictionary=True)  
+    cursor.execute("""SELECT s.full_name, c.course_name, sc.enrollment_status, sc.payment_verification_status AS payment_status, sc.created_at AS registered_at FROM student_courses sc JOIN student s ON sc.student_id=s.id JOIN courses c ON sc.course_id=c.course_id ORDER BY sc.created_at DESC""")  
+    data = cursor.fetchall()  
+    cursor.close()  
+    db.close()  
+    return data 
+
+
+# -------------------------------
+# FETCH ALL REGISTRATIONS
+# -------------------------------
+def get_all_registrations():
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("""SELECT s.full_name, c.course_name, sc.enrollment_status, sc.payment_verification_status AS payment_status, sc.created_at AS registered_at FROM student_courses sc JOIN student s ON sc.student_id=s.id JOIN courses c ON sc.course_id=c.course_id ORDER BY sc.created_at DESC""")
+    data = cursor.fetchall()
+    cursor.close()
+    db.close()
+    return data
+
+
+# -------------------------------
+# FETCH ALL EXAMS
+# -------------------------------
+def get_all_exams():
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("""SELECT e.exam_id,e.exam_name,c.course_name, e.exam_date,e.status,e.question_file,e.answer_file FROM exams e JOIN courses c ON e.course_id=c.course_id ORDER BY e.exam_date DESC""")
+    data = cursor.fetchall()
+    cursor.close()
+    db.close()
+    return data
+
+
+# -------------------------------
+# ADD EXAM
+# -------------------------------
+def add_exam(name, course_id, date, qfile, afile):
+    db = get_db_connection()
+    cursor = db.cursor()
+    cursor.execute("""INSERT INTO exams(exam_name,course_id,exam_date,question_file,answer_file) VALUES(%s,%s,%s,%s,%s)""",(name, course_id, date, qfile, afile))
+    db.commit()
+    cursor.close()
+    db.close()
+
+
+# -------------------------------
+# DELETE EXAM
+# -------------------------------
+def delete_exam(exam_id):
+    db = get_db_connection()
+    cursor = db.cursor()
+    cursor.execute("DELETE FROM exams WHERE exam_id=%s", (exam_id,))
+    db.commit()
+    cursor.close()
+    db.close()
+
+
+# -------------------------------
+# UPDATE STUDENT PASSWORD
+# -------------------------------
+from werkzeug.security import generate_password_hash
+
+def update_student_password(user_id, password):
+    db = get_db_connection()
+    cursor = db.cursor()
+    hashed = generate_password_hash(password)
+    cursor.execute("UPDATE users SET password=%s WHERE id=%s", (hashed, user_id))
     db.commit()
     cursor.close()
     db.close()
