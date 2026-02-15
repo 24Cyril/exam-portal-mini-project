@@ -64,6 +64,7 @@ body {
 }
 
 .login-section {
+  height: fit-content;
   flex: 1;
   max-width: 400px;
   background: white;
@@ -125,7 +126,7 @@ input {
   padding: 10px;
   background-color: #1e88e5;
   color: white;
-  border: none;
+  border:none;
   border-radius: 4px;
   cursor: pointer;
 }
@@ -151,7 +152,7 @@ input {
 
 .settings-panel {
   position: fixed;
-  left: 20px;
+  right: 20px;
   bottom: 70px; /* a bit above the button */
   width: 240px;
   background: #ffffff;
@@ -203,7 +204,7 @@ input {
 /* SETTINGS BUTTON */
 .settings-btn {
   position: fixed;
-  left: 20px;
+  right: 20px;
   bottom: 20px;
   width: 48px;
   height: 48px;
@@ -236,5 +237,46 @@ body.dark-mode {
 
 body.dark-mode .login-section,
 body.dark-mode .settings-panel {
+  background-color: #1e1e1e;
+}
+
+/* =========================
+   INFO SECTION CONTENT
+========================= */
+
+.info-section h1 {
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  font-size: 15px;
+  margin-bottom: 20px;
+  color: #555;
+}
+
+.feature-box {
+  background: #ffffff;
+  padding: 15px 18px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.feature-box h3 {
+  margin-bottom: 8px;
+  font-size: 16px;
+  color: #1e88e5;
+}
+
+.feature-box ul {
+  padding-left: 18px;
+}
+
+.feature-box li {
+  margin-bottom: 6px;
+}
+
+/* Dark mode adjustments */
+body.dark-mode .feature-box {
   background-color: #1e1e1e;
 }

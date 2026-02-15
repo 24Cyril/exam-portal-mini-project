@@ -4,7 +4,7 @@ import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from admin import (
-    get_admin_profile_by_username, 
+    get_admin_profile_by_username,
     update_admin_profile,
     get_all_students,
     get_all_courses as get_all_courses_admin,
@@ -18,11 +18,17 @@ from admin import (
     get_all_exams,
     add_exam,
     delete_exam,
-    update_student_password
+    update_student_password,
+    get_course_by_id,
+    add_course,
+    update_course,
+    delete_course,
+    add_course,
+    update_course,
+    delete_course
 )
 from student import(
     get_student_profile,
-    create_student_profile,
     save_student_profile,
     get_student_id,
     get_all_courses_for_student,
@@ -70,7 +76,12 @@ def register():
         username = request.form["username"]
         password = request.form["password"]
         role = request.form["role"].lower()
-        email = request.form.get("email")   # ✅ EMAIL FROM FORM
+        email = request.form.get("email")
+
+        # student-only fields
+        department = request.form.get("department")
+        course = request.form.get("course")
+        year_of_study = request.form.get("year_of_study")
 
         hashed_password = generate_password_hash(password)
 
@@ -84,7 +95,7 @@ def register():
         )
         user_id = cursor.lastrowid
 
-        # ---------------- ADMIN PROFILE AUTO-CREATE ----------------
+        # ---------------- ADMIN PROFILE ----------------
         if role == "admin":
             cursor.execute(
                 """
@@ -94,9 +105,16 @@ def register():
                 (username, hashed_password, "admin", username, email)
             )
 
-        # ---------------- STUDENT PROFILE AUTO-CREATE ----------------
+        # ---------------- STUDENT PROFILE ----------------
         if role == "student":
-            create_student_profile(cursor, user_id, email)
+            cursor.execute(
+                """
+                INSERT INTO student 
+                (user_id, email, department, course, year_of_study)
+                VALUES (%s, %s, %s, %s, %s)
+                """,
+                (user_id, email, department, course, year_of_study)
+            )
 
         db.commit()
         cursor.close()
@@ -589,6 +607,109 @@ def admin_update():
 
     admin = get_admin_profile_by_username(session["username"])
     return render_template("admin_update_profile.html", admin=admin)
+
+
+# -------------------------------
+# ADMIN: ADD COURSE
+# -------------------------------
+@app.route("/admin/add-course", methods=["GET", "POST"])
+def add_course_route():
+    if session.get("role") != "admin":
+        return redirect("/")
+
+    if request.method == "POST":
+        course_name = request.form["course_name"]
+        course_code = request.form["course_code"]
+        department = request.form.get("department", "")
+        description = request.form.get("description", "")
+        duration = request.form.get("duration", "")
+        fee = request.form["fee"]
+        status = request.form.get("status", "Active")
+        
+        # Get admin_id from session
+        admin = get_admin_profile_by_username(session["username"])
+        created_by = admin["admin_id"] if admin else None
+
+        add_course(course_name, course_code, department, description, duration, fee, status, created_by)
+
+        return redirect("/admin")
+
+    return render_template("add_courses.html")
+
+
+# -------------------------------
+# ADMIN: EDIT COURSE
+# -------------------------------
+@app.route("/admin/edit-course/<int:id>", methods=["GET", "POST"])
+def edit_course_route(id):
+    if session.get("role") != "admin":
+        return redirect("/")
+
+    if request.method == "POST":
+        course_name = request.form["course_name"]
+        course_code = request.form["course_code"]
+        department = request.form.get("department", "")
+        description = request.form.get("description", "")
+        duration = request.form.get("duration", "")
+        fee = request.form["fee"]
+        status = request.form.get("status", "Active")
+
+        update_course(id, course_name, course_code, department, description, duration, fee, status)
+
+        return redirect("/admin")
+
+    course = get_course_by_id(id)
+    return render_template("edit_courses.html", course=course)
+
+
+# -------------------------------
+# ADMIN: DELETE COURSE
+# -------------------------------
+@app.route("/admin/delete-course/<int:id>", methods=["POST"])
+def delete_course_route(id):
+    if session.get("role") != "admin":
+        return {"error": "Unauthorized"}, 401
+    
+    delete_course(id)
+    return {"success": True}
+
+
+
+@app.route("/student/change-password", methods=["POST"])
+def change_student_password():
+    if session.get("role") != "student":
+        return "Unauthorized", 403
+
+    new_password = request.form["password"]
+    user_id = session["user_id"]
+
+    update_student_password(user_id, new_password)
+
+    return redirect("/student/profile")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # -------------------------------

@@ -423,3 +423,67 @@ def update_student_password(user_id, password):
     db.commit()
     cursor.close()
     db.close()
+
+
+# -------------------------------
+# GET COURSE BY ID
+# -------------------------------
+def get_course_by_id(course_id):
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM courses WHERE course_id=%s", (course_id,))
+    course = cursor.fetchone()
+    cursor.close()
+    db.close()
+    return course
+
+
+# -------------------------------
+# ADD COURSE
+# -------------------------------
+def add_course(course_name, course_code, department, description, duration, fee, status, created_by):
+    db = get_db_connection()
+    cursor = db.cursor()
+    cursor.execute("""
+        INSERT INTO courses
+        (course_name, course_code, department, description, duration, fee, status, created_by)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    """, (course_name, course_code, department, description, duration, fee, status, created_by))
+    db.commit()
+    cursor.close()
+    db.close()
+
+
+# -------------------------------
+# UPDATE COURSE
+# -------------------------------
+def update_course(course_id, course_name, course_code, department, description, duration, fee, status):
+    db = get_db_connection()
+    cursor = db.cursor()
+    cursor.execute("""
+        UPDATE courses
+        SET course_name=%s,
+            course_code=%s,
+            department=%s,
+            description=%s,
+            duration=%s,
+            fee=%s,
+            status=%s
+        WHERE course_id=%s
+    """, (course_name, course_code, department, description, duration, fee, status, course_id))
+    db.commit()
+    cursor.close()
+    db.close()
+
+
+# -------------------------------
+# DELETE COURSE
+# -------------------------------
+def delete_course(course_id):
+    db = get_db_connection()
+    cursor = db.cursor()
+    # Foreign key constraints will cascade delete related records
+    cursor.execute("DELETE FROM courses WHERE course_id=%s", (course_id,))
+    db.commit()
+    cursor.close()
+    db.close()

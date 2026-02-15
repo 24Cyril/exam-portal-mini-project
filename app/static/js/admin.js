@@ -144,6 +144,10 @@ function renderCoursesTable(courses) {
             <td>${c.fee}</td>
             <td>${c.status}</td>
             <td>${c.created_at}</td>
+            <td>
+                <button class="edit-btn" onclick="editCourse(${c.course_id})">✏ Edit</button>
+                <button class="delete-btn" onclick="deleteCourse(${c.course_id})">🗑 Delete</button>
+            </td>
         </tr>
     `).join("");
 
@@ -158,6 +162,8 @@ function renderCoursesTable(courses) {
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
             </select>
+
+            <button class="add-btn" onclick="addCourse()">➕ Add Course</button>
         </div>
 
         <table class="profile-table" id="adminTable">
@@ -169,6 +175,7 @@ function renderCoursesTable(courses) {
                 <th onclick="sortTable(4)">Fee</th>
                 <th>Status</th>
                 <th onclick="sortTable(6)">Created</th>
+                <th>Actions</th>
             </tr>
             ${rows}
         </table>
@@ -488,3 +495,25 @@ function renderRegistrationsTable(registrations) {
 ===================================================== */
 
 window.onload = () => openTab("profile");
+
+
+
+function addCourse(){
+    location.href="/admin/add-course";
+}
+
+function editCourse(id){
+    location.href="/admin/edit-course/"+id;
+}
+
+function deleteCourse(id){
+    if(confirm("Delete this course? This will also remove all enrollments and payments associated with it.")){
+        fetch("/admin/delete-course/"+id,{method:"POST"})
+            .then(res => res.json())
+            .then(() => {
+                alert("Course deleted successfully!");
+                loadCourses();
+            })
+            .catch(err => alert("Error deleting course: " + err));
+    }
+}
