@@ -63,3 +63,260 @@ def update_admin_profile(username, data):
     db.commit()
     cursor.close()
     db.close()
+
+
+# -------------------------------
+# FETCH ALL STUDENTS (ADMIN VIEW)
+# -------------------------------
+def get_all_students():
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT
+            s.id,
+            s.full_name,
+            s.email,
+            s.phone,
+            s.gender,
+            s.course,
+            s.department,
+            s.year_of_study,
+            s.institute_name,
+            s.created_at
+        FROM student s
+        ORDER BY s.created_at DESC
+    """)
+
+    students = cursor.fetchall()
+    cursor.close()
+    db.close()
+
+    return students
+
+
+# -------------------------------
+# FETCH ALL COURSES (ADMIN VIEW)
+# -------------------------------
+def get_all_courses():
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT
+            course_id,
+            course_name,
+            course_code,
+            duration,
+            fee,
+            status,
+            created_at
+        FROM courses
+        ORDER BY created_at DESC
+    """)
+
+    courses = cursor.fetchall()
+    cursor.close()
+    db.close()
+
+    return courses
+
+
+# -------------------------------
+# FETCH PENDING ENROLLMENTS
+# -------------------------------
+def get_pending_enrollments():
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT
+            sc.id,
+            sc.student_id,
+            s.full_name AS student_name,
+            s.email,
+            c.course_id,
+            c.course_name,
+            sc.enrollment_status,
+            sc.enrollment_verification_status,
+            sc.created_at
+        FROM student_courses sc
+        JOIN student s ON sc.student_id = s.id
+        JOIN courses c ON sc.course_id = c.course_id
+        WHERE sc.enrollment_verification_status = 'Pending'
+        ORDER BY sc.created_at DESC
+    """)
+
+    enrollments = cursor.fetchall()
+    cursor.close()
+    db.close()
+
+    return enrollments
+
+
+# -------------------------------
+# VERIFY ENROLLMENT
+# -------------------------------
+def verify_enrollment(enrollment_id):
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    # Update enrollment status to Verified and set payment status to Pending
+    cursor.execute("""
+        UPDATE student_courses
+        SET enrollment_verification_status = 'Verified',
+            payment_verification_status = 'Pending'
+        WHERE id = %s
+    """, (enrollment_id,))
+
+    # Get student_id and course_id to create payment record
+    cursor.execute("""
+        SELECT student_id, course_id
+        FROM student_courses
+        WHERE id = %s
+    """, (enrollment_id,))
+    
+    result = cursor.fetchone()
+    if result:
+        student_id, course_id = result
+        
+        # Create payment record
+        cursor.execute("""
+            INSERT INTO payments (student_id, course_id, amount, verification_status)
+            SELECT %s, course_id, fee, 'Pending'
+            FROM courses
+            WHERE course_id = %s
+            ON DUPLICATE KEY UPDATE verification_status = 'Pending'
+        """, (student_id, course_id))
+
+    db.commit()
+    cursor.close()
+    db.close()
+
+
+# -------------------------------
+# REJECT ENROLLMENT
+# -------------------------------
+def reject_enrollment(enrollment_id):
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    cursor.execute("""
+        UPDATE student_courses
+        SET enrollment_verification_status = 'Rejected',
+            payment_verification_status = 'Not Required'
+        WHERE id = %s
+    """, (enrollment_id,))
+
+    db.commit()
+    cursor.close()
+    db.close()
+
+
+# -------------------------------
+# FETCH PENDING PAYMENTS
+# -------------------------------
+def get_pending_payments():
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT
+            p.payment_id,
+            p.student_id,
+            s.full_name AS student_name,
+            s.email,
+            c.course_id,
+            c.course_name,
+            p.amount,
+            p.payment_method,
+            p.transaction_id,
+            sc.payment_verification_status,
+            DATE(p.payment_date) AS payment_date
+        FROM payments p
+        JOIN student s ON p.student_id = s.id
+        JOIN courses c ON p.course_id = c.course_id
+        JOIN student_courses sc ON sc.student_id = p.student_id AND sc.course_id = p.course_id
+        WHERE sc.payment_verification_status = 'Submitted'
+        ORDER BY p.payment_date DESC
+    """)
+
+    payments = cursor.fetchall()
+    cursor.close()
+    db.close()
+
+    return payments
+
+
+# -------------------------------
+# VERIFY PAYMENT
+# -------------------------------
+def verify_payment(payment_id):
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    # Get student_id and course_id from payment
+    cursor.execute("""
+        SELECT student_id, course_id
+        FROM payments
+        WHERE payment_id = %s
+    """, (payment_id,))
+    
+    result = cursor.fetchone()
+    if result:
+        student_id, course_id = result
+        
+        # Update payment verification status in student_courses
+        cursor.execute("""
+            UPDATE student_courses
+            SET payment_verification_status = 'Verified'
+            WHERE student_id = %s AND course_id = %s
+        """, (student_id, course_id))
+        
+        # Update payment verification status in payments table
+        cursor.execute("""
+            UPDATE payments
+            SET verification_status = 'Verified'
+            WHERE payment_id = %s
+        """, (payment_id,))
+
+    db.commit()
+    cursor.close()
+    db.close()
+
+
+# -------------------------------
+# REJECT PAYMENT
+# -------------------------------
+def reject_payment(payment_id):
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    # Get student_id and course_id from payment
+    cursor.execute("""
+        SELECT student_id, course_id
+        FROM payments
+        WHERE payment_id = %s
+    """, (payment_id,))
+    
+    result = cursor.fetchone()
+    if result:
+        student_id, course_id = result
+        
+        # Update payment verification status back to Pending
+        cursor.execute("""
+            UPDATE student_courses
+            SET payment_verification_status = 'Pending'
+            WHERE student_id = %s AND course_id = %s
+        """, (student_id, course_id))
+        
+        # Update payment verification status in payments table
+        cursor.execute("""
+            UPDATE payments
+            SET verification_status = 'Rejected'
+            WHERE payment_id = %s
+        """, (payment_id,))
+
+    db.commit()
+    cursor.close()
+    db.close()

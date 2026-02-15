@@ -49,7 +49,7 @@ function loadProfile() {
 }
 
 // ===============================
-// COURSES (unchanged)
+// COURSES
 // ===============================
 let allCourses = [];
 
@@ -81,45 +81,74 @@ function loadCourses() {
             renderCourses(data);
         });
 }
+
 function renderCourses(courses) {
+
     const container = document.getElementById("course-list");
     container.innerHTML = "";
 
     courses.forEach(c => {
 
-        let actionBtn = "";
-        let paymentBadge = "";
+        let buttons = "";
+        let statusText = "";
 
         if (c.enrollment_status === "Not Enrolled") {
-            actionBtn = `<button class="attend-btn" onclick="enroll(${c.course_id})">
-                            Enroll
-                         </button>`;
-        } else {
-          paymentBadge = `
-    <span class="badge ${
-        c.payment_verification_status === "Verified" ? "active" : "inactive"
-    }">
-        ${c.payment_verification_status}
-    </span>
-`;
 
+            statusText = `<span class="badge inactive">Not Enrolled</span>`;
+            buttons = `
+                <button class="attend-btn" onclick="enroll(${c.course_id})">
+                    Enroll
+                </button>
+            `;
+
+        } else {
+
+            statusText = `
+                <span class="badge active">Enrolled</span>
+                <span class="badge ${c.enrollment_verification_status === "Verified" ? "active" : c.enrollment_verification_status === "Rejected" ? "inactive" : "pending"}">
+                    Enrollment: ${c.enrollment_verification_status || "Pending"}
+                </span>
+            `;
+
+            // Only show payment status if enrollment is verified
+            if (c.enrollment_verification_status === "Verified") {
+                statusText += `
+                    <span class="badge ${c.payment_verification_status === "Verified" ? "active" : "inactive"}">
+                        Payment: ${c.payment_verification_status || "Pending"}
+                    </span>
+                `;
+
+                // Show pay button only if enrollment is verified and payment is not verified
+                if (c.payment_verification_status !== "Verified") {
+                    buttons += `
+                        <button class="pay-btn" onclick="openTab('payment')">
+                            Pay
+                        </button>
+                    `;
+                }
+            }
+
+            buttons += `
+                <button class="unenroll-btn" onclick="unenroll(${c.course_id})">
+                    Unenroll
+                </button>
+            `;
         }
 
         container.innerHTML += `
             <div class="course-card">
                 <h4>${c.course_name}</h4>
-                <p>${c.description}</p>
+                <p>${c.description || ""}</p>
                 <p><b>Fee:</b> ₹${c.fee}</p>
-
-                ${paymentBadge}
-                ${actionBtn}
+                ${statusText}
+                <div class="btn-group">${buttons}</div>
             </div>
         `;
     });
 }
 
-
 function applyFilters() {
+
     let filtered = [...allCourses];
 
     const search = document.getElementById("searchCourse").value.toLowerCase();
@@ -139,130 +168,7 @@ function applyFilters() {
 }
 
 // ===============================
-// EXAMS (FETCH FROM DB + REMOVE DUPES)
-// ===============================
-function loadExams() {
-
-    fetch("/api/student/exams")
-        .then(res => res.json())
-        .then(data => {
-
-            // 🔥 REMOVE DUPLICATES (course + date)
-            const unique = {};
-            data.forEach(e => {
-                const key = e.course_name + e.exam_date;
-                if (!unique[key]) unique[key] = e;
-            });
-
-            const exams = Object.values(unique);
-
-            let rows = exams.map((e, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td>${e.course_name}</td>
-                    <td>--</td>
-                    <td>${e.exam_date}</td>
-                    <td>
-                        <span class="attendance ${e.attended === "Attended" ? "yes" : "no"}">
-                            ${e.attended}
-                        </span>
-                    </td>
-                    <td>--</td>
-                    <td>--</td>
-                    <td>
-                        ${
-                            e.attended === "Attended"
-                            ? `<button class="result-btn" onclick="openTab('result')">View Result</button>`
-                            : `<button class="attend-btn">Attend</button>`
-                        }
-                    </td>
-                </tr>
-            `).join("");
-
-            document.getElementById("tab-content").innerHTML = `
-                <div class="table-wrapper">
-                    <h3>Exam Status</h3>
-                    <table class="common-table">
-                        <thead>
-                            <tr>
-                                <th>Sl No</th>
-                                <th>Course</th>
-                                <th>Duration</th>
-                                <th>Date</th>
-                                <th>Attendance</th>
-                                <th>Start</th>
-                                <th>End</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rows}</tbody>
-                    </table>
-                </div>
-            `;
-        });
-}
-
-// ===============================
-// RESULTS (FROM SAME TABLE)
-// ===============================
-function loadResults() {
-
-    fetch("/api/student/exams")
-        .then(res => res.json())
-        .then(data => {
-
-            let rows = data.map((r, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td>${r.course_name}</td>
-                    <td>${r.exam_date}</td>
-                    <td>${r.marks}</td>
-                    <td>${r.grade}</td>
-                    <td>
-                        <span class="attendance ${r.attended === "Attended" ? "yes" : "no"}">
-                            ${r.attended}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="status ${r.status === "Pass" ? "done" : "pending"}">
-                            ${r.status}
-                        </span>
-                    </td>
-                </tr>
-            `).join("");
-
-            document.getElementById("tab-content").innerHTML = `
-                <div class="table-wrapper">
-                    <h3>Exam Results</h3>
-                    <table class="common-table">
-                        <thead>
-                            <tr>
-                                <th>Sl No</th>
-                                <th>Course</th>
-                                <th>Date</th>
-                                <th>Marks</th>
-                                <th>Grade</th>
-                                <th>Attendance</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rows}</tbody>
-                    </table>
-                </div>
-            `;
-        });
-}
-
-// ===============================
-// CERTIFICATES + PAYMENTS (unchanged)
-// ===============================
-function loadCertificates(){ document.getElementById("tab-content").innerHTML="<h3>Certificates</h3>"; }
-
-
-
-
-// ===============================
-// PAYMENTS
+// PAYMENTS (FIXED)
 // ===============================
 function loadPayments() {
 
@@ -270,33 +176,42 @@ function loadPayments() {
         .then(res => res.json())
         .then(data => {
 
-            if (!data.length) {
+            if (!data || !data.length) {
                 document.getElementById("tab-content").innerHTML =
                     "<h3>No payment records found</h3>";
                 return;
             }
 
-            let rows = data.map((p, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td>${p.course_name}</td>
-                    <td>₹${p.amount || "-"}</td>
-                    <td>${p.payment_method || "-"}</td>
-                    <td>${p.transaction_id || "-"}</td>
-                    <td>
-                        ${
-                            p.payment_verification_status === "Pending"
-                                ? `<button class="pay-btn" onclick="submitPayment(${p.course_id})">
-                                        Submit Payment
-                                   </button>`
-                                : `<span class="status done">
-                                        ${p.payment_verification_status}
-                                   </span>`
-                        }
-                    </td>
-                    <td>${p.payment_date || "-"}</td>
-                </tr>
-            `).join("");
+            let rows = data.map((p, i) => {
+
+                let actionCell = "";
+
+                if (p.payment_verification_status === "Pending") {
+                    actionCell = `
+                        <button class="pay-btn" onclick="submitPayment(${p.course_id})">
+                            Submit Payment
+                        </button>
+                    `;
+                } else {
+                    actionCell = `
+                        <span class="status done">
+                            ${p.payment_verification_status}
+                        </span>
+                    `;
+                }
+
+                return `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${p.course_name}</td>
+                        <td>₹${p.amount || "-"}</td>
+                        <td>${p.payment_method || "-"}</td>
+                        <td>${p.transaction_id || "-"}</td>
+                        <td>${actionCell}</td>
+                        <td>${p.payment_date || "-"}</td>
+                    </tr>
+                `;
+            }).join("");
 
             document.getElementById("tab-content").innerHTML = `
                 <div class="table-wrapper">
@@ -325,6 +240,7 @@ function loadPayments() {
 }
 
 function submitPayment(courseId) {
+
     fetch("/api/payment/manual", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -335,44 +251,45 @@ function submitPayment(courseId) {
         })
     })
     .then(res => res.json())
-    .then(data => {
+    .then(() => {
         alert("Payment submitted. Waiting for admin verification.");
         loadPayments();
+        loadCourses(); // sync badge state
     });
 }
 
-
-    function logout() {
-  window.location.href = "/logout";
-}
-
 // ===============================
-// DEFAULT LOAD
+// ENROLL / UNENROLL
 // ===============================
-document.addEventListener("DOMContentLoaded", () => {
-    openTab("home");
-});
-
-
-
-
 function enroll(courseId) {
     fetch("/api/student/enroll", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ course_id: courseId })
     })
-    .then(() => {
-        loadCourses();     // update payment badge
-        loadPayments();    // payment row appears automatically
-    });
+    .then(() => loadCourses());
 }
 
 function unenroll(courseId) {
     fetch("/api/student/unenroll", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({course_id: courseId})
+        body: JSON.stringify({ course_id: courseId })
     })
-    .then(() => loadCourses());   // 🔥 refresh
+    .then(() => loadCourses());
 }
+
+// ===============================
+// OTHERS
+// ===============================
+function loadCertificates() {
+    document.getElementById("tab-content").innerHTML = "<h3>Certificates</h3>";
+}
+
+function logout() {
+    window.location.href = "/logout";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    openTab("home");
+});

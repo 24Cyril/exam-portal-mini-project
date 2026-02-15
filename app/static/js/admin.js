@@ -26,6 +26,16 @@ function openTab(tabName) {
         return;
     }
 
+    if (tabName === "registration") {
+        loadEnrollments();
+        return;
+    }
+
+    if (tabName === "payment") {
+        loadPayments();
+        return;
+    }
+
     document.getElementById("tab-content").innerHTML =
         `<p>${tabName} module coming soon...</p>`;
 }
@@ -180,6 +190,164 @@ function sortTable(colIndex) {
     );
 
     rows.forEach(r => table.appendChild(r));
+}
+
+/* =====================================================
+   ENROLLMENTS (REGISTRATION) TAB
+===================================================== */
+
+function loadEnrollments() {
+    fetch("/admin/enrollments")
+        .then(res => res.json())
+        .then(data => renderEnrollmentsTable(data.enrollments));
+}
+
+function renderEnrollmentsTable(enrollments) {
+
+    if (!enrollments || enrollments.length === 0) {
+        document.getElementById("tab-content").innerHTML = `
+            <h3>No Pending Enrollments</h3>
+            <p>All enrollment requests have been processed.</p>
+        `;
+        return;
+    }
+
+    let rows = enrollments.map(e => `
+        <tr>
+            <td>${e.id}</td>
+            <td>${e.student_name || ""}</td>
+            <td>${e.email || ""}</td>
+            <td>${e.course_name}</td>
+            <td><span class="badge pending">${e.enrollment_verification_status}</span></td>
+            <td>${e.created_at || ""}</td>
+            <td>
+                <button class="verify-btn" onclick="verifyEnrollment(${e.id})">✓ Verify</button>
+                <button class="reject-btn" onclick="rejectEnrollment(${e.id})">✗ Reject</button>
+            </td>
+        </tr>
+    `).join("");
+
+    document.getElementById("tab-content").innerHTML = `
+        <h3>Pending Enrollments</h3>
+        <table class="profile-table">
+            <tr>
+                <th>ID</th>
+                <th>Student Name</th>
+                <th>Email</th>
+                <th>Course</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+            ${rows}
+        </table>
+    `;
+}
+
+function verifyEnrollment(enrollmentId) {
+    if (!confirm("Verify this enrollment? Student will be able to pay fees.")) return;
+
+    fetch(`/admin/enrollments/verify/${enrollmentId}`, { method: "POST" })
+        .then(res => res.json())
+        .then(() => {
+            alert("Enrollment verified successfully!");
+            loadEnrollments();
+        })
+        .catch(err => alert("Error: " + err));
+}
+
+function rejectEnrollment(enrollmentId) {
+    if (!confirm("Reject this enrollment? Student will not be able to proceed.")) return;
+
+    fetch(`/admin/enrollments/reject/${enrollmentId}`, { method: "POST" })
+        .then(res => res.json())
+        .then(() => {
+            alert("Enrollment rejected!");
+            loadEnrollments();
+        })
+        .catch(err => alert("Error: " + err));
+}
+
+/* =====================================================
+   PAYMENTS TAB
+===================================================== */
+
+function loadPayments() {
+    fetch("/admin/payments")
+        .then(res => res.json())
+        .then(data => renderPaymentsTable(data.payments));
+}
+
+function renderPaymentsTable(payments) {
+
+    if (!payments || payments.length === 0) {
+        document.getElementById("tab-content").innerHTML = `
+            <h3>No Pending Payments</h3>
+            <p>All payment submissions have been processed.</p>
+        `;
+        return;
+    }
+
+    let rows = payments.map(p => `
+        <tr>
+            <td>${p.payment_id}</td>
+            <td>${p.student_name || ""}</td>
+            <td>${p.email || ""}</td>
+            <td>${p.course_name}</td>
+            <td>₹${p.amount || ""}</td>
+            <td>${p.payment_method || ""}</td>
+            <td>${p.transaction_id || ""}</td>
+            <td><span class="badge pending">${p.payment_verification_status}</span></td>
+            <td>${p.payment_date || ""}</td>
+            <td>
+                <button class="verify-btn" onclick="verifyPayment(${p.payment_id})">✓ Verify</button>
+                <button class="reject-btn" onclick="rejectPayment(${p.payment_id})">✗ Reject</button>
+            </td>
+        </tr>
+    `).join("");
+
+    document.getElementById("tab-content").innerHTML = `
+        <h3>Pending Payments</h3>
+        <table class="profile-table">
+            <tr>
+                <th>ID</th>
+                <th>Student Name</th>
+                <th>Email</th>
+                <th>Course</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Transaction ID</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+            ${rows}
+        </table>
+    `;
+}
+
+function verifyPayment(paymentId) {
+    if (!confirm("Verify this payment?")) return;
+
+    fetch(`/admin/payments/verify/${paymentId}`, { method: "POST" })
+        .then(res => res.json())
+        .then(() => {
+            alert("Payment verified successfully!");
+            loadPayments();
+        })
+        .catch(err => alert("Error: " + err));
+}
+
+function rejectPayment(paymentId) {
+    if (!confirm("Reject this payment? Student will need to resubmit.")) return;
+
+    fetch(`/admin/payments/reject/${paymentId}`, { method: "POST" })
+        .then(res => res.json())
+        .then(() => {
+            alert("Payment rejected!");
+            loadPayments();
+        })
+        .catch(err => alert("Error: " + err));
 }
 
 /* =====================================================
