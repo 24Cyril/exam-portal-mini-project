@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Exam</title>
+    <link rel="stylesheet" href="../static/css/admin.css">
+</head>
+<body>
+
+<div class="form-card">
+    <h2>Add New Exam</h2>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="text" name="exam_name" placeholder="Exam Name" required>
+        
+        <select name="course_id" required>
+            <option value="">Select Course</option>
+            {% for course in courses %}
+            <option value="{{ course.course_id }}">{{ course.course_name }}</option>
+            {% endfor %}
+        </select>
+        
+        <input type="date" name="exam_date" required>
+        
+        <label>Question Paper (PDF/DOC):</label>
+        <input type="file" name="question_file" accept=".pdf,.doc,.docx">
+        
+        <label>Answer Key (PDF/DOC):</label>
+        <input type="file" name="answer_file" accept=".pdf,.doc,.docx">
+        
+        <button type="submit">Add Exam</button>
+    </form>
+    
+    <a href="/admin" class="back-link">← Back to Dashboard</a>
+</div>
+
+</body>
+</html>
