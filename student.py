@@ -24,15 +24,6 @@ def get_student_id(user_id):
     return row[0] if row else None
 
 
-# -------------------------------
-# PROFILE
-# -------------------------------
-def create_student_profile(cursor, user_id, email):
-    cursor.execute(
-        "INSERT INTO student (user_id, email) VALUES (%s,%s)",
-        (user_id, email)
-    )
-
 
 #profile data
 def get_student_profile(user_id):
@@ -80,20 +71,35 @@ def save_student_profile():
 def fetch_student_courses(student_id):
     db = get_db_connection()
     cur = db.cursor(dictionary=True)
+
     cur.execute("""
-        SELECT c.course_id, c.course_name, c.description, c.fee, c.status,
-        IF(sc.id IS NULL,'Not Enrolled',sc.enrollment_status) AS enrollment_status,
-        sc.enrollment_verification_status,
-        sc.payment_verification_status
-        FROM courses c
+        SELECT 
+            c.course_id,
+            c.course_name,
+            c.description,
+            c.fee,
+            c.status,
+
+            IF(sc.id IS NULL, 'Not Enrolled', sc.enrollment_status) 
+                AS enrollment_status,
+
+            sc.enrollment_verification_status,
+            sc.payment_verification_status
+
+        FROM student s
+        JOIN courses c
+            ON c.department = s.department
         LEFT JOIN student_courses sc
-        ON c.course_id=sc.course_id AND sc.student_id=%s
+            ON c.course_id = sc.course_id
+           AND sc.student_id = s.id
+
+        WHERE s.id = %s
     """, (student_id,))
+
     data = cur.fetchall()
     cur.close()
     db.close()
     return data
-
 
 # -------------------------------
 # ENROLL / UNENROLL

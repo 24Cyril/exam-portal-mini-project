@@ -6,7 +6,7 @@ const settingsPanel = document.getElementById("settingsPanel");
 
 if (settingsBtn && settingsPanel) {
   settingsBtn.addEventListener("click", () => {
-    settingsPanel.classList.toggle("hidden");
+settingsPanel.classList.toggle("visible");
   });
 }
 

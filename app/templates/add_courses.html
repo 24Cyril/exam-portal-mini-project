@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Course</title>
+    <link rel="stylesheet" href="../static/css/add_courses.css">
+</head>
+<body>
+
+<div class="course-form-container">
+    <h2>Add New Course</h2>
+
+    <form method="post" action="/admin/add-course">
+        <label>Course Name *</label>
+        <input name="course_name" placeholder="Course Name" required>
+
+        <label>Course Code *</label>
+        <input name="course_code" placeholder="Course Code" required>
+
+        <label>Department</label>
+        <input name="department" placeholder="Department">
+
+        <label>Description</label>
+        <textarea name="description" placeholder="Course Description" rows="4"></textarea>
+
+        <label>Duration</label>
+        <input name="duration" placeholder="Duration (e.g., 6 months)">
+
+        <label>Fee *</label>
+        <input name="fee" placeholder="Fee" type="number" step="0.01" required>
+
+        <label>Status</label>
+        <select name="status">
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+        </select>
+
+        <div class="button-group">
+            <button type="submit">Add Course</button>
+            <a href="/admin" class="cancel-btn">Cancel</a>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

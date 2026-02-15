@@ -1,0 +1,56 @@
+/* EDIT COURSE FORM CONTAINER */
+.edit-course-container {
+    max-width: 420px;
+    margin: 60px auto;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+/* TITLE */
+.edit-course-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #0f172a;
+}
+
+/* INPUT FIELDS */
+.edit-course-container input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 14px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+    transition: border .2s ease;
+}
+
+.edit-course-container input:focus {
+    outline: none;
+    border-color: #4f46e5;
+}
+
+/* UPDATE BUTTON */
+.edit-course-container button {
+    width: 100%;
+    padding: 12px;
+    background: #0f172a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.edit-course-container button:hover {
+    background: #1e293b;
+}
+
+/* RESPONSIVE */
+@media(max-width:500px){
+    .edit-course-container{
+        margin:30px 15px;
+    }
+}
