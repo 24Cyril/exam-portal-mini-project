@@ -3,11 +3,30 @@ from flask import Flask, request, redirect, render_template, session
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from admin import get_admin_profile_by_username, update_admin_profile
+from admin import (
+    get_admin_profile_by_username, 
+    update_admin_profile,
+    get_all_students,
+    get_all_courses as get_all_courses_admin,
+    get_pending_enrollments,
+    verify_enrollment,
+    reject_enrollment,
+    get_pending_payments,
+    verify_payment,
+    reject_payment
+)
 from student import(
     get_student_profile,
     create_student_profile,
-    save_student_profile
+    save_student_profile,
+    get_student_id,
+    get_all_courses_for_student,
+    fetch_student_exams,
+    fetch_student_payments,
+    create_pending_payment,
+    enroll_in_course,
+    unenroll_from_course,
+    submit_manual_payment
 )
 
 app = Flask(__name__, template_folder="app/templates", static_folder="app/static")
@@ -143,26 +162,6 @@ def save_profile():
     return save_student_profile()
 
 
-def create_pending_payment(student_id, course_id):
-    db = get_db_connection()
-    cur = db.cursor()
-
-    cur.execute("""
-        INSERT INTO payments
-        (student_id, course_id, amount, verification_status)
-        SELECT %s, course_id, fee, 'Pending'
-        FROM courses
-        WHERE course_id = %s
-        AND NOT EXISTS (
-            SELECT 1 FROM payments
-            WHERE student_id = %s AND course_id = %s
-        )
-    """, (student_id, course_id, student_id, course_id))
-
-    db.commit()
-    cur.close()
-    db.close()
-
 @app.route("/api/student/profile")
 def api_student_profile():
     if "user_id" not in session or session["role"] != "student":
@@ -177,39 +176,11 @@ def api_student_profile():
 # ===============================
 @app.route("/api/student/courses")
 def get_all_courses():
-    student_user_id = session.get("user_id")
-    if not student_user_id:
+    if "user_id" not in session:
         return []
-    student_id = get_student_id(student_user_id)
 
-    db = get_db_connection()
-    cursor = db.cursor(dictionary=True)
-
-    cursor.execute("""
-    SELECT 
-    c.course_id,
-    c.course_name,
-    c.description,
-    c.duration,
-    c.fee,
-    c.status,
-    CASE 
-        WHEN sc.id IS NULL THEN 'Not Enrolled'
-        ELSE 'Registered'
-    END AS enrollment_status,
-    sc.enrollment_verification_status,
-    sc.payment_verification_status
-    FROM courses c
-        LEFT JOIN student_courses sc
-    ON c.course_id = sc.course_id
-    AND sc.student_id = %s
-
-    """, (student_id,))
-
-    data = cursor.fetchall()
-    cursor.close()
-    db.close()
-    return data
+    student_id = get_student_id(session["user_id"])
+    return get_all_courses_for_student(student_id)
 
 
 
@@ -229,19 +200,7 @@ def student_exam_api():
     if "user_id" not in session:
         return []
 
-    db = get_db_connection()
-    cursor = db.cursor(dictionary=True)
-
-    cursor.execute("""
-        SELECT course_name, exam_date, marks, grade, attended, status
-        FROM exam_results
-        WHERE student_id = %s
-    """, (session["user_id"],))
-
-    data = cursor.fetchall()
-    cursor.close()
-    db.close()
-    return data
+    return fetch_student_exams(session["user_id"])
 
 
 @app.route("/admin/students")
@@ -249,29 +208,7 @@ def admin_students():
     if "user_id" not in session or session["role"] != "admin":
         return {"error": "Unauthorized"}, 401
 
-    db = get_db_connection()
-    cursor = db.cursor(dictionary=True)
-
-    cursor.execute("""
-        SELECT
-            s.id,
-            s.full_name,
-            s.email,
-            s.phone,
-            s.gender,
-            s.course,
-            s.department,
-            s.year_of_study,
-            s.institute_name,
-            s.created_at
-        FROM student s
-        ORDER BY s.created_at DESC
-    """)
-
-    students = cursor.fetchall()
-    cursor.close()
-    db.close()
-
+    students = get_all_students()
     return {"students": students}
 
 
@@ -283,26 +220,7 @@ def admin_courses():
     if "user_id" not in session or session["role"] != "admin":
         return {"error": "Unauthorized"}, 401
 
-    db = get_db_connection()
-    cursor = db.cursor(dictionary=True)
-
-    cursor.execute("""
-        SELECT
-            course_id,
-            course_name,
-            course_code,
-            duration,
-            fee,
-            status,
-            created_at
-        FROM courses
-        ORDER BY created_at DESC
-    """)
-
-    courses = cursor.fetchall()
-    cursor.close()
-    db.close()
-
+    courses = get_all_courses_admin()
     return {"courses": courses}
 
 from flask import Blueprint, request, jsonify
@@ -318,33 +236,7 @@ def student_payments():
         return {"error": "Unauthorized"}, 401
 
     student_id = get_student_id(session["user_id"])
-
-    db = get_db_connection()
-    cur = db.cursor(dictionary=True)
-
-    cur.execute("""
-        SELECT 
-            c.course_id,
-            c.course_name,
-            p.amount,
-            p.payment_method,
-            p.transaction_id,
-            sc.payment_verification_status,
-            DATE(p.payment_date) AS payment_date
-        FROM student_courses sc
-        JOIN courses c 
-            ON sc.course_id = c.course_id
-        LEFT JOIN payments p 
-            ON p.student_id = sc.student_id
-            AND p.course_id = sc.course_id
-        WHERE sc.student_id = %s
-    """, (student_id,))
-
-    data = cur.fetchall()
-    cur.close()
-    db.close()
-
-    return data
+    return fetch_student_payments(student_id)
 
 
 #payment manual
@@ -357,51 +249,14 @@ def manual_payment():
     student_id = get_student_id(session["user_id"])
     course_id = data["course_id"]
 
-    db = get_db_connection()
-    cur = db.cursor()
-
-    # 1️⃣ Insert or update payment details
-    cur.execute("""
-        INSERT INTO payments 
-            (student_id, course_id, amount, payment_method, transaction_id, payment_date)
-        SELECT 
-            %s, c.course_id, c.fee, %s, %s, NOW()
-        FROM courses c
-        WHERE c.course_id = %s
-        ON DUPLICATE KEY UPDATE
-            payment_method = VALUES(payment_method),
-            transaction_id = VALUES(transaction_id),
-            payment_date = NOW()
-    """, (
-        student_id,
-        data["payment_method"],
-        data.get("transaction_id"),
-        course_id
-    ))
-
-    # 2️⃣ Update COURSE STATE (THIS IS THE KEY)
-    cur.execute("""
-        UPDATE student_courses
-        SET payment_verification_status = 'Submitted'
-        WHERE student_id = %s AND course_id = %s
-    """, (student_id, course_id))
-
-    db.commit()
-    cur.close()
-    db.close()
+    submit_manual_payment(
+        student_id, 
+        course_id, 
+        data["payment_method"], 
+        data.get("transaction_id")
+    )
 
     return {"status": "Payment submitted"}
-
-
-#student id
-def get_student_id(user_id):
-    db = get_db_connection()
-    cur = db.cursor()
-    cur.execute("SELECT id FROM student WHERE user_id=%s", (user_id,))
-    row = cur.fetchone()
-    cur.close()
-    db.close()
-    return row[0] if row else None
 
 
 #stufent enroll
@@ -413,32 +268,7 @@ def enroll_course():
     student_id = get_student_id(session["user_id"])
     course_id = request.json["course_id"]
 
-    db = get_db_connection()
-    cur = db.cursor()
-
-    # 1️⃣ Enroll student
-    cur.execute("""
-       INSERT IGNORE INTO student_courses
-        (student_id, course_id, enrollment_status, enrollment_verification_status, payment_verification_status)
-            VALUES (%s, %s, 'Enrolled', 'Pending', 'Pending')
-
-    """, (student_id, course_id))
-
-    # 2️⃣ Create pending payment (your existing logic)
-    cur.execute("""
-        INSERT INTO payments (student_id, course_id, amount, verification_status)
-        SELECT %s, course_id, fee, 'Pending'
-        FROM courses
-        WHERE course_id = %s
-        AND NOT EXISTS (
-            SELECT 1 FROM payments
-            WHERE student_id=%s AND course_id=%s
-        )
-    """, (student_id, course_id, student_id, course_id))
-
-    db.commit()
-    cur.close()
-    db.close()
+    enroll_in_course(student_id, course_id)
 
     return {"status": "enrolled"}
 
@@ -449,105 +279,83 @@ def unenroll_course():
     student_id = get_student_id(session["user_id"])
     course_id = request.json["course_id"]
 
-    db = get_db_connection()
-    cur = db.cursor()
-
-    cur.execute("""
-        DELETE FROM student_courses
-        WHERE student_id=%s AND course_id=%s
-    """, (student_id, course_id))
-
-    db.commit()
-    cur.close()
-    db.close()
+    unenroll_from_course(student_id, course_id)
 
     return {"status": "unenrolled"}
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# -------------------------------
+# ADMIN: PENDING ENROLLMENTS
+# -------------------------------
+@app.route("/admin/enrollments")
+def admin_enrollments():
+    if "user_id" not in session or session["role"] != "admin":
+        return {"error": "Unauthorized"}, 401
+
+    enrollments = get_pending_enrollments()
+    return {"enrollments": enrollments}
+
+
+# -------------------------------
+# ADMIN: VERIFY ENROLLMENT
+# -------------------------------
+@app.route("/admin/enrollments/verify/<int:enrollment_id>", methods=["POST"])
+def admin_verify_enrollment(enrollment_id):
+    if "user_id" not in session or session["role"] != "admin":
+        return {"error": "Unauthorized"}, 401
+
+    verify_enrollment(enrollment_id)
+    return {"status": "Enrollment verified"}
+
+
+# -------------------------------
+# ADMIN: REJECT ENROLLMENT
+# -------------------------------
+@app.route("/admin/enrollments/reject/<int:enrollment_id>", methods=["POST"])
+def admin_reject_enrollment(enrollment_id):
+    if "user_id" not in session or session["role"] != "admin":
+        return {"error": "Unauthorized"}, 401
+
+    reject_enrollment(enrollment_id)
+    return {"status": "Enrollment rejected"}
+
+
+# -------------------------------
+# ADMIN: PENDING PAYMENTS
+# -------------------------------
+@app.route("/admin/payments")
+def admin_payments():
+    if "user_id" not in session or session["role"] != "admin":
+        return {"error": "Unauthorized"}, 401
+
+    payments = get_pending_payments()
+    return {"payments": payments}
+
+
+# -------------------------------
+# ADMIN: VERIFY PAYMENT
+# -------------------------------
+@app.route("/admin/payments/verify/<int:payment_id>", methods=["POST"])
+def admin_verify_payment(payment_id):
+    if "user_id" not in session or session["role"] != "admin":
+        return {"error": "Unauthorized"}, 401
+
+    verify_payment(payment_id)
+    return {"status": "Payment verified"}
+
+
+# -------------------------------
+# ADMIN: REJECT PAYMENT
+# -------------------------------
+@app.route("/admin/payments/reject/<int:payment_id>", methods=["POST"])
+def admin_reject_payment(payment_id):
+    if "user_id" not in session or session["role"] != "admin":
+        return {"error": "Unauthorized"}, 401
+
+    reject_payment(payment_id)
+    return {"status": "Payment rejected"}
 
 
 # -------------------------------
