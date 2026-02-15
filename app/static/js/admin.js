@@ -36,6 +36,16 @@ function openTab(tabName) {
         return;
     }
 
+    if (tabName === "exam") {
+        loadExams();
+        return;
+    }
+
+    if (tabName === "student_courses") {
+        loadRegistrations();
+        return;
+    }
+
     document.getElementById("tab-content").innerHTML =
         `<p>${tabName} module coming soon...</p>`;
 }
@@ -64,6 +74,10 @@ function renderStudentTable(students) {
             <td>${s.year_of_study || ""}</td>
             <td>${s.institute_name || ""}</td>
             <td>${s.created_at || ""}</td>
+            <td>
+                <button class="edit-btn" onclick="editStudent(${s.id})">✏ Edit</button>
+                <button class="delete-btn" onclick="deleteStudent(${s.id})">🗑 Delete</button>
+            </td>
         </tr>
     `).join("");
 
@@ -72,6 +86,7 @@ function renderStudentTable(students) {
             <input type="text" id="searchInput"
                    placeholder="Search students..."
                    onkeyup="searchTable()">
+            <button class="add-btn" onclick="openAddStudent()">➕ Add Student</button>
         </div>
 
         <table class="profile-table" id="adminTable">
@@ -86,10 +101,26 @@ function renderStudentTable(students) {
                 <th onclick="sortTable(7)">Year</th>
                 <th>Institute</th>
                 <th onclick="sortTable(9)">Created</th>
+                <th>Actions</th>
             </tr>
             ${rows}
         </table>
     `;
+}
+
+function openAddStudent() {
+    location.href = "/admin/add-student";
+}
+
+function editStudent(id) {
+    location.href = "/admin/edit-student/" + id;
+}
+
+function deleteStudent(id) {
+    if (confirm("Delete this student?")) {
+        fetch("/admin/delete-student/" + id, { method: "POST" })
+            .then(() => loadStudents());
+    }
 }
 
 /* =====================================================
@@ -348,6 +379,108 @@ function rejectPayment(paymentId) {
             loadPayments();
         })
         .catch(err => alert("Error: " + err));
+}
+
+/* =====================================================
+   EXAMS TAB
+===================================================== */
+
+function loadExams() {
+    fetch("/admin/exams")
+        .then(res => res.json())
+        .then(data => renderExamsTable(data.exams));
+}
+
+function renderExamsTable(exams) {
+    let rows = exams.map(e => `
+        <tr>
+            <td>${e.exam_id}</td>
+            <td>${e.exam_name}</td>
+            <td>${e.course_name}</td>
+            <td>${e.exam_date}</td>
+            <td>${e.status || "Scheduled"}</td>
+            <td>${e.question_file || "-"}</td>
+            <td>${e.answer_file || "-"}</td>
+            <td>
+                <button class="delete-btn" onclick="deleteExam(${e.exam_id})">🗑 Delete</button>
+            </td>
+        </tr>
+    `).join("");
+
+    document.getElementById("tab-content").innerHTML = `
+        <div class="search-box">
+            <input type="text" id="searchInput"
+                   placeholder="Search exams..."
+                   onkeyup="searchTable()">
+            <button class="add-btn" onclick="openAddExam()">➕ Add Exam</button>
+        </div>
+
+        <table class="profile-table" id="adminTable">
+            <tr>
+                <th>ID</th>
+                <th>Exam Name</th>
+                <th>Course</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Question File</th>
+                <th>Answer File</th>
+                <th>Actions</th>
+            </tr>
+            ${rows}
+        </table>
+    `;
+}
+
+function openAddExam() {
+    location.href = "/admin/add-exam";
+}
+
+function deleteExam(id) {
+    if (confirm("Delete this exam?")) {
+        fetch("/admin/delete-exam/" + id, { method: "POST" })
+            .then(() => loadExams());
+    }
+}
+
+/* =====================================================
+   REGISTRATIONS (STUDENT COURSES) TAB
+===================================================== */
+
+function loadRegistrations() {
+    fetch("/admin/registrations")
+        .then(res => res.json())
+        .then(data => renderRegistrationsTable(data.registrations));
+}
+
+function renderRegistrationsTable(registrations) {
+    let rows = registrations.map(r => `
+        <tr>
+            <td>${r.full_name}</td>
+            <td>${r.course_name}</td>
+            <td>${r.enrollment_status}</td>
+            <td>${r.payment_status}</td>
+            <td>${r.registered_at}</td>
+        </tr>
+    `).join("");
+
+    document.getElementById("tab-content").innerHTML = `
+        <div class="search-box">
+            <input type="text" id="searchInput"
+                   placeholder="Search registrations..."
+                   onkeyup="searchTable()">
+        </div>
+
+        <table class="profile-table" id="adminTable">
+            <tr>
+                <th>Student Name</th>
+                <th>Course Name</th>
+                <th>Enrollment Status</th>
+                <th>Payment Status</th>
+                <th>Registered At</th>
+            </tr>
+            ${rows}
+        </table>
+    `;
 }
 
 /* =====================================================

@@ -537,6 +537,35 @@ def edit_student_admin(id):
 
 
 # -------------------------------
+# ADMIN: DELETE STUDENT
+# -------------------------------
+@app.route("/admin/delete-student/<int:id>", methods=["POST"])
+def delete_student_admin(id):
+    if session.get("role") != "admin":
+        return {"error": "Unauthorized"}, 401
+
+    db = get_db_connection()
+    c = db.cursor()
+
+    # Get user_id first
+    c.execute("SELECT user_id FROM student WHERE id=%s", (id,))
+    result = c.fetchone()
+    
+    if result:
+        user_id = result[0]
+        # Delete from student table
+        c.execute("DELETE FROM student WHERE id=%s", (id,))
+        # Delete from users table
+        c.execute("DELETE FROM users WHERE id=%s", (user_id,))
+        db.commit()
+
+    c.close()
+    db.close()
+
+    return {"success": True}
+
+
+# -------------------------------
 # ADMIN: UPDATE PROFILE
 # -------------------------------
 @app.route("/admin/update", methods=["GET", "POST"])
