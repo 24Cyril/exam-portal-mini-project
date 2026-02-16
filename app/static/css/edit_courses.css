@@ -1,56 +1,106 @@
-/* EDIT COURSE FORM CONTAINER */
+/* ===============================
+   EDIT COURSE FORM CONTAINER
+================================ */
+
 .edit-course-container {
-    max-width: 420px;
+    max-width: 460px;
     margin: 60px auto;
     background: #ffffff;
-    padding: 30px;
+    padding: 32px;
     border-radius: 12px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.12);
 }
 
 /* TITLE */
 .edit-course-container h2 {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
     color: #0f172a;
 }
 
-/* INPUT FIELDS */
-.edit-course-container input {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 14px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 15px;
-    transition: border .2s ease;
+/* LABELS */
+.edit-course-container label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #1e293b;
 }
 
-.edit-course-container input:focus {
+/* INPUTS, TEXTAREA, SELECT */
+.edit-course-container input,
+.edit-course-container textarea,
+.edit-course-container select {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 14px;
+    transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.edit-course-container textarea {
+    resize: vertical;
+}
+
+.edit-course-container input:focus,
+.edit-course-container textarea:focus,
+.edit-course-container select:focus {
     outline: none;
     border-color: #4f46e5;
+    box-shadow: 0 0 0 1px #4f46e5;
+}
+
+/* BUTTON GROUP */
+.button-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
 }
 
 /* UPDATE BUTTON */
-.edit-course-container button {
-    width: 100%;
+.button-group button {
+    flex: 1;
     padding: 12px;
     background: #0f172a;
     color: white;
     border: none;
     border-radius: 8px;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     cursor: pointer;
 }
 
-.edit-course-container button:hover {
+.button-group button:hover {
     background: #1e293b;
 }
 
+/* CANCEL BUTTON */
+.cancel-btn {
+    flex: 1;
+    text-align: center;
+    padding: 12px;
+    background: #e5e7eb;
+    color: #111827;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.cancel-btn:hover {
+    background: #d1d5db;
+}
+
 /* RESPONSIVE */
-@media(max-width:500px){
-    .edit-course-container{
-        margin:30px 15px;
+@media (max-width: 500px) {
+    .edit-course-container {
+        margin: 30px 16px;
+        padding: 24px;
+    }
+
+    .button-group {
+        flex-direction: column;
     }
 }
