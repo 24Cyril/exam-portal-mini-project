@@ -1,0 +1,11 @@
+/* Add Exam form styling — consistent with other form cards */
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: "Segoe UI", Arial, sans-serif; }
+body { background: linear-gradient(135deg,#4e73df,#1cc88a); min-height:100vh; display:flex; align-items:center; justify-content:center; }
+.form-card { background:#fff; width:520px; padding:30px; border-radius:12px; box-shadow:0 12px 30px rgba(0,0,0,0.12); }
+.form-card h2 { text-align:center; margin-bottom:18px; color:#333; }
+.form-card input, .form-card select, .form-card label { width:100%; margin-bottom:12px; font-size:14px; }
+.form-card input[type="file"]{ padding:10px; border-radius:6px; border:1px solid #eee; }
+.form-card input[type="date"], .form-card input[type="text"], .form-card select { padding:10px; border-radius:8px; border:1px solid #ddd; }
+.form-card button { width:100%; padding:12px; border-radius:8px; border:none; background:linear-gradient(135deg,#4e73df,#224abe); color:#fff; font-weight:600; cursor:pointer; }
+.back-link { display:block; text-align:center; margin-top:10px; color:#4e73df; text-decoration:none; }
+@media (max-width:600px){ .form-card { width:94%; padding:20px; } }

@@ -255,3 +255,21 @@ body {
     background: #fef3c7;  
     color: #92400e;  
 } 
+/* ===============================
+   ADMIN HOME / STATS
+================================ */
+.admin-stats { display:flex; gap:14px; flex-wrap:wrap; margin-top:12px; }
+.stat-card { background:#fff; padding:12px 16px; border-radius:8px; min-width:140px; text-align:center; box-shadow:0 6px 18px rgba(0,0,0,0.06); }
+.stat-value { font-size:20px; font-weight:700; color:#0f172a; }
+.stat-label { font-size:13px; color:#666; margin-top:6px; }
+
+/* ===============================
+   PAYMENTS FILTERS + PAGINATION
+================================ */
+.payments-filters label { display:flex; align-items:center; gap:8px; }
+.payments-filters input[type="date"] { padding:6px 8px; border-radius:6px; }
+.pagination { margin-top:12px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.pagination-controls button { padding:6px 9px; margin-right:6px; border-radius:6px; border:1px solid #ddd; background:white; cursor:pointer; }
+.pagination-controls button.active { background:#0f172a; color:white; }
+.pagination-controls button[disabled] { opacity:0.6; cursor:default; }
+.pagination-info { color:#666; font-size:13px; }

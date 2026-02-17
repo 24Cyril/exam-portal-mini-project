@@ -1,0 +1,11 @@
+/* Reuse form styles from edit_student.css for Add Student */
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: "Segoe UI", Arial, sans-serif; }
+body { background: linear-gradient(135deg, #4e73df, #1cc88a); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+.form-card { background: #fff; width: 420px; padding: 35px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); }
+.form-card h2 { text-align: center; margin-bottom: 20px; color: #333; }
+.form-card input, .form-card select { width: 100%; padding: 12px 14px; margin-bottom: 14px; border-radius: 8px; border: 1px solid #ddd; font-size: 14px; }
+.form-card input:focus, .form-card select:focus { border-color: #4e73df; outline: none; box-shadow: 0 0 0 3px rgba(78,115,223,0.12); }
+.form-card button { width: 100%; padding: 12px; border: none; border-radius: 8px; background: linear-gradient(135deg,#4e73df,#224abe); color: #fff; font-weight: 600; cursor: pointer; }
+.form-card button:hover { transform: translateY(-2px); }
+.back-link { display:block; text-align:center; margin-top:12px; color:#4e73df; text-decoration:none; }
+@media (max-width:480px){ .form-card { width:90%; padding:25px; } }
