@@ -3,60 +3,79 @@
 <head>
   <meta charset="UTF-8">
   <title>Edit Profile</title>
-  <link rel="stylesheet" href="../static/css/editpro.css">
+  <link rel="stylesheet" href="/static/css/student.css">
+  <link rel="stylesheet" href="/static/css/editpro.css">
 </head>
 
 <body>
-
-<div class="profile-container">
-  <h2>Edit Profile</h2>
-
-  <form id="profileForm">
-
-    <h3>Personal Details</h3>
-    <div class="row">
-      <input type="text" name="full_name" placeholder="full Name">   </div>
-
-    <div class="row">
-      <input type="number" name="age" placeholder="Age">
-      <select name="gender">
-        <option value="">Gender</option>
-        <option>Male</option>
-        <option>Female</option>
-        <option>Other</option>
-      </select>
-    </div>
-
-    <h3>Contact Details</h3>
-    <div class="row">
-      <input type="email" name="email" placeholder="Email" readonly>
-      <input type="text" name="phone" placeholder="Phone">
-    </div>
-
-    <textarea name="address" placeholder="Address"></textarea>
-
-    <h3>Academic Details</h3>
-    <div class="row">
-      <input type="text" name="course" placeholder="Course">
-      <input type="text" name="department" placeholder="Department">
-    </div>
-
-    <div class="row">
-      <input type="text" name="institute_name" placeholder="Institute Name">
-      <input type="number" name="year_of_study" placeholder="Year of Study">
-    </div>
-
-    <button type="submit">Save Profile</button>
-    <button type="button" class="back-btn" onclick="goBackToProfile()">
-      back to profile
-    </button>
-
-    <p id="statusMsg"></p>
-  </form>
+<div class="sidebar">
+    <h2>Student Panel</h2>
+    <ul>
+        <li id="tab-home" onclick="openTab('home')">🏠 Home</li>
+        <li id="tab-profile" class="active" onclick="openTab('profile')">👤 Profile</li>
+        <li id="tab-courses" onclick="openTab('courses')">📚 Courses</li>
+        <li id="tab-notes" onclick="openTab('notes')">📄 Notes</li>
+        <li id="tab-exam" onclick="openTab('exam')">📝 Exam</li>
+        <li id="tab-result" onclick="openTab('result')">📊 Result</li>
+        <li id="tab-certificate" onclick="openTab('certificate')">🏅 Certificate</li>
+        <li id="tab-messages" onclick="openTab('messages')">💬 Messages</li>
+        <li id="tab-notifications" onclick="openTab('notifications')">🔔 Notifications</li>
+        <li id="tab-payment" onclick="openTab('payment')">💳 Payment</li>
+        <li id="tab-settings" onclick="openTab('settings')">⚙️ Settings</li>
+        <li id="logout"><a href="/logout">🚪 Logout</a></li>
+    </ul>
 </div>
 
-<script src="../static/js/editpro.js"></script>
+<div class="content">
+    <h2 id="page-title">EDIT PROFILE</h2>
+    <div class="card">
+      <form id="profileForm" style="max-width:820px;">
 
+        <h3>Personal Details</h3>
+        <div class="row">
+          <input type="text" name="full_name" placeholder="Full Name" value="{{ student.full_name or '' }}">
+        </div>
+
+        <div class="row">
+          <input type="number" name="age" placeholder="Age" value="{{ student.age or '' }}">
+          <select name="gender">
+            <option value="">Gender</option>
+            <option {% if student.gender == 'Male' %}selected{% endif %}>Male</option>
+            <option {% if student.gender == 'Female' %}selected{% endif %}>Female</option>
+            <option {% if student.gender == 'Other' %}selected{% endif %}>Other</option>
+          </select>
+        </div>
+
+        <h3>Contact Details</h3>
+        <div class="row">
+          <input type="email" name="email" placeholder="Email" value="{{ student.email or '' }}" readonly>
+          <input type="text" name="phone" placeholder="Phone" value="{{ student.phone or '' }}">
+        </div>
+
+        <textarea name="address" placeholder="Address">{{ student.address or '' }}</textarea>
+
+        <h3>Academic Details</h3>
+        <div class="row">
+          <input type="text" name="course" placeholder="Course" value="{{ student.course or '' }}">
+          <input type="text" name="department" placeholder="Department" value="{{ student.department or '' }}">
+        </div>
+
+        <div class="row">
+          <input type="text" name="institute_name" placeholder="Institute Name" value="{{ student.institute_name or '' }}">
+          <input type="number" name="year_of_study" placeholder="Year of Study" value="{{ student.year_of_study or '' }}">
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:12px;">
+          <button type="submit" class="update-btn">Save Profile</button>
+          <a href="/student" class="update-btn" style="background:#6b7280;">Back to Dashboard</a>
+        </div>
+
+        <p id="statusMsg"></p>
+      </form>
+    </div>
+</div>
+
+<script src="/static/js/editpro.js"></script>
 
 </body>
 </html>
