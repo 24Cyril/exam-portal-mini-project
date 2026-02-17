@@ -109,6 +109,27 @@ body {
     background: #1e293b;
 }
 
+/* ===== FORM STYLES (cards / edit pages) ===== */
+.card form input,
+.card form select,
+.card form textarea {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    border: 1px solid #e6e6e6;
+    font-size: 14px;
+    background: white;
+}
+
+.card form label.small {
+    display: block;
+    margin-bottom: 6px;
+    color: #444;
+    font-weight: 600;
+    font-size: 13px;
+}
+
 /* ===== SEARCH & FILTER ===== */
 .search-box {
     display: flex;
