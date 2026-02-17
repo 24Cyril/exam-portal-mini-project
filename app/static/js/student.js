@@ -373,7 +373,7 @@ function loadExams() {
                         ${
                             e.attended === "Attended"
                             ? `<button class="result-btn" onclick="openTab('result')">View Result</button>`
-                            : `<button class="attend-btn">Attend</button>`
+                            : `<button class="attend-btn" onclick="goToExam(${e.exam_id})">Attend</button>`
                         }
                     </td>
                 </tr>
@@ -462,6 +462,11 @@ function loadCertificates() {
 
 function logout() {
     window.location.href = "/logout";
+}
+
+function goToExam(examId) {
+    // navigate to exam page which will start the attempt
+    window.location = `/exam/${examId}`;
 }
 
 document.addEventListener("DOMContentLoaded", () => {

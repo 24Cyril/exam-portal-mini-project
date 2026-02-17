@@ -216,19 +216,63 @@ def get_all_courses_for_student(student_id):
 # FETCH STUDENT EXAMS
 # -------------------------------
 def fetch_student_exams(user_id):
+    """Return scheduled exams for the student along with attempt/result info.
+
+    Accepts `user_id` (users.id) as provided by session and returns a list
+    of objects containing: exam_id, course_name, exam_date, time_limit,
+    marks, grade, attended, status.
+    """
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
 
-    cursor.execute("""
-        SELECT course_name, exam_date, marks, grade, attended, status
-        FROM exam_results
-        WHERE student_id = %s
-    """, (user_id,))
+    # find student.id from users.id
+    cursor.execute("SELECT id FROM student WHERE user_id=%s", (user_id,))
+    row = cursor.fetchone()
+    # cursor is dictionary cursor, so fetchone returns a dict
+    student_id = row.get('id') if row else None
 
-    data = cursor.fetchall()
+    # If student record not found, return empty list
+    if not student_id:
+        cursor.close()
+        db.close()
+        return []
+
+    # select exams for courses (all exams). left join any attempt by this student
+    cursor.execute("""
+        SELECT
+            e.exam_id,
+            c.course_name,
+            e.exam_date,
+            e.time_limit,
+            sa.attempt_id,
+            sa.submitted_at IS NOT NULL AS attended,
+            sa.score AS marks,
+            sa.graded AS graded
+        FROM exams e
+        JOIN courses c ON e.course_id = c.course_id
+        LEFT JOIN student_attempts sa ON sa.exam_id = e.exam_id AND sa.student_id = %s
+        ORDER BY e.exam_date DESC
+    """, (student_id,))
+
+    rows = cursor.fetchall()
+
+    # normalize fields expected by front-end
+    out = []
+    for r in rows:
+        out.append({
+            'exam_id': r.get('exam_id'),
+            'course_name': r.get('course_name'),
+            'exam_date': r.get('exam_date').isoformat() if r.get('exam_date') else None,
+            'time_limit': r.get('time_limit'),
+            'marks': r.get('marks'),
+            'grade': None,
+            'attended': 'Attended' if r.get('attended') else 'Not Attended',
+            'status': 'Published'
+        })
+
     cursor.close()
     db.close()
-    return data
+    return out
 
 
 # -------------------------------
