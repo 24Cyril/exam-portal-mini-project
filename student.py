@@ -247,7 +247,8 @@ def fetch_student_exams(user_id):
             sa.attempt_id,
             sa.submitted_at IS NOT NULL AS attended,
             sa.score AS marks,
-            sa.graded AS graded
+            sa.graded AS graded,
+            (SELECT COUNT(*) FROM exam_questions q WHERE q.exam_id = e.exam_id) AS total_questions
         FROM exams e
         JOIN courses c ON e.course_id = c.course_id
         LEFT JOIN student_attempts sa ON sa.exam_id = e.exam_id AND sa.student_id = %s
@@ -259,13 +260,33 @@ def fetch_student_exams(user_id):
     # normalize fields expected by front-end
     out = []
     for r in rows:
+        marks = r.get('marks')
+        total_q = r.get('total_questions') or 0
+        grade = None
+        if marks is not None and total_q > 0:
+            try:
+                pct = (float(marks) / float(total_q)) * 100.0
+            except Exception:
+                pct = 0.0
+
+            if pct >= 90:
+                grade = 'A'
+            elif pct >= 75:
+                grade = 'B'
+            elif pct >= 60:
+                grade = 'C'
+            elif pct >= 50:
+                grade = 'D'
+            else:
+                grade = 'F'
+
         out.append({
             'exam_id': r.get('exam_id'),
             'course_name': r.get('course_name'),
             'exam_date': r.get('exam_date').isoformat() if r.get('exam_date') else None,
             'time_limit': r.get('time_limit'),
-            'marks': r.get('marks'),
-            'grade': None,
+            'marks': marks,
+            'grade': grade,
             'attended': 'Attended' if r.get('attended') else 'Not Attended',
             'status': 'Published'
         })

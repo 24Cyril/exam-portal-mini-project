@@ -24,7 +24,7 @@ function openTab(tabName) {
     }
 
     if (tabName === "registration") {
-        loadEnrollments();
+        loadRegistrations();
         return;
     }
 
@@ -626,4 +626,50 @@ function deleteCourse(id){
             })
             .catch(err => alert("Error deleting course: " + err));
     }
+}
+
+
+/* =====================================================
+   ALL REGISTRATIONS (Admin view)
+===================================================== */
+function loadRegistrations() {
+    fetch("/admin/registrations")
+        .then(res => res.json())
+        .then(data => renderRegistrationsTable(data.registrations || []));
+}
+
+function renderRegistrationsTable(regs) {
+    if (!regs || regs.length === 0) {
+        document.getElementById("tab-content").innerHTML = `
+            <h3>No Registrations</h3>
+            <p>No students have registered yet.</p>
+        `;
+        return;
+    }
+
+    let rows = regs.map((r, i) => `
+        <tr>
+            <td>${i+1}</td>
+            <td>${r.full_name || ''}</td>
+            <td>${r.course_name || ''}</td>
+            <td>${r.enrollment_status || ''}</td>
+            <td>${r.payment_status || ''}</td>
+            <td>${r.registered_at || ''}</td>
+        </tr>
+    `).join('');
+
+    document.getElementById('tab-content').innerHTML = `
+        <h3>All Registrations</h3>
+        <table class="profile-table">
+            <tr>
+                <th>Sl No</th>
+                <th>Student Name</th>
+                <th>Course</th>
+                <th>Enrollment Status</th>
+                <th>Payment Status</th>
+                <th>Registered At</th>
+            </tr>
+            ${rows}
+        </table>
+    `;
 }
