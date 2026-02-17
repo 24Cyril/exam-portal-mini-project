@@ -459,8 +459,105 @@ def add_exam(name, course_id, date, qfile, afile):
     cursor = db.cursor()
     cursor.execute("""INSERT INTO exams(exam_name,course_id,exam_date,question_file,answer_file) VALUES(%s,%s,%s,%s,%s)""",(name, course_id, date, qfile, afile))
     db.commit()
+    exam_id = cursor.lastrowid
     cursor.close()
     db.close()
+    return exam_id
+
+
+def update_exam_time_limit(exam_id, time_limit):
+    db = get_db_connection()
+    cursor = db.cursor()
+    cursor.execute("UPDATE exams SET time_limit=%s WHERE exam_id=%s", (time_limit, exam_id))
+    db.commit()
+    cursor.close()
+    db.close()
+
+
+def insert_exam_questions(exam_id, questions):
+    """Insert parsed questions for an exam.
+    questions: list of dicts with keys q_no, question, option_a..d, correct_option
+    """
+    db = get_db_connection()
+    cursor = db.cursor()
+    for q in questions:
+        cursor.execute("""
+            INSERT INTO exam_questions (exam_id, q_no, question, option_a, option_b, option_c, option_d, correct_option)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+            ON DUPLICATE KEY UPDATE question=%s, option_a=%s, option_b=%s, option_c=%s, option_d=%s, correct_option=%s
+        """, (
+            exam_id, q['q_no'], q['question'], q.get('option_a'), q.get('option_b'), q.get('option_c'), q.get('option_d'), q.get('correct_option'),
+            q['question'], q.get('option_a'), q.get('option_b'), q.get('option_c'), q.get('option_d'), q.get('correct_option')
+        ))
+
+    db.commit()
+    cursor.close()
+    db.close()
+
+
+def get_exam_questions(exam_id):
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT q_no, question, option_a, option_b, option_c, option_d FROM exam_questions WHERE exam_id=%s ORDER BY q_no ASC", (exam_id,))
+    rows = cursor.fetchall()
+    cursor.close()
+    db.close()
+    return rows
+
+
+def create_attempt(student_id, exam_id):
+    db = get_db_connection()
+    cursor = db.cursor()
+    cursor.execute("INSERT INTO student_attempts (student_id, exam_id) VALUES (%s,%s)", (student_id, exam_id))
+    db.commit()
+    attempt_id = cursor.lastrowid
+    cursor.close()
+    db.close()
+    return attempt_id
+
+
+def save_answer(attempt_id, q_no, selected_option):
+    db = get_db_connection()
+    cursor = db.cursor()
+    cursor.execute("""
+        INSERT INTO student_answers (attempt_id, q_no, selected_option)
+        VALUES (%s,%s,%s)
+        ON DUPLICATE KEY UPDATE selected_option=%s
+    """, (attempt_id, q_no, selected_option, selected_option))
+    db.commit()
+    cursor.close()
+    db.close()
+
+
+def submit_attempt(attempt_id, duration_seconds=0):
+    db = get_db_connection()
+    cursor = db.cursor()
+    cursor.execute("UPDATE student_attempts SET submitted_at=NOW(), duration_seconds=%s WHERE attempt_id=%s", (duration_seconds, attempt_id))
+    db.commit()
+    cursor.close()
+    db.close()
+
+
+def grade_attempt(attempt_id):
+    """Compute score for attempt and update student_attempts.score and graded."""
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    # fetch answers for attempt
+    cursor.execute("SELECT q.q_no, q.correct_option, a.selected_option FROM exam_questions q JOIN student_attempts sa ON q.exam_id = sa.exam_id JOIN student_answers a ON a.q_no=q.q_no AND a.attempt_id=sa.attempt_id WHERE sa.attempt_id=%s", (attempt_id,))
+    rows = cursor.fetchall()
+    score = 0
+    total = 0
+    for r in rows:
+        total += 1
+        if r.get('selected_option') and r.get('correct_option') and r['selected_option'].strip().upper() == r['correct_option'].strip().upper():
+            score += 1
+
+    cursor.execute("UPDATE student_attempts SET score=%s, graded='Graded' WHERE attempt_id=%s", (score, attempt_id))
+    db.commit()
+    cursor.close()
+    db.close()
+    return {'score': score, 'total': total}
 
 
 # -------------------------------

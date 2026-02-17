@@ -41,11 +41,14 @@
             <label class="small">Date</label>
             <input type="date" name="exam_date" required>
 
-            <label class="small">Question Paper (PDF/DOC)</label>
-            <input type="file" name="question_file" accept=".pdf,.doc,.docx">
+            <label class="small">Time Limit (minutes)</label>
+            <input type="number" name="time_limit" value="30" min="1" max="240">
 
-            <label class="small">Answer Key (PDF/DOC)</label>
-            <input type="file" name="answer_file" accept=".pdf,.doc,.docx">
+            <label class="small">Question Paper (TXT preferred)</label>
+            <input type="file" name="question_file" accept=".txt,.pdf,.doc,.docx">
+
+            <label class="small">Answer Key (one answer per line, TXT preferred)</label>
+            <input type="file" name="answer_file" accept=".txt,.pdf,.doc,.docx">
 
             <div style="margin-top:12px; display:flex; gap:10px;">
                 <button type="submit" class="update-btn">Add Exam</button>
