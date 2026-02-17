@@ -2,36 +2,57 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Add Exam</title>
-    <link rel="stylesheet" href="../static/css/add_exam.css">
+    <title>Add Exam — Admin</title>
+    <link rel="stylesheet" href="/static/css/admin.css">
+    <link rel="stylesheet" href="/static/css/add_exam.css">
 </head>
 
 <body>
+<div class="sidebar">
+    <h2 class="logo">Admin Panel</h2>
+    <ul class="nav-list">
+        <li><a href="/admin">🏠 Home</a></li>
+        <li><a href="/admin/update">👤 Profile</a></li>
+        <li><a href="/admin/students">🎓 Students</a></li>
+        <li><a href="/admin/courses">📚 Student Courses</a></li>
+        <li><a href="/admin/enrollments">📝 Registration</a></li>
+        <li class="active"><a href="/admin/exams">🧪 Exam</a></li>
+        <li><a href="/admin/registrations">📊 Result</a></li>
+        <li><a href="/admin/payments">💳 Payment</a></li>
+        <li class="logout"><a href="/logout">🚪 Logout</a></li>
+    </ul>
+</div>
 
-<div class="form-card">
-    <h2>Add New Exam</h2>
-    <form method="POST" enctype="multipart/form-data">
-        <input type="text" name="exam_name" placeholder="Exam Name" required>
-        
-        <select name="course_id" required>
-            <option value="">Select Course</option>
-            {% for course in courses %}
-            <option value="{{ course.course_id }}">{{ course.course_name }}</option>
-            {% endfor %}
-        </select>
-        
-        <input type="date" name="exam_date" required>
-        
-        <label>Question Paper (PDF/DOC):</label>
-        <input type="file" name="question_file" accept=".pdf,.doc,.docx">
-        
-        <label>Answer Key (PDF/DOC):</label>
-        <input type="file" name="answer_file" accept=".pdf,.doc,.docx">
-        
-        <button type="submit">Add Exam</button>
-    </form>
-    
-    <a href="/admin" class="back-link">← Back to Dashboard</a>
+<div class="main-content">
+    <h2 id="tab-title">Add Exam</h2>
+    <div class="card">
+        <form method="POST" enctype="multipart/form-data" style="max-width:720px;">
+            <label class="small">Exam Name</label>
+            <input type="text" name="exam_name" placeholder="Exam Name" required>
+
+            <label class="small">Course</label>
+            <select name="course_id" required>
+                <option value="">Select Course</option>
+                {% for course in courses %}
+                <option value="{{ course.course_id }}">{{ course.course_name }}</option>
+                {% endfor %}
+            </select>
+
+            <label class="small">Date</label>
+            <input type="date" name="exam_date" required>
+
+            <label class="small">Question Paper (PDF/DOC)</label>
+            <input type="file" name="question_file" accept=".pdf,.doc,.docx">
+
+            <label class="small">Answer Key (PDF/DOC)</label>
+            <input type="file" name="answer_file" accept=".pdf,.doc,.docx">
+
+            <div style="margin-top:12px; display:flex; gap:10px;">
+                <button type="submit" class="update-btn">Add Exam</button>
+                <a href="/admin" class="update-btn" style="background:#6b7280;">Cancel</a>
+            </div>
+        </form>
+    </div>
 </div>
 
 </body>
