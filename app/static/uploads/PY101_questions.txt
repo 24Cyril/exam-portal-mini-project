@@ -1,0 +1,59 @@
+What is the correct file extension for Python files?
+A) .py
+B) .python
+C) .pt
+D) .p
+
+Which keyword is used to define a function in Python?
+A) func
+B) def
+C) function
+D) define
+
+What data type is returned by the expression 3 / 2 in Python 3?
+A) int
+B) float
+C) str
+D) bool
+
+Which of the following is a mutable built-in type?
+A) tuple
+B) list
+C) str
+D) frozenset
+
+What does the `len()` function do?
+A) Returns the number of elements/items
+B) Converts value to integer
+C) Creates a new list
+D) Checks if value is None
+
+How do you write a single-line comment in Python?
+A) // comment
+B) -- comment
+C) # comment
+D) /* comment */
+
+Which statement is used to handle exceptions in Python?
+A) try/except
+B) catch/throw
+C) handle/error
+D) begin/rescue
+
+What is the correct way to import the math module?
+A) include math
+B) using math
+C) import math
+D) require math
+
+Which construct is used for iteration over a sequence in Python?
+A) for ... in ...
+B) foreach ... in ...
+C) loop ... over ...
+D) iterate ...
+
+Which of these creates a dictionary in Python?
+A) []
+B) ()
+C) {}
+D) <>

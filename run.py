@@ -26,6 +26,15 @@ from admin import (
     update_course,
     delete_course
 )
+from admin import (
+    insert_exam_questions,
+    update_exam_time_limit,
+    get_exam_questions,
+    create_attempt,
+    save_answer,
+    submit_attempt,
+    grade_attempt
+)
 from student import(
     get_student_profile,
     save_student_profile,
@@ -431,6 +440,66 @@ def admin_exams():
     return {"exams": get_all_exams()}
 
 
+@app.route("/exam/<int:exam_id>")
+def exam_page(exam_id):
+    if "user_id" not in session or session.get("role") != "student":
+        return redirect("/")
+    # simple page that loads the exam UI which will call APIs
+    return render_template("exam.html", exam_id=exam_id)
+
+
+@app.route("/api/exam/<int:exam_id>/start", methods=["POST"])
+def api_exam_start(exam_id):
+    if "user_id" not in session or session.get("role") != "student":
+        return {"error": "Unauthorized"}, 401
+
+    student_id = get_student_id(session["user_id"])
+    attempt_id = create_attempt(student_id, exam_id)
+
+    # fetch questions
+    qs = get_exam_questions(exam_id)
+
+    # fetch time limit
+    db = get_db_connection()
+    c = db.cursor()
+    c.execute("SELECT time_limit FROM exams WHERE exam_id=%s", (exam_id,))
+    row = c.fetchone()
+    tl = 30
+    if row and row[0]:
+        tl = int(row[0])
+    c.close()
+    db.close()
+
+    return {"attempt_id": attempt_id, "questions": qs, "time_limit": tl}
+
+
+@app.route("/api/exam/attempt/<int:attempt_id>/save", methods=["POST"])
+def api_exam_save(attempt_id):
+    if "user_id" not in session or session.get("role") != "student":
+        return {"error": "Unauthorized"}, 401
+
+    data = request.json
+    q_no = data.get("q_no")
+    selected = data.get("selected")
+    if q_no is None:
+        return {"error": "Missing q_no"}, 400
+
+    save_answer(attempt_id, q_no, selected)
+    return {"status": "saved"}
+
+
+@app.route("/api/exam/attempt/<int:attempt_id>/submit", methods=["POST"])
+def api_exam_submit(attempt_id):
+    if "user_id" not in session or session.get("role") != "student":
+        return {"error": "Unauthorized"}, 401
+
+    data = request.json or {}
+    duration = int(data.get("duration_seconds", 0))
+    submit_attempt(attempt_id, duration)
+    result = grade_attempt(attempt_id)
+    return {"status": "submitted", "result": result}
+
+
 # -------------------------------
 # ADMIN: ADD EXAM
 # -------------------------------
@@ -449,7 +518,8 @@ def add_exam_route():
     if request.method == "POST":
         exam_name = request.form["exam_name"]
         course_id = request.form["course_id"]
-        exam_date = request.form["exam_date"]
+        exam_date = request.form.get("exam_date")
+        time_limit = int(request.form.get("time_limit", 30))
 
         q = request.files.get("question_file")
         a = request.files.get("answer_file")
@@ -462,7 +532,76 @@ def add_exam_route():
         if a:
             a.save(os.path.join(app.config["UPLOAD_FOLDER"], aname))
 
-        add_exam(exam_name, course_id, exam_date, qname, aname)
+        # insert exam and get id
+        exam_id = add_exam(exam_name, course_id, exam_date, qname, aname)
+
+        # update time limit
+        update_exam_time_limit(exam_id, time_limit)
+
+        # if both files present, parse and insert questions
+        def parse_questions_from_file(qpath, apath):
+            questions = []
+            try:
+                with open(qpath, "r", encoding="utf-8") as f:
+                    raw = f.read().strip()
+
+                # split by two newlines into blocks
+                blocks = [b.strip() for b in raw.split("\n\n") if b.strip()]
+                # read answers
+                answers = []
+                if apath:
+                    with open(apath, "r", encoding="utf-8") as af:
+                        for line in af:
+                            t = line.strip()
+                            if not t:
+                                continue
+                            # accept formats like 'A' or '1:A' or 'A)'
+                            if ':' in t:
+                                parts = t.split(':')
+                                answers.append(parts[-1].strip())
+                            else:
+                                answers.append(t.strip())
+
+                for idx, block in enumerate(blocks, start=1):
+                    lines = [l.strip() for l in block.splitlines() if l.strip()]
+                    if not lines:
+                        continue
+                    qtext = lines[0]
+                    opts = {'option_a': None, 'option_b': None, 'option_c': None, 'option_d': None}
+                    for line in lines[1:]:
+                        ll = line
+                        if ll[:2].lower().startswith('a'):
+                            opts['option_a'] = ll.split(')',1)[-1].strip() if ')' in ll else ll[1:].strip()
+                        elif ll[:2].lower().startswith('b'):
+                            opts['option_b'] = ll.split(')',1)[-1].strip() if ')' in ll else ll[1:].strip()
+                        elif ll[:2].lower().startswith('c'):
+                            opts['option_c'] = ll.split(')',1)[-1].strip() if ')' in ll else ll[1:].strip()
+                        elif ll[:2].lower().startswith('d'):
+                            opts['option_d'] = ll.split(')',1)[-1].strip() if ')' in ll else ll[1:].strip()
+
+                    correct = None
+                    if len(answers) >= idx:
+                        correct = answers[idx-1].strip().upper()[0]
+
+                    questions.append({
+                        'q_no': idx,
+                        'question': qtext,
+                        'option_a': opts['option_a'],
+                        'option_b': opts['option_b'],
+                        'option_c': opts['option_c'],
+                        'option_d': opts['option_d'],
+                        'correct_option': correct
+                    })
+            except Exception:
+                pass
+            return questions
+
+        if qname and aname:
+            qpath = os.path.join(app.config["UPLOAD_FOLDER"], qname)
+            apath = os.path.join(app.config["UPLOAD_FOLDER"], aname)
+            questions = parse_questions_from_file(qpath, apath)
+            if questions:
+                insert_exam_questions(exam_id, questions)
 
         return redirect("/admin")
 

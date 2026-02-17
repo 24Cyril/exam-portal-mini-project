@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Exam</title>
+    <link rel="stylesheet" href="/static/css/student.css">
+</head>
+<body>
+<div class="container">
+    <h2>Exam</h2>
+    <div id="timer" style="font-weight:bold;margin-bottom:10px;">Time left: --:--</div>
+    <div id="questions"></div>
+
+    <div style="margin-top:16px;">
+        <button id="btn-submit">Submit</button>
+        <button id="btn-cancel">Cancel</button>
+    </div>
+</div>
+
+<script>
+    const EXAM_ID = {{ exam_id }};
+</script>
+<script src="/static/js/jsexam.js"></script>
+</body>
+</html>
