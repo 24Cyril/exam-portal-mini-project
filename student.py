@@ -135,7 +135,7 @@ def fetch_student_payments(student_id):
     db = get_db_connection()
     cur = db.cursor(dictionary=True)
     cur.execute("""
-        SELECT c.course_id, c.course_name, p.amount,
+        SELECT p.payment_id, c.course_id, c.course_name, p.amount,
         p.payment_method, p.transaction_id,
         sc.payment_verification_status,
         DATE(p.payment_date) AS payment_date

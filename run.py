@@ -1,5 +1,5 @@
 
-from flask import Flask, request, redirect, render_template, session
+from flask import Flask, request, redirect, render_template, session, make_response
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -12,6 +12,8 @@ from admin import (
     verify_enrollment,
     reject_enrollment,
     get_pending_payments,
+    get_all_payments,
+    get_payment_by_id,
     verify_payment,
     reject_payment,
     get_all_registrations,
@@ -20,9 +22,6 @@ from admin import (
     delete_exam,
     update_student_password,
     get_course_by_id,
-    add_course,
-    update_course,
-    delete_course,
     add_course,
     update_course,
     delete_course
@@ -353,8 +352,37 @@ def admin_payments():
     if "user_id" not in session or session["role"] != "admin":
         return {"error": "Unauthorized"}, 401
 
-    payments = get_pending_payments()
+    # return full payment history (not only pending) for admin view
+    payments = get_all_payments()
     return {"payments": payments}
+
+
+# -------------------------------
+# PAYMENT RECEIPT (admin or owning student)
+# -------------------------------
+@app.route("/payment/receipt/<int:payment_id>")
+def payment_receipt(payment_id):
+    if "user_id" not in session:
+        return redirect("/")
+
+    payment = get_payment_by_id(payment_id)
+    if not payment:
+        return {"error": "Not found"}, 404
+
+    # allow admin or the owning student
+    if session.get("role") == "student":
+        student_id = get_student_id(session["user_id"])
+        if payment["student_id"] != student_id:
+            return {"error": "Unauthorized"}, 401
+
+    html = render_template("receipt.html", payment=payment)
+    if request.args.get("download") == "1":
+        resp = make_response(html)
+        resp.headers["Content-Disposition"] = f"attachment; filename=receipt-{payment_id}.html"
+        resp.headers["Content-Type"] = "text/html"
+        return resp
+
+    return html
 
 
 # -------------------------------

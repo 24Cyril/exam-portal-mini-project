@@ -275,6 +275,71 @@ def get_pending_payments():
 
 
 # -------------------------------
+# FETCH ALL PAYMENTS (history)
+# -------------------------------
+def get_all_payments():
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT
+            p.payment_id,
+            p.student_id,
+            s.full_name AS student_name,
+            s.email,
+            c.course_id,
+            c.course_name,
+            p.amount,
+            p.payment_method,
+            p.transaction_id,
+            -- prefer the payments table status for historical accuracy
+            p.verification_status AS payment_verification_status,
+            DATE(p.payment_date) AS payment_date
+        FROM payments p
+        JOIN student s ON p.student_id = s.id
+        JOIN courses c ON p.course_id = c.course_id
+        ORDER BY p.payment_date DESC
+    """)
+
+    payments = cursor.fetchall()
+    cursor.close()
+    db.close()
+
+    return payments
+
+
+# -------------------------------
+# FETCH SINGLE PAYMENT
+# -------------------------------
+def get_payment_by_id(payment_id):
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT
+            p.payment_id,
+            p.student_id,
+            s.full_name AS student_name,
+            s.email,
+            c.course_id,
+            c.course_name,
+            p.amount,
+            p.payment_method,
+            p.transaction_id,
+            p.verification_status AS payment_verification_status,
+            DATE(p.payment_date) AS payment_date
+        FROM payments p
+        JOIN student s ON p.student_id = s.id
+        JOIN courses c ON p.course_id = c.course_id
+        WHERE p.payment_id = %s
+    """, (payment_id,))
+
+    payment = cursor.fetchone()
+    cursor.close()
+    db.close()
+    return payment
+
+
+# -------------------------------
 # VERIFY PAYMENT
 # -------------------------------
 def verify_payment(payment_id):

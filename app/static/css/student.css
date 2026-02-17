@@ -322,3 +322,27 @@ select {
 #logout:hover {
     background: #d32f2f;
 }
+
+/* ===============================
+   HOME / DASHBOARD STATS
+================================ */
+.stat-card {
+    background: #fbfcff;
+    padding: 12px 16px;
+    border-radius: 8px;
+    min-width: 140px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1f2a56;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: #666;
+    margin-top: 6px;
+}

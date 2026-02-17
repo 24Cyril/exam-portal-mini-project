@@ -12,7 +12,8 @@ function openTab(tabName) {
     const activeTab = document.getElementById(`tab-${tabName}`);
     if (activeTab) activeTab.classList.add("active");
 
-    if (tabName === "profile") loadProfile();
+    if (tabName === "home") loadHome();
+    else if (tabName === "profile") loadProfile();
     else if (tabName === "courses") loadCourses();
     else if (tabName === "exam") loadExams();
     else if (tabName === "result") loadResults();
@@ -46,6 +47,59 @@ function loadProfile() {
         </table>
         <a href="/editpro" class="update-btn">✏️ Update Profile</a>
     `;
+}
+
+// ===============================
+// HOME (Student dashboard)
+// ===============================
+function loadHome() {
+    const name = (studentData && studentData.full_name) ? studentData.full_name.split(' ')[0] : 'Student';
+
+    // fetch courses and exams to build quick stats
+    Promise.all([
+        fetch('/api/student/courses').then(r => r.json()).catch(() => []),
+        fetch('/api/student/exams').then(r => r.json()).catch(() => [])
+    ]).then(([courses, exams]) => {
+
+        const enrolled = (courses || []).filter(c => c.enrollment_status !== 'Not Enrolled').length;
+        const verifiedPayments = (courses || []).filter(c => c.payment_verification_status === 'Verified').length;
+        const pendingPayments = (courses || []).filter(c => c.payment_verification_status === 'Submitted' || c.payment_verification_status === 'Pending').length;
+
+        // upcoming exams (unique by course + future date)
+        const upcoming = (exams || []).filter(e => e.exam_date).length;
+
+        document.getElementById('tab-content').innerHTML = `
+            <div class="card">
+                <h3>Welcome back, ${name} 👋</h3>
+                <p>Quick overview of your account and activity.</p>
+
+                <div style="display:flex; gap:14px; margin-top:18px; flex-wrap:wrap;">
+                    <div class="stat-card">
+                        <div class="stat-value">${enrolled}</div>
+                        <div class="stat-label">Enrolled Courses</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${upcoming}</div>
+                        <div class="stat-label">Upcoming Exams</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${verifiedPayments}</div>
+                        <div class="stat-label">Payments Verified</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${pendingPayments}</div>
+                        <div class="stat-label">Pending Payments</div>
+                    </div>
+                </div>
+
+                <div style="margin-top:20px; display:flex; gap:8px;">
+                    <button class="attend-btn" onclick="openTab('courses')">View Courses</button>
+                    <button class="pay-btn" onclick="openTab('payment')">Payment</button>
+                    <button class="result-btn" onclick="openTab('exam')">Exams</button>
+                </div>
+            </div>
+        `;
+    });
 }
 
 // ===============================
@@ -185,18 +239,23 @@ function loadPayments() {
             let rows = data.map((p, i) => {
 
                 let actionCell = "";
+                const receiptBtn = p.payment_id ? `<button class="edit-btn" onclick="window.open('/payment/receipt/${p.payment_id}','_blank')">Receipt</button>` : '';
 
                 if (p.payment_verification_status === "Pending") {
                     actionCell = `
-                        <button class="pay-btn" onclick="submitPayment(${p.course_id})">
-                            Submit Payment
-                        </button>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <button class="pay-btn" onclick="submitPayment(${p.course_id})">
+                                Submit Payment
+                            </button>
+                            ${receiptBtn}
+                        </div>
                     `;
                 } else {
                     actionCell = `
-                        <span class="status done">
-                            ${p.payment_verification_status}
-                        </span>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <span class="status done">${p.payment_verification_status}</span>
+                            ${receiptBtn}
+                        </div>
                     `;
                 }
 

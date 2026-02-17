@@ -9,10 +9,7 @@ function openTab(tabName) {
     }
 
     if (tabName === "home") {
-        document.getElementById("tab-content").innerHTML = `
-            <h3>Admin Dashboard</h3>
-            <p>Manage students, courses, registrations and payments from the sidebar.</p>
-        `;
+        loadAdminHome();
         return;
     }
 
@@ -48,6 +45,42 @@ function openTab(tabName) {
 
     document.getElementById("tab-content").innerHTML =
         `<p>${tabName} module coming soon...</p>`;
+}
+
+function loadAdminHome() {
+    Promise.all([
+        fetch('/admin/students').then(r=>r.json()).then(d=>d.students||[]).catch(()=>[]),
+        fetch('/admin/courses').then(r=>r.json()).then(d=>d.courses||[]).catch(()=>[]),
+        fetch('/admin/enrollments').then(r=>r.json()).then(d=>d.enrollments||[]).catch(()=>[]),
+        fetch('/admin/payments').then(r=>r.json()).then(d=>d.payments||[]).catch(()=>[])
+    ]).then(([students, courses, enrollments, payments]) => {
+        const totalStudents = (students || []).length;
+        const totalCourses = (courses || []).length;
+        const pendingEnrollments = (enrollments || []).length;
+        const pendingPayments = (payments || []).filter(p => (p.payment_verification_status||'').toLowerCase() === 'submitted').length;
+        const verifiedPayments = (payments || []).filter(p => (p.payment_verification_status||'').toLowerCase() === 'verified').length;
+
+        document.getElementById('tab-content').innerHTML = `
+            <div class="card admin-home">
+                <h3>Admin Dashboard</h3>
+                <p>Overview of system activity and quick actions.</p>
+
+                <div class="admin-stats" style="display:flex; gap:14px; margin-top:18px; flex-wrap:wrap;">
+                    <div class="stat-card"><div class="stat-value">${totalStudents}</div><div class="stat-label">Students</div></div>
+                    <div class="stat-card"><div class="stat-value">${totalCourses}</div><div class="stat-label">Courses</div></div>
+                    <div class="stat-card"><div class="stat-value">${pendingEnrollments}</div><div class="stat-label">Pending Enrollments</div></div>
+                    <div class="stat-card"><div class="stat-value">${pendingPayments}</div><div class="stat-label">Pending Payments</div></div>
+                    <div class="stat-card"><div class="stat-value">${verifiedPayments}</div><div class="stat-label">Payments Verified</div></div>
+                </div>
+
+                <div style="margin-top:18px; display:flex; gap:10px;">
+                    <button class="add-btn" onclick="openTab('students')">Manage Students</button>
+                    <button class="add-btn" onclick="openTab('courses')">Manage Courses</button>
+                    <button class="add-btn" onclick="openTab('payment')">Payments</button>
+                </div>
+            </div>
+        `;
+    });
 }
 
 /* =====================================================
@@ -307,85 +340,162 @@ function rejectEnrollment(enrollmentId) {
 }
 
 /* =====================================================
-   PAYMENTS TAB
+   PAYMENTS TAB (filters + pagination + receipts)
 ===================================================== */
+
+let adminPayments = [];
+let paymentsFiltered = [];
+let paymentsPageSize = 10;
+let paymentsCurrentPage = 1;
 
 function loadPayments() {
     fetch("/admin/payments")
         .then(res => res.json())
-        .then(data => renderPaymentsTable(data.payments));
+        .then(data => {
+            adminPayments = data.payments || [];
+
+            document.getElementById("tab-content").innerHTML = `
+                <div class="card">
+                    <div class="search-box payments-filters">
+                        <input type="text" id="paymentsSearchInput" placeholder="Search payments..." onkeyup="applyPaymentsFilters()">
+
+                        <select id="paymentsStatusFilter" onchange="applyPaymentsFilters()">
+                            <option value="">All Status</option>
+                            <option value="Submitted">Submitted</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Verified">Verified</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
+
+                        <label>From <input type="date" id="paymentsFromDate" onchange="applyPaymentsFilters()"></label>
+                        <label>To <input type="date" id="paymentsToDate" onchange="applyPaymentsFilters()"></label>
+
+                        <select id="paymentsPageSize" onchange="changePaymentsPageSize()">
+                            <option value="10">10 / page</option>
+                            <option value="25">25 / page</option>
+                            <option value="50">50 / page</option>
+                        </select>
+                    </div>
+
+                    <div id="paymentsTableWrapper"></div>
+                </div>
+            `;
+
+            applyPaymentsFilters();
+        });
 }
 
+function applyPaymentsFilters() {
+    const q = document.getElementById('paymentsSearchInput').value.toLowerCase();
+    const status = document.getElementById('paymentsStatusFilter').value;
+    const from = document.getElementById('paymentsFromDate').value;
+    const to = document.getElementById('paymentsToDate').value;
+
+    paymentsFiltered = adminPayments.filter(p => {
+        let ok = true;
+
+        if (q) {
+            const hay = `${p.student_name||''} ${p.email||''} ${p.course_name||''} ${p.transaction_id||''}`.toLowerCase();
+            ok = ok && hay.includes(q);
+        }
+
+        if (status) ok = ok && ((p.payment_verification_status||'').toString() === status);
+        if (from) ok = ok && (p.payment_date && p.payment_date >= from);
+        if (to) ok = ok && (p.payment_date && p.payment_date <= to);
+
+        return ok;
+    });
+
+    paymentsCurrentPage = 1;
+    renderPaymentsPage();
+}
+
+function changePaymentsPageSize() {
+    paymentsPageSize = parseInt(document.getElementById('paymentsPageSize').value, 10) || 10;
+    paymentsCurrentPage = 1;
+    renderPaymentsPage();
+}
+
+function renderPaymentsPage() {
+    const total = paymentsFiltered.length;
+    const pages = Math.max(1, Math.ceil(total / paymentsPageSize));
+    if (paymentsCurrentPage > pages) paymentsCurrentPage = pages;
+    const start = (paymentsCurrentPage - 1) * paymentsPageSize;
+    const pageItems = paymentsFiltered.slice(start, start + paymentsPageSize);
+
+    renderPaymentsTable(pageItems);
+
+    // pagination controls
+    const pager = document.createElement('div');
+    pager.className = 'pagination';
+
+    let html = `<div class="pagination-controls">`;
+    html += `<button ${paymentsCurrentPage===1? 'disabled' : ''} onclick="paymentsPrevPage()">Prev</button>`;
+    for (let i=1;i<=pages;i++) html += `<button class="${i===paymentsCurrentPage?'active':''}" onclick="paymentsGoTo(${i})">${i}</button>`;
+    html += `<button ${paymentsCurrentPage===pages? 'disabled' : ''} onclick="paymentsNextPage()">Next</button>`;
+    html += `</div><div class="pagination-info">Showing ${start+1}-${Math.min(start+paymentsPageSize,total)} of ${total}</div>`;
+
+    pager.innerHTML = html;
+
+    const wrapper = document.getElementById('paymentsTableWrapper');
+    wrapper.appendChild(pager);
+}
+
+function paymentsPrevPage(){ if(paymentsCurrentPage>1){ paymentsCurrentPage--; renderPaymentsPage(); } }
+function paymentsNextPage(){ paymentsCurrentPage++; renderPaymentsPage(); }
+function paymentsGoTo(n){ paymentsCurrentPage = n; renderPaymentsPage(); }
+
 function renderPaymentsTable(payments) {
+    const rows = (payments||[]).map(p => {
+        const status = (p.payment_verification_status||'').toString();
 
-    if (!payments || payments.length === 0) {
-        document.getElementById("tab-content").innerHTML = `
-            <h3>No Pending Payments</h3>
-            <p>All payment submissions have been processed.</p>
-        `;
-        return;
-    }
+        // receipt button (always visible if payment exists)
+        const receiptBtn = p.payment_id ? `<button class="edit-btn" onclick="window.open('/payment/receipt/${p.payment_id}','_blank')">Receipt</button>` : '';
 
-    let rows = payments.map(p => `
-        <tr>
-            <td>${p.payment_id}</td>
-            <td>${p.student_name || ""}</td>
-            <td>${p.email || ""}</td>
-            <td>${p.course_name}</td>
-            <td>₹${p.amount || ""}</td>
-            <td>${p.payment_method || ""}</td>
-            <td>${p.transaction_id || ""}</td>
-            <td><span class="badge pending">${p.payment_verification_status}</span></td>
-            <td>${p.payment_date || ""}</td>
-            <td>
+        let action = '';
+        if ((status||'').toLowerCase() === 'submitted') {
+            action = `
                 <button class="verify-btn" onclick="verifyPayment(${p.payment_id})">✓ Verify</button>
                 <button class="reject-btn" onclick="rejectPayment(${p.payment_id})">✗ Reject</button>
-            </td>
-        </tr>
-    `).join("");
+                ${receiptBtn}
+            `;
+        } else {
+            action = `${receiptBtn} <span class="badge ${status==='Verified'?'active':status==='Rejected'?'inactive':'pending'}">${status||'-'}</span>`;
+        }
 
-    document.getElementById("tab-content").innerHTML = `
-        <h3>Pending Payments</h3>
+        return `
+            <tr>
+                <td>${p.payment_id}</td>
+                <td>${p.student_name||''}</td>
+                <td>${p.email||''}</td>
+                <td>${p.course_name||''}</td>
+                <td>₹${p.amount||''}</td>
+                <td>${p.payment_method||''}</td>
+                <td>${p.transaction_id||''}</td>
+                <td>${p.payment_date||''}</td>
+                <td>${action}</td>
+            </tr>
+        `;
+    }).join('');
+
+    const wrapper = document.getElementById('paymentsTableWrapper');
+    wrapper.innerHTML = `
+        <h3>Payments</h3>
         <table class="profile-table">
             <tr>
                 <th>ID</th>
-                <th>Student Name</th>
+                <th>Student</th>
                 <th>Email</th>
                 <th>Course</th>
                 <th>Amount</th>
                 <th>Method</th>
                 <th>Transaction ID</th>
-                <th>Status</th>
                 <th>Date</th>
                 <th>Actions</th>
             </tr>
-            ${rows}
+            ${rows || '<tr><td colspan="9" class="empty-msg">No payments found</td></tr>'}
         </table>
     `;
-}
-
-function verifyPayment(paymentId) {
-    if (!confirm("Verify this payment?")) return;
-
-    fetch(`/admin/payments/verify/${paymentId}`, { method: "POST" })
-        .then(res => res.json())
-        .then(() => {
-            alert("Payment verified successfully!");
-            loadPayments();
-        })
-        .catch(err => alert("Error: " + err));
-}
-
-function rejectPayment(paymentId) {
-    if (!confirm("Reject this payment? Student will need to resubmit.")) return;
-
-    fetch(`/admin/payments/reject/${paymentId}`, { method: "POST" })
-        .then(res => res.json())
-        .then(() => {
-            alert("Payment rejected!");
-            loadPayments();
-        })
-        .catch(err => alert("Error: " + err));
 }
 
 /* =====================================================
@@ -494,7 +604,7 @@ function renderRegistrationsTable(registrations) {
    DEFAULT TAB
 ===================================================== */
 
-window.onload = () => openTab("profile");
+window.onload = () => openTab("home");
 
 
 
