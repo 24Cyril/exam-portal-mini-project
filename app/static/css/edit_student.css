@@ -1,0 +1,131 @@
+/* =========================
+   GLOBAL RESET
+========================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #4e73df, #1cc88a);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* =========================
+   FORM CARD
+========================= */
+.form-card {
+    background: #ffffff;
+    width: 420px;
+    padding: 35px;
+    border-radius: 12px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    animation: fadeIn 0.6s ease-in-out;
+}
+
+.form-card h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #333;
+    font-weight: 600;
+}
+
+/* =========================
+   INPUT FIELDS
+========================= */
+.form-card input,
+.form-card select {
+    width: 100%;
+    padding: 12px 14px;
+    margin-bottom: 18px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.form-card input:focus,
+.form-card select:focus {
+    border-color: #4e73df;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.15);
+}
+
+/* =========================
+   FILE LABEL
+========================= */
+.form-card label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #555;
+    display: block;
+    margin-bottom: 6px;
+}
+
+/* =========================
+   BUTTON
+========================= */
+.form-card button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #4e73df, #224abe);
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.form-card button:hover {
+    background: linear-gradient(135deg, #2e59d9, #1a3ea8);
+    transform: translateY(-2px);
+}
+
+/* =========================
+   BACK LINK
+========================= */
+.back-link {
+    display: block;
+    text-align: center;
+    margin-top: 18px;
+    text-decoration: none;
+    font-size: 14px;
+    color: #4e73df;
+    transition: 0.3s;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+    color: #224abe;
+}
+
+/* =========================
+   ANIMATION
+========================= */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 480px) {
+    .form-card {
+        width: 90%;
+        padding: 25px;
+    }
+}
