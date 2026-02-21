@@ -120,6 +120,109 @@ def get_all_students():
 
     return students
 
+# -------------------------------
+# FETCH ALL TEACHERS (ADMIN VIEW)
+# -------------------------------
+def get_all_teachers():
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT
+            t.teacher_id,
+            t.full_name,
+            t.email,
+            t.phone,
+            t.department,
+            t.designation,
+            t.institute_name,
+            t.created_at,
+            u.username
+        FROM teacher t
+        JOIN users u ON t.user_id = u.id
+        ORDER BY t.created_at DESC
+    """)
+
+    teachers = cursor.fetchall()
+    cursor.close()
+    db.close()
+
+    return teachers
+
+# -------------------------------
+# GET TEACHER BY ID
+# -------------------------------
+def get_teacher_by_id(teacher_id):
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT
+            t.teacher_id,
+            t.full_name,
+            t.email,
+            t.phone,
+            t.department,
+            t.designation,
+            t.institute_name,
+            u.username
+        FROM teacher t
+        JOIN users u ON t.user_id = u.id
+        WHERE t.teacher_id = %s
+    """, (teacher_id,))
+
+    teacher = cursor.fetchone()
+    cursor.close()
+    db.close()
+
+    return teacher
+
+# -------------------------------
+# UPDATE TEACHER
+# -------------------------------
+def update_teacher(teacher_id, data):
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    cursor.execute("""
+        UPDATE teacher t
+        JOIN users u ON t.user_id = u.id
+        SET 
+            t.full_name = %s,
+            t.email = %s,
+            t.phone = %s,
+            t.department = %s,
+            t.designation = %s,
+            t.institute_name = %s
+        WHERE t.teacher_id = %s
+    """, (
+        data["full_name"],
+        data["email"],
+        data["phone"],
+        data["department"],
+        data["designation"],
+        data["institute_name"],
+        teacher_id
+    ))
+
+    db.commit()
+    cursor.close()
+    db.close()
+
+# -------------------------------
+# DELETE TEACHER
+# -------------------------------
+def delete_teacher(teacher_id):
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    # Delete from teacher table (user will remain in users table)
+    cursor.execute("DELETE FROM teacher WHERE teacher_id = %s", (teacher_id,))
+
+    db.commit()
+    cursor.close()
+    db.close()
+
 
 # -------------------------------
 # FETCH ALL COURSES (ADMIN VIEW)
@@ -130,16 +233,49 @@ def get_all_courses():
 
     cursor.execute("""
         SELECT
-            course_id,
-            course_name,
-            course_code,
-            duration,
-            fee,
-            status,
-            created_at
-        FROM courses
-        ORDER BY created_at DESC
+            c.course_id,
+            c.course_name,
+            c.course_code,
+            c.department,
+            c.description,
+            c.duration,
+            c.fee,
+            c.status,
+            c.created_at,
+            a.full_name AS created_by_name
+        FROM courses c
+        LEFT JOIN admin a ON c.created_by = a.admin_id
+        ORDER BY c.created_at DESC
     """)
+
+    courses = cursor.fetchall()
+    cursor.close()
+    db.close()
+
+    return courses
+
+# -------------------------------
+# GET COURSES BY DEPARTMENT
+# -------------------------------
+def get_courses_by_department(department):
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT
+            c.course_id,
+            c.course_name,
+            c.course_code,
+            c.department,
+            c.description,
+            c.duration,
+            c.fee,
+            c.status,
+            c.created_at
+        FROM courses c
+        WHERE c.department = %s
+        ORDER BY c.created_at DESC
+    """, (department,))
 
     courses = cursor.fetchall()
     cursor.close()

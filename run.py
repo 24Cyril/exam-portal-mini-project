@@ -35,17 +35,14 @@ from admin import (
     submit_attempt,
     grade_attempt
 )
-from student import(
-    get_student_profile,
-    save_student_profile,
-    get_student_id,
-    get_all_courses_for_student,
-    fetch_student_exams,
-    fetch_student_payments,
-    create_pending_payment,
-    enroll_in_course,
-    unenroll_from_course,
-    submit_manual_payment
+from teacher import(
+    get_teacher_profile_by_username,
+    update_teacher_profile,
+    get_all_teachers,
+    get_courses_for_teacher,
+    get_exams_for_teacher,
+    create_exam_for_teacher,
+    get_teacher_id
 )
 
 app = Flask(__name__, template_folder="app/templates", static_folder="app/static")
@@ -122,6 +119,17 @@ def register():
                 VALUES (%s, %s, %s, %s, %s)
                 """,
                 (user_id, email, department, course, year_of_study)
+            )
+
+        # ---------------- TEACHER PROFILE ----------------
+        if role == "teacher":
+            cursor.execute(
+                """
+                INSERT INTO teacher 
+                (user_id, email, department, designation, institute_name)
+                VALUES (%s, %s, %s, %s, %s)
+                """,
+                (user_id, email, department, "Instructor", email)
             )
 
         db.commit()
