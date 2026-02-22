@@ -1,103 +1,101 @@
-/* =========================
-   REGISTER PAGE
-========================= */
-
-body.register-page {
-  font-family: Arial, Helvetica, sans-serif;
-  background-color: #f4f6f8;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+* {
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
-.register-container {
-  background: white;
-  padding: 30px;
-  border-radius: 8px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-  margin: 20px;
+body {
+    margin: 0;
+    background: #f4f6f9;
 }
 
-.register-container h1 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #1e88e5;
+.container {
+    max-width: 900px;
+    margin: 40px auto;
+    background: #ffffff;
+    padding: 25px 30px;
+    border-radius: 8px;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 25px;
+}
+
+.role-switch {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.role-switch label {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.form-section {
+    display: none;
+}
+
+.form-section.active {
+    display: block;
 }
 
 .form-group {
-  margin-bottom: 15px;
+    margin-bottom: 15px;
 }
 
 label {
-  display: block;
-  margin-bottom: 6px;
-  font-weight: bold;
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+    color: #333;
 }
 
-input {
-  padding: 8px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  font-size: 14px;
+input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
 }
 
-input:focus {
-  outline: none;
-  border-color: #1e88e5;
+textarea {
+    resize: vertical;
 }
 
-/* ROLE TOGGLE */
-
-.role-toggle {
-  display: flex;
-  gap: 10px;
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #007bff;
 }
-
-.role-toggle input {
-  display: none;
-}
-
-.role-toggle label {
-  flex: 1;
-  padding: 10px;
-  text-align: center;
-  border: 2px solid #1e88e5;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  color: #1e88e5;
-  transition: all 0.3s ease;
-}
-
-.role-toggle input:checked + label {
-  background-color: #1e88e5;
-  color: white;
-}
-
-/* BUTTON */
 
 button {
-  width: 100%;
-  padding: 10px;
-  background-color: #1e88e5;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
-  cursor: pointer;
+    width: 100%;
+    padding: 12px;
+    background: #007bff;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    color: #fff;
+    cursor: pointer;
+    margin-top: 15px;
 }
 
 button:hover {
-  background-color: #1565c0;
+    background: #0056b3;
 }
 
-.login-link {
-  margin-top: 15px;
-  text-align: center;
-  font-size: 14px;
-}
-
-.login-link a {
-  color: #1e88e5;
-  text-decoration: none;
+.note {
+    font-size: 12px;
+    color: #777;
+    text-align: center;
+    margin-top: 12px;
 }

@@ -75,70 +75,104 @@ def home():
 # -------------------------------
 # REGISTER
 # -------------------------------
+from flask import request, redirect, render_template
+from werkzeug.security import generate_password_hash
+import traceback
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
+
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-        role = request.form["role"].lower()
-        email = request.form.get("email")
+        try:
+            print("REGISTER HIT")
 
-        # student-only fields
-        department = request.form.get("department")
-        course = request.form.get("course")
-        year_of_study = request.form.get("year_of_study")
+            username = request.form["username"]
+            password = request.form["password"]
+            role = request.form["role"].lower()
+            email = request.form["email"]
+            full_name = request.form["full_name"]
 
-        hashed_password = generate_password_hash(password)
+            hashed_password = generate_password_hash(password)
 
-        db = get_db_connection()
-        cursor = db.cursor()
+            db = get_db_connection()
+            cursor = db.cursor()
 
-        # users table
-        cursor.execute(
-            "INSERT INTO users (username, password, role) VALUES (%s, %s, %s)",
-            (username, hashed_password, role)
-        )
-        user_id = cursor.lastrowid
-
-        # ---------------- ADMIN PROFILE ----------------
-        if role == "admin":
+            # ---------------- USERS TABLE ----------------
             cursor.execute(
-                """
-                INSERT INTO admin (username, password_hash, role, full_name, email)
-                VALUES (%s, %s, %s, %s, %s)
-                """,
-                (username, hashed_password, "admin", username, email)
+                "INSERT INTO users (username, password, role) VALUES (%s, %s, %s)",
+                (username, hashed_password, role)
             )
+            user_id = cursor.lastrowid
 
-        # ---------------- STUDENT PROFILE ----------------
-        if role == "student":
-            cursor.execute(
-                """
-                INSERT INTO student 
-                (user_id, email, department, course, year_of_study)
-                VALUES (%s, %s, %s, %s, %s)
-                """,
-                (user_id, email, department, course, year_of_study)
-            )
+            # ---------------- ADMIN ----------------
+            if role == "admin":
+                cursor.execute("""
+                    INSERT INTO admin (user_id, full_name, email)
+                    VALUES (%s, %s, %s)
+                """, (user_id, full_name, email))
 
-        # ---------------- TEACHER PROFILE ----------------
-        if role == "teacher":
-            cursor.execute(
-                """
-                INSERT INTO teacher 
-                (user_id, email, department, designation, institute_name)
-                VALUES (%s, %s, %s, %s, %s)
-                """,
-                (user_id, email, department, "Instructor", email)
-            )
+            # ---------------- STUDENT ----------------
+            elif role == "student":
+                cursor.execute("""
+                    INSERT INTO students
+                    (user_id, full_name, age, gender, email, phone, address, course, department, institute_name, year_of_study, enrollment_date)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """, (
+                    user_id,
+                    full_name,
+                    request.form.get("age"),
+                    request.form.get("gender"),
+                    email,
+                    request.form.get("phone"),
+                    request.form.get("address"),
+                    request.form.get("course"),
+                    request.form.get("department"),
+                    request.form.get("institute_name"),
+                    request.form.get("year_of_study"),
+                    request.form.get("enrollment_date") or "2024-01-01"
+                ))
 
-        db.commit()
-        cursor.close()
-        db.close()
+            # ---------------- TEACHER ----------------
+            elif role == "teacher":
+                cursor.execute("""
+                    INSERT INTO teacher
+                    (user_id, full_name, department, email)
+                    VALUES (%s,%s,%s,%s)
+                """, (
+                    user_id,
+                    full_name,
+                    request.form.get("department"),
+                    email
+                ))
 
-        return redirect("/")
+            db.commit()
+            cursor.close()
+            db.close()
+
+            print("REGISTER SUCCESS")
+            return redirect("/")
+
+        except Exception:
+            print(traceback.format_exc())
+            return "REGISTER ERROR — check terminal"
 
     return render_template("register.html")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # -------------------------------
