@@ -1,14 +1,14 @@
 const studentForm = document.getElementById("studentForm");
-const tutorForm = document.getElementById("tutorForm");
+const teacherForm = document.getElementById("teacherForm");
 const roleRadios = document.querySelectorAll("input[name='role']");
 
 roleRadios.forEach(radio => {
     radio.addEventListener("change", () => {
         if (radio.value === "student") {
             studentForm.classList.add("active");
-            tutorForm.classList.remove("active");
+            teacherForm.classList.remove("active");
         } else {
-            tutorForm.classList.add("active");
+            teacherForm.classList.add("active");
             studentForm.classList.remove("active");
         }
     });
