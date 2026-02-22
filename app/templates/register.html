@@ -5,14 +5,14 @@
     <title>Register | Online Education Portal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="../static/css/register.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
 </head>
 
 <body>
 
 <div class="container">
-    <h2>Account Registration</h2>
-    <p class="subtitle">Register as Student or Tutor</p>
+    <h2>Create Your Account</h2>
+    <p class="subtitle">Join the Online Education & Assessment Platform</p>
 
     <!-- ROLE SWITCH -->
     <div class="role-switch">
@@ -21,75 +21,52 @@
             Student
         </label>
         <label>
-            <input type="radio" name="role" value="tutor">
+            <input type="radio" name="role" value="teacher">
             Tutor / Teacher
         </label>
     </div>
 
-    <form action="/register" method="POST">
+    <form method="POST" action="/register">
 
-        <!-- ================= STUDENT FORM ================= -->
-        <div id="studentForm" class="form-section active">
-            <input type="hidden" name="role" value="student">
-
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" name="student_full_name" required>
-            </div>
-
-            <div class="form-group">
-                <label>Age</label>
-                <input type="number" name="student_age" required>
-            </div>
-
-            <div class="form-group">
-                <label>Gender</label>
-                <select name="student_gender" required>
-                    <option value="">Select</option>
-                    <option>Male</option>
-                    <option>Female</option>
-                    <option>Other</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" name="student_email" required>
-            </div>
-
-            <div class="form-group">
-                <label>Phone</label>
-                <input type="tel" name="student_phone" required>
-            </div>
-
-            <div class="form-group">
-                <label>Address</label>
-                <textarea name="student_address" required></textarea>
-            </div>
-
-            <div class="form-group">
-                <label>Course Interested</label>
-                <input type="text" name="course_interest" required>
-            </div>
+        <!-- COMMON AUTH FIELDS -->
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" name="username" required>
         </div>
 
-        <!-- ================= TUTOR FORM ================= -->
-        <div id="tutorForm" class="form-section">
-            <input type="hidden" name="role" value="tutor">
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" required>
+        </div>
+
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" required minlength="6">
+        </div>
+
+        <div class="form-group">
+            <label>Confirm Password</label>
+            <input type="password" name="confirm_password" required minlength="6">
+        </div>
+
+        <!-- ================= STUDENT SECTION ================= -->
+        <div id="studentForm" class="form-section active">
+
+            <h3>Student Details</h3>
 
             <div class="form-group">
                 <label>Full Name</label>
-                <input type="text" name="full_name" required>
+                <input type="text" name="student_full_name">
             </div>
 
             <div class="form-group">
                 <label>Age</label>
-                <input type="number" name="age" min="21" required>
+                <input type="number" name="student_age">
             </div>
 
             <div class="form-group">
                 <label>Gender</label>
-                <select name="gender" required>
+                <select name="student_gender">
                     <option value="">Select</option>
                     <option>Male</option>
                     <option>Female</option>
@@ -98,51 +75,98 @@
             </div>
 
             <div class="form-group">
-                <label>Email</label>
-                <input type="email" name="email" required>
-            </div>
-
-            <div class="form-group">
                 <label>Phone</label>
-                <input type="tel" name="phone" required>
+                <input type="tel" name="student_phone">
             </div>
 
             <div class="form-group">
                 <label>Address</label>
-                <textarea name="address" required></textarea>
-            </div>
-
-            <div class="form-group">
-                <label>Department</label>
-                <input type="text" name="department" required>
-            </div>
-
-            <div class="form-group">
-                <label>Specialization</label>
-                <input type="text" name="specialization" required>
+                <textarea name="student_address"></textarea>
             </div>
 
             <div class="form-group">
                 <label>Institute Name</label>
-                <input type="text" name="institute_name" required>
+                <input type="text" name="student_institute">
+            </div>
+
+            <div class="form-group">
+                <label>Year of Study</label>
+                <input type="number" name="year_of_study">
+            </div>
+
+        </div>
+
+        <!-- ================= TEACHER SECTION ================= -->
+        <div id="teacherForm" class="form-section">
+
+            <h3>Tutor / Teacher Details</h3>
+
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="tutor_full_name">
+            </div>
+
+            <div class="form-group">
+                <label>Age</label>
+                <input type="number" name="tutor_age">
+            </div>
+
+            <div class="form-group">
+                <label>Gender</label>
+                <select name="tutor_gender">
+                    <option value="">Select</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="tel" name="tutor_phone">
+            </div>
+
+            <div class="form-group">
+                <label>Address</label>
+                <textarea name="tutor_address"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Department</label>
+                <input type="text" name="department">
+            </div>
+
+            <div class="form-group">
+                <label>Specialization</label>
+                <input type="text" name="specialization">
+            </div>
+
+            <div class="form-group">
+                <label>Institute Name</label>
+                <input type="text" name="institute_name">
             </div>
 
             <div class="form-group">
                 <label>Employee ID</label>
-                <input type="text" name="employee_id" required>
+                <input type="text" name="employee_id">
             </div>
 
             <div class="form-group">
                 <label>Joining Date</label>
-                <input type="date" name="joining_date" required>
+                <input type="date" name="joining_date">
             </div>
+
+            <p class="note">
+                Tutor accounts require admin approval before activation.
+            </p>
         </div>
 
-        <button type="submit">Register</button>
+        <button type="submit">Create Account</button>
 
-        <p class="note">
-            Tutor accounts require admin verification before activation.
+        <p class="login-link">
+            Already registered? <a href="/login">Login</a>
         </p>
+
     </form>
 </div>
 
