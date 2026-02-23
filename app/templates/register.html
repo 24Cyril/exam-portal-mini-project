@@ -15,7 +15,10 @@
     <p class="subtitle">Join the Online Education & Assessment Platform</p>
 
     <!-- ROLE SWITCH -->
-    <div class="role-switch">
+   
+
+    <form method="POST" action="/register">
+         <div class="role-switch">
         <label>
             <input type="radio" name="role" value="student" checked>
             Student
@@ -25,8 +28,6 @@
             Tutor / Teacher
         </label>
     </div>
-
-    <form method="POST" action="/register">
 
         <!-- COMMON AUTH FIELDS -->
         <div class="form-group">
@@ -41,12 +42,12 @@
 
         <div class="form-group">
             <label>Password</label>
-            <input type="password" name="password" required minlength="6">
+            <input type="password" name="password">
         </div>
 
         <div class="form-group">
             <label>Confirm Password</label>
-            <input type="password" name="confirm_password" required minlength="6">
+            <input type="password" name="confirm_password">
         </div>
 
         <!-- ================= STUDENT SECTION ================= -->
@@ -56,17 +57,17 @@
 
             <div class="form-group">
                 <label>Full Name</label>
-                <input type="text" name="student_full_name">
+                <input type="text" name="full_name">
             </div>
 
             <div class="form-group">
                 <label>Age</label>
-                <input type="number" name="student_age">
+                <input type="number" name="age">
             </div>
 
             <div class="form-group">
                 <label>Gender</label>
-                <select name="student_gender">
+                <select name="gender">
                     <option value="">Select</option>
                     <option>Male</option>
                     <option>Female</option>
@@ -76,17 +77,46 @@
 
             <div class="form-group">
                 <label>Phone</label>
-                <input type="tel" name="student_phone">
+                <input type="tel" name="phone">
             </div>
+
+
+
+ <div class="form-group">
+                <label>Branch</label>
+                <input type="text" name="course">
+            </div>
+
+
+ <div class="form-group">
+                <label>Department</label>
+                <input type="text" name="department">
+            </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             <div class="form-group">
                 <label>Address</label>
-                <textarea name="student_address"></textarea>
+                <textarea name="address"></textarea>
             </div>
 
             <div class="form-group">
                 <label>Institute Name</label>
-                <input type="text" name="student_institute">
+                <input type="text" name="institute_name">
             </div>
 
             <div class="form-group">
@@ -103,7 +133,7 @@
 
             <div class="form-group">
                 <label>Full Name</label>
-                <input type="text" name="tutor_full_name">
+                <input type="text" name="full_name">
             </div>
 
             <div class="form-group">

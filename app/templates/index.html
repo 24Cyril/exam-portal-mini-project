@@ -70,12 +70,14 @@
 
 <section class="login-section">
 
-  <div class="login-tabs">
-    <button type="button" id="studentTab" class="tab active">Learner Login</button>
-    <button type="button" id="adminTab" class="tab">Administrator Login</button>
-  </div>
 
   <form id="loginForm" class="login-form" method="POST" action="/login">
+    
+  <div class="login-tabs">
+    <button type="button" id="studentTab" class="tab active">Learner Login</button>
+    <button type="button" id="teacherTab" class="tab">Tutor Login</button>
+    <button type="button" id="adminTab" class="tab">Administrator Login</button>
+  </div>
     <input type="hidden" name="role" id="role" value="student">
 
     <label>Username</label>
