@@ -20,7 +20,7 @@ def get_teacher_profile_by_username(username):
     cursor.execute(
         """
         SELECT 
-            t.teacher_id,
+            t.user_id,
             t.full_name,
             t.email,
             t.phone,

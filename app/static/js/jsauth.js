@@ -16,19 +16,29 @@ settingsPanel.classList.toggle("visible");
 // ===============================
 const studentTab = document.getElementById("studentTab");
 const adminTab = document.getElementById("adminTab");
+const teacherTab = document.getElementById("teacherTab");
 const roleInput = document.getElementById("role");
 
-if (studentTab && adminTab && roleInput) {
+if (studentTab && adminTab && teacherTab && roleInput) {
   studentTab.addEventListener("click", () => {
     studentTab.classList.add("active");
     adminTab.classList.remove("active");
+    teacherTab.classList.remove("active");
     roleInput.value = "student";
   });
 
   adminTab.addEventListener("click", () => {
     adminTab.classList.add("active");
     studentTab.classList.remove("active");
+    teacherTab.classList.remove("active");
     roleInput.value = "admin";
+  });
+
+  teacherTab.addEventListener("click", () => {
+    teacherTab.classList.add("active");
+    studentTab.classList.remove("active");
+    adminTab.classList.remove("active");
+    roleInput.value = "teacher";
   });
 }
 
