@@ -25,7 +25,7 @@ def get_teacher_profile_by_username(username):
             t.email,
             t.phone,
             t.department,
-            t.designation,
+            t.specialization,
             t.institute_name,
             t.created_at,
             u.username
@@ -56,7 +56,7 @@ def update_teacher_profile(username, data):
             t.email = %s,
             t.phone = %s,
             t.department = %s,
-            t.designation = %s,
+            t.specialization = %s,
             t.institute_name = %s
         WHERE u.username = %s
     """, (
@@ -64,7 +64,7 @@ def update_teacher_profile(username, data):
         data["email"],
         data["phone"],
         data["department"],
-        data["designation"],
+        data["specialization"],
         data["institute_name"],
         username
     ))
@@ -72,6 +72,34 @@ def update_teacher_profile(username, data):
     db.commit()
     cursor.close()
     db.close()
+
+# -------------------------------
+# GET ALL TEACHERS (ADMIN VIEW)
+# -------------------------------
+def get_all_teachers():
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT 
+            t.teacher_id,
+            t.full_name,
+            t.email,
+            t.phone,
+            t.department,
+            t.specialization,
+            t.institute_name,
+            t.created_at,
+            u.username
+        FROM teacher t
+        JOIN users u ON t.user_id = u.id
+        ORDER BY t.created_at DESC
+    """)
+
+    teachers = cursor.fetchall()
+    cursor.close()
+    db.close()
+    return teachers
 
 # -------------------------------
 # GET ALL TEACHERS (ADMIN VIEW)

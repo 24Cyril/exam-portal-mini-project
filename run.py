@@ -401,7 +401,9 @@ def edit_student_profile_page():
     if "user_id" not in session or session["role"] != "student":
         return redirect("/")
 
-    return render_template("editpro.html")
+    from student import get_student_profile
+    student = get_student_profile(session["user_id"])
+    return render_template("editpro.html", student=student)
 
 
 @app.route("/api/student/exams")
