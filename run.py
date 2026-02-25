@@ -198,6 +198,8 @@ def register():
             email = request.form["email"]
             full_name = request.form["full_name"]
             a_full_name = request.form["a_full_name"]
+            s_full_name = request.form["s_full_name"]
+
 
 
             hashed_password = generate_password_hash(password)
@@ -219,20 +221,26 @@ def register():
             # ---------------- ADMIN ----------------
             if role == "admin":
                 cursor.execute("""
-                    INSERT INTO admin (admin_id, full_name, email, dob, gender, contact_number)
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                """, (user_id, a_full_name, email, request.form.get("dob"), request.form.get("a_gender"), request.form.get("contact_number")))
+                    INSERT INTO admin (username,admin_id, full_name, email, dob, gender, contact_number)
+                    VALUES (%s,%s, %s, %s, %s, %s, %s)
+                """, (username, a_full_name, full_name, email, request.form.get("dob"), request.form.get("a_gender"), request.form.get("contact_number")))
                 print("admin created")
 
             # ---------------- STUDENT ----------------
             elif role == "student":
                 cursor.execute("""
                     INSERT INTO student
-                    (user_id, full_name, age, gender, email, phone, address, course, department, institute_name, year_of_study, enrollment_date)
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                    (user_id, full_name, age,
+                     gender, email, phone,
+                     address, course, department, 
+                               institute_name, year_of_study, enrollment_date)
+                    VALUES (%s,%s,%s
+                               ,%s,%s,%s
+                               ,%s,%s,%s,
+                               %s,%s,%s)
                 """, (
                     user_id,
-                    full_name,
+                    request.form.get("s_full_name"),
                     request.form.get("age"),
                     request.form.get("gender"),
                     email,
@@ -242,7 +250,7 @@ def register():
                     request.form.get("department"),
                     request.form.get("institute_name"),
                     request.form.get("year_of_study"),
-                    request.form.get("enrollment_date") or "2024-01-01" ))
+                    request.form.get("enrollment_date") or "2024-01-01"  ))
                 print("student created")
 
             # ---------------- TEACHER ----------------
