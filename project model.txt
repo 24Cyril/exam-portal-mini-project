@@ -1,0 +1,36 @@
+project work flow
+
+
+
+
+
+teacher:
+teacher creates an account.can create student accounts. can add courses to a branch.
+verfies student enrollment, courses verification, payment verification.
+see and edit profile of his, students.
+manually or automatically evaluate.
+publish results.
+see performance of students of his department. student from different department not showed.
+teacher uploads a question paper, its stored in text file, accessed after fetching its data fromthe 
+mysql table.
+
+
+
+student:
+the student inside an institution is
+inside a department which also contains tutors/teachers
+inside a branch, like in computer science department in computer science engg branch
+or cybersecurity branch etc. he also have differernt courses in a branch in a depatment.
+see and edit profile of his.
+make payment,get recipt.
+do exam, learn from notes,see results. if teacher allows, get certificate.
+enroll in a course.do mock tests.
+see performance.
+
+a particular departmentcontains some courses if all are passed a certificate is given.
+
+
+admin:
+adds departments into department table.
+sees all institution, see all students,all activites in the website,
+ typical super admin/ highest access power.

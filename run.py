@@ -30,6 +30,11 @@
 #   address, department, specialization, institute_name,
 #   employee_id, joining_date, created_at, updated_at
 
+
+#department
+#-stores department details
+#-fields:id,name,dep_code,created_by
+
 # COURSES
 # - Stores course details created by admin
 # - Fields: course_id, course_name, course_code, department,
