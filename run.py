@@ -192,6 +192,8 @@ def register():
             role = request.form["role"].lower()
             email = request.form["email"]
             full_name = request.form["full_name"]
+            a_full_name = request.form["a_full_name"]
+
 
             hashed_password = generate_password_hash(password)
 
@@ -203,19 +205,24 @@ def register():
                 "INSERT INTO users (username, password, role) VALUES (%s, %s, %s)",
                 (username, hashed_password, role)
             )
-            user_id = cursor.lastrowid
-
+            db.commit()  # Commit here to get the lastrowid
+            cursor.execute("SELECT id FROM users WHERE username=%s", (username,))
+            user = cursor.fetchone()
+            user_id = user[0]
+            print(f"User created with ID: {user_id}")
+            
             # ---------------- ADMIN ----------------
             if role == "admin":
                 cursor.execute("""
-                    INSERT INTO admin (user_id, full_name, email)
-                    VALUES (%s, %s, %s)
-                """, (user_id, full_name, email))
+                    INSERT INTO admin (admin_id, full_name, email, dob, gender, contact_number)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (user_id, a_full_name, email, request.form.get("dob"), request.form.get("a_gender"), request.form.get("contact_number")))
+                print("admin created")
 
             # ---------------- STUDENT ----------------
             elif role == "student":
                 cursor.execute("""
-                    INSERT INTO students
+                    INSERT INTO student
                     (user_id, full_name, age, gender, email, phone, address, course, department, institute_name, year_of_study, enrollment_date)
                     VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """, (
@@ -230,8 +237,8 @@ def register():
                     request.form.get("department"),
                     request.form.get("institute_name"),
                     request.form.get("year_of_study"),
-                    request.form.get("enrollment_date") or "2024-01-01"
-                ))
+                    request.form.get("enrollment_date") or "2024-01-01" ))
+                print("student created")
 
             # ---------------- TEACHER ----------------
             elif role == "teacher":
@@ -253,6 +260,7 @@ def register():
                     request.form.get("employee_id"),
                     request.form.get("joining_date") or "2024-01-01"
                 ))
+                print("teacher created")
 
             db.commit()
             cursor.close()
@@ -470,7 +478,7 @@ def manual_payment():
     return {"status": "Payment submitted"}
 
 
-#stufent enroll
+#student enroll
 @app.route("/api/student/enroll", methods=["POST"])
 def enroll_course():
     if "user_id" not in session:
