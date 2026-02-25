@@ -1,3 +1,94 @@
+# ============================================================
+# EXAM PORTAL DATABASE SCHEMA (MySQL)
+# ------------------------------------------------------------
+# This comment block documents the database structure used in
+# the Exam Portal Mini Project. It is for reference only.
+# Data types and variable sizes are intentionally omitted.
+# ============================================================
+
+# USERS
+# - Stores authentication credentials for all users
+# - Fields: id, username, password, role
+
+# ADMIN
+# - Stores admin profile details
+# - Linked logically with users table
+# - Fields: admin_id, full_name, dob, gender, contact_number,
+#   email, username, last_login, created_at, updated_at
+
+# STUDENT
+# - Stores student profile information
+# - Each student is linked to a user account
+# - Fields: id, user_id, full_name, age, gender, email, phone,
+#   address, course, department, institute_name, year_of_study,
+#   enrollment_date, created_at, updated_at
+
+# TEACHER
+# - Stores teacher profile information
+# - Each teacher is linked to a user account
+# - Fields: id, user_id, full_name, age, gender, email, phone,
+#   address, department, specialization, institute_name,
+#   employee_id, joining_date, created_at, updated_at
+
+# COURSES
+# - Stores course details created by admin
+# - Fields: course_id, course_name, course_code, department,
+#   description, duration, fee, status, created_by,
+#   created_at, updated_at
+
+# STUDENT_COURSES
+# - Manages student enrollment into courses
+# - Tracks enrollment and payment verification status
+# - Fields: id, student_id, course_id, enrollment_status,
+#   enrollment_verification_status, payment_verification_status,
+#   created_at, enrollment_verified_at, payment_verified_at
+
+# PAYMENTS
+# - Stores payment details for course enrollment
+# - Fields: payment_id, student_id, course_id, amount,
+#   payment_method, transaction_id, verification_status,
+#   created_at
+
+# EXAMS
+# - Stores exams conducted for courses
+# - Fields: exam_id, course_id, exam_name, exam_type,
+#   total_questions, duration_minutes, passing_score,
+#   exam_date, created_by, created_at
+
+# EXAM_QUESTIONS
+# - Stores questions belonging to exams
+# - Fields: question_id, exam_id, question_text,
+#   option1, option2, option3, option4,
+#   correct_answer, marks, question_order
+
+# STUDENT_EXAM_RESULTS
+# - Stores exam results of students
+# - Fields: result_id, student_id, exam_id, score,
+#   total_marks, percentage, status, attempted_at
+
+# NOTES
+# - Stores study notes for courses
+# - Fields: note_id, course_id, title, content,
+#   created_by, created_at
+
+# STUDENT_NOTES_ACCESS
+# - Tracks which student accessed which note
+# - Fields: id, student_id, note_id, access_date
+
+# STUDENT_PERFORMANCE
+# - Stores performance metrics of students
+# - Fields: performance_id, student_id, course_id,
+#   exam_id, performance_metric, value, recorded_at
+
+# TEACHER_STUDENT_PROGRESS
+# - Allows teachers to track student progress per course
+# - Fields: progress_id, teacher_id, student_id,
+#   course_id, progress_notes, last_updated
+
+# ============================================================
+# END OF DATABASE SCHEMA DOCUMENTATION
+# ============================================================
+# 
 import mysql.connector
 from flask import request, session
 
