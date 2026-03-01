@@ -1,167 +1,45 @@
 1️⃣  users — Authentication & Role Gateway
-What it currently does
-
-This is the entry point table for login.
-
-Used in:
-
-/login
-
-session creation
-
-role-based redirection
-
-Current responsibility
-
-Stores login credentials
-
-Stores role (student / admin)
-
-Nothing domain-specific
-
-Important detail
-
-Every student and admin must exist here first
-
-Other tables depend on users.id
-
-2️⃣ admin — Admin Profile & Institution Metadata
-What it currently does
-
-This stores admin profile details, not authentication logic.
-
-Used in:
-
-/admin dashboard
-
-admin profile display
-
-Current responsibility
-
-Admin personal info
-
-Institute details
-
-Admin identity beyond login
-
-Relationship
-
-Linked by username, not user_id (important design note)
-
-Login still happens via users
-
-
-3️⃣ student — Student Master Profile
-What it currently does
-
-This is the core student identity table.
-
-Used in:
-
-Student dashboard (/student)
-
-Profile tab
-
-Edit profile
-
-Foreign key base for enrollments, payments, certificates
-
-Current responsibility
-
-Stores personal + academic profile
-
-Maps users.id → student.id
-
- 4️⃣   courses — Course Catalog
-What it currently does
-
-Defines all available courses.
-
-Used in:
-
-Courses tab (student)
-
-Admin course listing
-
-Enrollment
-
-Payment generation
-
-Current responsibility
-
-Course metadata
-
-Fee
-
-Status (Active / Inactive)
-
-5️⃣ student_courses — Enrollment Record (BUT incomplete state)
-What it currently does
-
-Courses tab (LEFT JOIN)
-
-Enrollment / unenrollment
-
-Current responsibility
-
-Tracks student ↔ course relationship
-
-Prevents duplicate enrollment
-
-Records enrollment time
-
-
-6️⃣ payments — Payment Lifecycle Table (Main state holder)
-What it currently does
-
-This table actually drives the payment tab and most logic.
-
-Used in:
-
-Payment tab
-
-Payment submission
-
-Course enrollment side-effects
-
-Current responsibility
-
-Stores fee per course per student
-
-Tracks payment progress
-
-
-7️⃣ exam_results — Exam Attempts + Results
-What it currently does
-
-Stores exam participation and result outcomes.
-
-Used in:
-
-Exam tab
-
-Results tab
-
-Current responsibility
-
-Exam date
-
-Marks, grade
-
-Attendance
-
-Pass/Fail status
-
-
-
-9️⃣ course_enrollment_summary (VIEW) — Reporting Only
-What it currently does
-
-Aggregates enrollment counts per course.
-
-Used for:
-
-Admin dashboards (future / optional)
-
-Analytics
-
+- Entry point for login.
+- Stores login credentials (username, password).
+- Stores role (student / admin / teacher).
+- Every account must exist here first.
+
+2️⃣ admin — Admin Profile
+- Stores admin personal info.
+- Linked by username to users table.
+- Primary management for departments and teachers.
+
+3️⃣ teacher — Teacher Profile
+- Stores teacher profile details (specialization, employee id).
+- Linked by user_id to users table.
+- Manages courses, students within their department, and exams.
+
+4️⃣ student — Student Master Profile
+- Core student identity.
+- Linked by user_id to users table.
+- Maps to departments and courses.
+
+5️⃣ department — Academic Organization
+- Defines departments in the institution.
+- Used to group students, teachers, and courses.
+
+6️⃣ course — Course Catalog
+- Defines available courses.
+- Linked to departments.
+- Includes duration and fees.
+
+7️⃣ student_course — Enrollment Records
+- Tracks student ↔ course relationship.
+- Stores enrollment and verification status.
+
+8️⃣ payments — Payment Lifecycle
+- Tracks fee payments for course enrollments.
+- Stores amount, method, and transaction id.
+
+9️⃣ exams — Exam Metadata
+- Defines exams for courses.
+- Stores date, time limit, and question/answer files.
+
+🔟 exam_questions — Question Bank
+- Stores questions for each exam.
+- Includes options and correct answers.

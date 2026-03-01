@@ -34,18 +34,37 @@ function loadProfile() {
 
     document.getElementById("tab-content").innerHTML = `
         <h3>Student Profile</h3>
-        <table class="profile-table">
-            <tr><td>Full Name</td><td>${data.full_name || "-"}</td></tr>
-            <tr><td>Age</td><td>${data.age || "-"}</td></tr>
-            <tr><td>Gender</td><td>${data.gender || "-"}</td></tr>
-            <tr><td>Email</td><td>${data.email || "-"}</td></tr>
-            <tr><td>Phone</td><td>${data.phone || "-"}</td></tr>
-            <tr><td>Address</td><td>${data.address || "-"}</td></tr>
-            <tr><td>Course</td><td>${data.course || "-"}</td></tr>
-            <tr><td>Department</td><td>${data.department || "-"}</td></tr>
-            <tr><td>Year</td><td>${data.year_of_study || "-"}</td></tr>
-        </table>
-        <a href="/editpro" class="update-btn">✏️ Update Profile</a>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <table class="profile-table">
+                <tr><th colspan="2">Personal Info</th></tr>
+                <tr><td>Full Name</td><td>${data.full_name || "-"}</td></tr>
+                <tr><td>Date of Birth</td><td>${data.dob || "-"}</td></tr>
+                <tr><td>Age</td><td>${data.age || "-"}</td></tr>
+                <tr><td>Gender</td><td>${data.gender || "-"}</td></tr>
+                <tr><td>Blood Group</td><td>${data.blood_group || "-"}</td></tr>
+                <tr><td>Nationality</td><td>${data.nationality || "-"}</td></tr>
+            </table>
+            <table class="profile-table">
+                <tr><th colspan="2">Contact Info</th></tr>
+                <tr><td>Email</td><td>${data.email || "-"}</td></tr>
+                <tr><td>Phone</td><td>${data.phone || "-"}</td></tr>
+                <tr><td>Emergency</td><td>${data.emergency_contact || "-"}</td></tr>
+                <tr><td>City</td><td>${data.city || "-"}</td></tr>
+                <tr><td>State/Country</td><td>${data.state || "-"}, ${data.country || "-"}</td></tr>
+                <tr><td>Pincode</td><td>${data.pincode || "-"}</td></tr>
+            </table>
+        </div>
+        <div style="margin-top:20px;">
+            <table class="profile-table" style="width:100%">
+                <tr><th colspan="4">Academic Details</th></tr>
+                <tr><td>Course</td><td>${data.course || "-"}</td><td>Department</td><td>${data.department || "-"}</td></tr>
+                <tr><td>Year</td><td>${data.year_of_study || "-"}</td><td>Semester</td><td>${data.semester || "-"}</td></tr>
+                <tr><td>Institute</td><td>${data.institute_name || "-"}</td><td>Roll No</td><td>${data.roll_number || "-"}</td></tr>
+            </table>
+        </div>
+        <div style="margin-top:20px;">
+            <a href="/editpro" class="attend-btn" style="text-decoration:none;">✏️ Update Profile</a>
+        </div>
     `;
 }
 
@@ -215,8 +234,8 @@ function applyFilters() {
     if (status)
         filtered = filtered.filter(c => c.status === status);
 
-    if (sort === "az") filtered.sort((a,b)=>a.course_name.localeCompare(b.course_name));
-    if (sort === "za") filtered.sort((a,b)=>b.course_name.localeCompare(a.course_name));
+    if (sort === "az") filtered.sort((a, b) => a.course_name.localeCompare(b.course_name));
+    if (sort === "za") filtered.sort((a, b) => b.course_name.localeCompare(a.course_name));
 
     renderCourses(filtered);
 }
@@ -309,12 +328,12 @@ function submitPayment(courseId) {
             transaction_id: "REF" + Date.now()
         })
     })
-    .then(res => res.json())
-    .then(() => {
-        alert("Payment submitted. Waiting for admin verification.");
-        loadPayments();
-        loadCourses(); // sync badge state
-    });
+        .then(res => res.json())
+        .then(() => {
+            alert("Payment submitted. Waiting for admin verification.");
+            loadPayments();
+            loadCourses(); // sync badge state
+        });
 }
 
 // ===============================
@@ -323,19 +342,19 @@ function submitPayment(courseId) {
 function enroll(courseId) {
     fetch("/api/student/enroll", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ course_id: courseId })
     })
-    .then(() => loadCourses());
+        .then(() => loadCourses());
 }
 
 function unenroll(courseId) {
     fetch("/api/student/unenroll", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ course_id: courseId })
     })
-    .then(() => loadCourses());
+        .then(() => loadCourses());
 }
 
 // ===============================
@@ -370,11 +389,10 @@ function loadExams() {
                     <td>--</td>
                     <td>--</td>
                     <td>
-                        ${
-                            e.attended === "Attended"
-                            ? `<button class="result-btn" onclick="openTab('result')">View Result</button>`
-                            : `<button class="attend-btn" onclick="goToExam(${e.exam_id})">Attend</button>`
-                        }
+                        ${e.attended === "Attended"
+                    ? `<button class="result-btn" onclick="openTab('result')">View Result</button>`
+                    : `<button class="attend-btn" onclick="goToExam(${e.exam_id})">Attend</button>`
+                }
                     </td>
                 </tr>
             `).join("");

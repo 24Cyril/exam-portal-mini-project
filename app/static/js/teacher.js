@@ -38,8 +38,13 @@ function openTab(tabName) {
         return;
     }
 
-    if (tabName === "student_courses") {
-        loadRegistrations();
+    if (tabName === "teachers") {
+        loadTeachers();
+        return;
+    }
+
+    if (tabName === "departments") {
+        loadDepartments();
         return;
     }
 
@@ -672,4 +677,142 @@ function renderRegistrationsTable(regs) {
             ${rows}
         </table>
     `;
+}
+
+/* =====================================================
+   TEACHERS MANAGEMENT (Admin Only)
+===================================================== */
+
+function loadTeachers() {
+    fetch("/teacher/teachers")
+        .then(res => res.json())
+        .then(data => renderTeachersTable(data.teachers || []));
+}
+
+function renderTeachersTable(teachers) {
+    let rows = teachers.map(t => `
+        <tr>
+            <td>${t.id}</td>
+            <td>${t.full_name}</td>
+            <td>${t.username}</td>
+            <td>${t.email}</td>
+            <td>${t.phone}</td>
+            <td>${t.department}</td>
+            <td>${t.specialization}</td>
+            <td>
+                <button class="delete-btn" onclick="deleteTeacher(${t.id})">🗑 Delete</button>
+            </td>
+        </tr>
+    `).join("");
+
+    document.getElementById("tab-content").innerHTML = `
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search teachers..." onkeyup="searchTable()">
+            <button class="add-btn" onclick="openAddTeacher()">➕ Add Teacher</button>
+        </div>
+        <table class="profile-table" id="adminTable">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Department</th>
+                <th>Specialization</th>
+                <th>Actions</th>
+            </tr>
+            ${rows || '<tr><td colspan="8">No teachers found</td></tr>'}
+        </table>
+    `;
+}
+
+function openAddTeacher() {
+    const name = prompt("Enter Teacher Name:");
+    if (!name) return;
+    const username = prompt("Enter Username:");
+    if (!username) return;
+    const password = prompt("Enter Password:");
+    if (!password) return;
+    const email = prompt("Enter Email:");
+    const phone = prompt("Enter Phone:");
+    const gender = prompt("Enter Gender (Male/Female/Other):", "Male");
+    const dept = prompt("Enter Department:");
+    const spec = prompt("Enter Specialization:");
+    const empId = prompt("Enter Employee ID:");
+    const inst = prompt("Enter Institute Name:");
+
+    fetch("/teacher/add-teacher", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            name, username, password, email, phone, gender,
+            department: dept, specialization: spec, employee_id: empId, institute: inst
+        })
+    }).then(() => loadTeachers());
+}
+
+function deleteTeacher(id) {
+    if (confirm("Delete this teacher?")) {
+        fetch("/teacher/delete-teacher/" + id, { method: "POST" })
+            .then(() => loadTeachers());
+    }
+}
+
+/* =====================================================
+   DEPARTMENTS MANAGEMENT (Admin Only)
+===================================================== */
+
+function loadDepartments() {
+    fetch("/teacher/departments")
+        .then(res => res.json())
+        .then(data => renderDepartmentsTable(data.departments || []));
+}
+
+function renderDepartmentsTable(deps) {
+    let rows = deps.map(d => `
+        <tr>
+            <td>${d.id}</td>
+            <td>${d.name}</td>
+            <td>${d.dep_code}</td>
+            <td>
+                <button class="delete-btn" onclick="deleteDepartment(${d.id})">🗑 Delete</button>
+            </td>
+        </tr>
+    `).join("");
+
+    document.getElementById("tab-content").innerHTML = `
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search departments..." onkeyup="searchTable()">
+            <button class="add-btn" onclick="openAddDepartment()">➕ Add Department</button>
+        </div>
+        <table class="profile-table" id="adminTable">
+            <tr>
+                <th>ID</th>
+                <th>Department Name</th>
+                <th>Code</th>
+                <th>Actions</th>
+            </tr>
+            ${rows || '<tr><td colspan="4">No departments found</td></tr>'}
+        </table>
+    `;
+}
+
+function openAddDepartment() {
+    const name = prompt("Enter Department Name:");
+    if (!name) return;
+    const code = prompt("Enter Department Code:");
+    if (!code) return;
+
+    fetch("/teacher/add-department", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, code })
+    }).then(() => loadDepartments());
+}
+
+function deleteDepartment(id) {
+    if (confirm("Delete this department?")) {
+        fetch("/teacher/delete-department/" + id, { method: "POST" })
+            .then(() => loadDepartments());
+    }
 }

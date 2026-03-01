@@ -128,32 +128,19 @@ def update_admin_profile(username, data, new_password=None):
     db = get_db_connection()
     cursor = db.cursor()
 
-    if new_password:
-        cursor.execute("""
-            UPDATE admin
-            SET full_name=%s,
-                dob=%s,
-                gender=%s,
-                contact_number=%s,
-                email=%s,
-                institute_name=%s,
-                institute_code=%s,
-                institute_email=%s,
-                password_hash=%s
-            WHERE username=%s
-        """, (
-            data["full_name"],
-            data["dob"],
-            data["gender"],
-            data["contact_number"],
-            data["email"],
-            data["institute_name"],
-            data["institute_code"],
-            data["institute_email"],
-            new_password,
-            username
-        ))
-    else:
+    # Check if admin record exists
+    cursor.execute("SELECT admin_id FROM admin WHERE username=%s", (username,))
+    exists = cursor.fetchone()
+
+    if exists:
+        if new_password:
+             cursor.execute("""
+                UPDATE users u
+                JOIN admin a ON a.username = u.username
+                SET u.password = %s
+                WHERE a.username = %s
+            """, (new_password, username))
+
         cursor.execute("""
             UPDATE admin
             SET full_name=%s,
@@ -176,6 +163,27 @@ def update_admin_profile(username, data, new_password=None):
             data["institute_email"],
             username
         ))
+    else:
+        # INSERT
+        cursor.execute("""
+            INSERT INTO admin (username, full_name, dob, gender, contact_number, email, institute_name, institute_code, institute_email)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            username,
+            data["full_name"],
+            data["dob"],
+            data["gender"],
+            data["contact_number"],
+            data["email"],
+            data["institute_name"],
+            data["institute_code"],
+            data["institute_email"]
+        ))
+        
+        if new_password:
+             cursor.execute("""
+                UPDATE users SET password = %s WHERE username = %s
+            """, (new_password, username))
 
     db.commit()
     cursor.close()
@@ -220,12 +228,12 @@ def get_all_teachers():
 
     cursor.execute("""
         SELECT
-            t.teacher_id,
+            t.id,
             t.full_name,
             t.email,
             t.phone,
             t.department,
-            t.designation,
+            t.specialization,
             t.institute_name,
             t.created_at,
             u.username
@@ -243,24 +251,24 @@ def get_all_teachers():
 # -------------------------------
 # GET TEACHER BY ID
 # -------------------------------
-def get_teacher_by_id(teacher_id):
+def get_teacher_by_id(id):
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
 
     cursor.execute("""
         SELECT
-            t.teacher_id,
+            t.id,
             t.full_name,
             t.email,
             t.phone,
             t.department,
-            t.designation,
+            t.specialization,
             t.institute_name,
             u.username
         FROM teacher t
         JOIN users u ON t.user_id = u.id
-        WHERE t.teacher_id = %s
-    """, (teacher_id,))
+        WHERE t.id = %s
+    """, (id,))
 
     teacher = cursor.fetchone()
     cursor.close()
@@ -271,7 +279,7 @@ def get_teacher_by_id(teacher_id):
 # -------------------------------
 # UPDATE TEACHER
 # -------------------------------
-def update_teacher(teacher_id, data):
+def update_teacher(id, data):
     db = get_db_connection()
     cursor = db.cursor()
 
@@ -283,17 +291,17 @@ def update_teacher(teacher_id, data):
             t.email = %s,
             t.phone = %s,
             t.department = %s,
-            t.designation = %s,
+            t.specialization = %s,
             t.institute_name = %s
-        WHERE t.teacher_id = %s
+        WHERE t.id = %s
     """, (
         data["full_name"],
         data["email"],
         data["phone"],
         data["department"],
-        data["designation"],
+        data["specialization"],
         data["institute_name"],
-        teacher_id
+        id
     ))
 
     db.commit()
@@ -303,12 +311,17 @@ def update_teacher(teacher_id, data):
 # -------------------------------
 # DELETE TEACHER
 # -------------------------------
-def delete_teacher(teacher_id):
+def delete_teacher(id):
     db = get_db_connection()
     cursor = db.cursor()
 
-    # Delete from teacher table (user will remain in users table)
-    cursor.execute("DELETE FROM teacher WHERE teacher_id = %s", (teacher_id,))
+    # Get user_id first to clean up users table too
+    cursor.execute("SELECT user_id FROM teacher WHERE id = %s", (id,))
+    row = cursor.fetchone()
+    if row:
+        user_id = row[0]
+        cursor.execute("DELETE FROM teacher WHERE id = %s", (id,))
+        cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
 
     db.commit()
     cursor.close()
@@ -918,7 +931,10 @@ def update_student(student_id, data):
         gender=%s,
         course=%s,
         department=%s,
-        year_of_study=%s
+        year_of_study=%s,
+        age=%s,
+        address=%s,
+        institute_name=%s
         WHERE id=%s
     """, (
         data['full_name'],
@@ -928,6 +944,9 @@ def update_student(student_id, data):
         data['course'],
         data['department'],
         data['year'],
+        data.get('age', 0),
+        data.get('address', ''),
+        data.get('institute_name', ''),
         student_id
     ))
     db.commit()
@@ -953,7 +972,7 @@ def delete_student(student_id):
 # -------------------------------
 # ADD STUDENT (ADMIN)
 # -------------------------------
-def add_student(username, password, name, email, phone, gender, course, department, year):
+def add_student(username, password, name, email, phone, gender, course, department, year, age=0, address='', institute=''):
     db = get_db_connection()
     c = db.cursor()
     from werkzeug.security import generate_password_hash
@@ -967,9 +986,59 @@ def add_student(username, password, name, email, phone, gender, course, departme
     
     c.execute("""
         INSERT INTO student
-        (user_id,full_name,email,phone,gender,course,department,year_of_study,enrollment_date)
-        VALUES(%s,%s,%s,%s,%s,%s,%s,%s,NOW())
-    """, (user_id, name, email, phone, gender, course, department, year))
+        (user_id, full_name, age, gender, email, phone, address, course, department, institute_name, year_of_study, enrollment_date)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
+    """, (user_id, name, age, gender, email, phone, address, course, department, institute, year))
+    
+    db.commit()
+    c.close()
+    db.close()
+
+
+# -------------------------------
+# DEPARTMENT MANAGEMENT
+# -------------------------------
+def add_department(name, code, created_by):
+    db = get_db_connection()
+    c = db.cursor()
+    c.execute("INSERT INTO department (name, dep_code, created_by) VALUES (%s, %s, %s)", (name, code, created_by))
+    db.commit()
+    c.close()
+    db.close()
+
+def get_all_departments():
+    db = get_db_connection()
+    c = db.cursor(dictionary=True)
+    c.execute("SELECT * FROM department ORDER BY id DESC")
+    deps = c.fetchall()
+    c.close()
+    db.close()
+    return deps
+
+def delete_department(dep_id):
+    db = get_db_connection()
+    c = db.cursor()
+    c.execute("DELETE FROM department WHERE id = %s", (dep_id,))
+    db.commit()
+    c.close()
+    db.close()
+
+# -------------------------------
+# TEACHER MANAGEMENT (ADD)
+# -------------------------------
+def add_teacher_account(username, password, name, email, phone, gender, department, specialization, employee_id, institute):
+    db = get_db_connection()
+    c = db.cursor()
+    from werkzeug.security import generate_password_hash
+    hashed = generate_password_hash(password)
+    
+    c.execute("INSERT INTO users (username, password, role) VALUES (%s, %s, 'teacher')", (username, hashed))
+    user_id = c.lastrowid
+    
+    c.execute("""
+        INSERT INTO teacher (user_id, full_name, email, phone, gender, department, specialization, employee_id, institute_name, joining_date, age, address)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), 0, '')
+    """, (user_id, name, email, phone, gender, department, specialization, employee_id, institute))
     
     db.commit()
     c.close()

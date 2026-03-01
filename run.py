@@ -355,9 +355,11 @@ def teacher_dashboard():
         return redirect("/")
 
     if session["role"] == "admin":
+        from admin import get_admin_profile_by_username
         profile = get_admin_profile_by_username(session["username"])
         profile_type = 'admin'
     else:
+        from teacher import get_teacher_profile_by_username
         profile = get_teacher_profile_by_username(session["username"])
         profile_type = 'teacher'
 
@@ -367,6 +369,63 @@ def teacher_dashboard():
     students = get_all_students()
     
     return render_template("teacher.html", teacher=profile, profile_type=profile_type, courses=courses, exams=[])
+
+
+# -------------------------------
+# ADMIN ONLY: TEACHER & DEPT
+# -------------------------------
+@app.route("/teacher/departments")
+def get_departments_route():
+    if "user_id" not in session or session["role"] != "admin":
+        return {"error": "Unauthorized"}, 401
+    from admin import get_all_departments
+    return {"departments": get_all_departments()}
+
+@app.route("/teacher/add-department", methods=["POST"])
+def add_department_route():
+    if "user_id" not in session or session["role"] != "admin":
+        return {"error": "Unauthorized"}, 401
+    from admin import add_department
+    data = request.json
+    add_department(data["name"], data["code"], session["user_id"])
+    return {"success": True}
+
+@app.route("/teacher/delete-department/<int:id>", methods=["POST"])
+def delete_department_route(id):
+    if "user_id" not in session or session["role"] != "admin":
+        return {"error": "Unauthorized"}, 401
+    from admin import delete_department
+    delete_department(id)
+    return {"success": True}
+
+@app.route("/teacher/teachers")
+def get_teachers_route():
+    if "user_id" not in session or session["role"] != "admin":
+        return {"error": "Unauthorized"}, 401
+    from admin import get_all_teachers
+    return {"teachers": get_all_teachers()}
+
+@app.route("/teacher/add-teacher", methods=["POST"])
+def add_teacher_route():
+    if "user_id" not in session or session["role"] != "admin":
+        return {"error": "Unauthorized"}, 401
+    from admin import add_teacher_account
+    data = request.json
+    add_teacher_account(
+        data["username"], data["password"], data["name"],
+        data["email"], data["phone"], data["gender"],
+        data["department"], data["specialization"],
+        data["employee_id"], data["institute"]
+    )
+    return {"success": True}
+
+@app.route("/teacher/delete-teacher/<int:id>", methods=["POST"])
+def delete_teacher_route(id):
+    if "user_id" not in session or session["role"] != "admin":
+        return {"error": "Unauthorized"}, 401
+    from admin import delete_teacher
+    delete_teacher(id)
+    return {"success": True}
 
 
 
@@ -823,8 +882,12 @@ def add_student_teacher():
         course = request.form["course"]
         department = request.form["department"]
         year = request.form["year"]
+        age = request.form.get("age", 0)
+        address = request.form.get("address", "")
+        institute = request.form.get("institute", "")
+        
         from admin import add_student
-        add_student(username, password, name, email, phone, gender, course, department, year)
+        add_student(username, password, name, email, phone, gender, course, department, year, age, address, institute)
 
         return redirect("/teacher")
 
