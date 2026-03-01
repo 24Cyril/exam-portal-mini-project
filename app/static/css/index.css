@@ -1,0 +1,254 @@
+:root {
+  /* Colors */
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --secondary: #64748b;
+  --sidebar-bg: #111827;
+  --sidebar-hover: #1f2937;
+  --sidebar-active: #3b82f6;
+  --bg-main: #f8fafc;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --white: #ffffff;
+  --border: #e2e8f0;
+
+  /* Semantic Colors */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #3b82f6;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  /* Radius */
+  --radius-sm: 0.25rem;
+  --radius: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  /* Fonts */
+  --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+/* =========================
+   TOP NOTIFICATION BAR
+========================= */
+.top-notification {
+  background-color: var(--sidebar-bg);
+  color: var(--white);
+  padding: 12px 24px;
+  font-size: 14px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* =========================
+   URGENT BAR
+========================= */
+.urgent-bar {
+  background-color: var(--warning);
+  color: var(--white);
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 10px 0;
+  font-weight: 600;
+}
+
+/* =========================
+   MAIN LAYOUT
+========================= */
+.main-content {
+  display: flex;
+  padding: 60px 40px;
+  gap: 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.info-section {
+  flex: 1.2;
+}
+
+.login-section {
+  flex: 0.8;
+  max-width: 440px;
+  background: var(--white);
+  padding: 40px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+  height: fit-content;
+}
+
+/* =========================
+   LOGIN TABS
+========================= */
+.login-tabs {
+  display: flex;
+  margin-bottom: 30px;
+  background: var(--bg-main);
+  padding: 4px;
+  border-radius: var(--radius);
+}
+
+.tab {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background-color: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+}
+
+.tab.active {
+  background-color: var(--white);
+  color: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* =========================
+   LOGIN FORM
+========================= */
+.login-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.login-form input {
+  width: 100%;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-main);
+  transition: border-color 0.2s;
+}
+
+.login-form input:focus {
+  border-color: var(--primary);
+  outline: none;
+  background: var(--white);
+}
+
+.login-form button {
+  width: 100%;
+  padding: 14px;
+  background-color: var(--primary);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 16px;
+  transition: all 0.2s;
+}
+
+.login-form button:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+}
+
+/* =========================
+   INFO SECTION CONTENT
+======================== */
+.info-section h1 {
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--sidebar-bg);
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+
+.subtitle {
+  font-size: 18px;
+  margin-bottom: 40px;
+  color: var(--text-muted);
+}
+
+.feature-box {
+  background: var(--white);
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  transition: transform 0.2s;
+}
+
+.feature-box:hover {
+  transform: translateX(8px);
+  border-color: var(--primary);
+}
+
+.feature-box h3 {
+  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.feature-box p {
+  color: var(--text-muted);
+}
+
+/* SETTINGS BUTTON */
+.settings-btn {
+  position: fixed;
+  right: 30px;
+  bottom: 30px;
+  width: 56px;
+  height: 56px;
+  background-color: var(--sidebar-bg);
+  color: var(--white);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  transition: all 0.2s;
+}
+
+.settings-btn:hover {
+  transform: rotate(30deg) scale(1.1);
+}
+
+@media (max-width: 900px) {
+  .main-content {
+    flex-direction: column;
+    padding: 40px 20px;
+  }
+
+  .info-section h1 {
+    font-size: 36px;
+  }
+}
+
+/* Dark mode adjustments */
+body.dark-mode .feature-box {
+  background-color: #1e1e1e;
+}

@@ -1,131 +1,127 @@
-/* =========================
-   GLOBAL RESET
-========================= */
+:root {
+    /* Colors */
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --secondary: #64748b;
+    --sidebar-bg: #111827;
+    --sidebar-hover: #1f2937;
+    --sidebar-active: #3b82f6;
+    --bg-main: #f8fafc;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --white: #ffffff;
+    --border: #e2e8f0;
+
+    /* Semantic Colors */
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+    /* Radius */
+    --radius-sm: 0.25rem;
+    --radius: 0.5rem;
+    --radius-lg: 0.75rem;
+
+    /* Fonts */
+    --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: "Segoe UI", Arial, sans-serif;
+    font-family: var(--font-main);
 }
 
 body {
-    background: linear-gradient(135deg, #4e73df, #1cc88a);
+    background: linear-gradient(135deg, var(--sidebar-bg), var(--primary));
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 20px;
 }
 
-/* =========================
-   FORM CARD
-========================= */
 .form-card {
-    background: #ffffff;
-    width: 420px;
-    padding: 35px;
-    border-radius: 12px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-    animation: fadeIn 0.6s ease-in-out;
+    background: var(--white);
+    width: 100%;
+    max-width: 440px;
+    padding: 40px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
 }
 
 .form-card h2 {
     text-align: center;
-    margin-bottom: 25px;
-    color: #333;
-    font-weight: 600;
+    margin-bottom: 30px;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--sidebar-bg);
 }
 
-/* =========================
-   INPUT FIELDS
-========================= */
+.form-card label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
 .form-card input,
 .form-card select {
     width: 100%;
-    padding: 12px 14px;
-    margin-bottom: 18px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    font-size: 14px;
-    transition: all 0.3s ease;
+    padding: 12px 16px;
+    margin-bottom: 24px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--bg-main);
+    font-size: 15px;
+    transition: all 0.2s;
 }
 
 .form-card input:focus,
 .form-card select:focus {
-    border-color: #4e73df;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.15);
+    border-color: var(--primary);
+    background: var(--white);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
 }
 
-/* =========================
-   FILE LABEL
-========================= */
-.form-card label {
-    font-size: 13px;
-    font-weight: 500;
-    color: #555;
-    display: block;
-    margin-bottom: 6px;
-}
-
-/* =========================
-   BUTTON
-========================= */
 .form-card button {
     width: 100%;
-    padding: 12px;
+    padding: 16px;
+    border-radius: var(--radius);
     border: none;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #4e73df, #224abe);
-    color: white;
-    font-size: 15px;
-    font-weight: 600;
+    background: var(--primary);
+    color: var(--white);
+    font-weight: 700;
+    font-size: 16px;
     cursor: pointer;
-    transition: 0.3s ease;
+    transition: all 0.2s;
 }
 
 .form-card button:hover {
-    background: linear-gradient(135deg, #2e59d9, #1a3ea8);
-    transform: translateY(-2px);
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
 }
 
-/* =========================
-   BACK LINK
-========================= */
 .back-link {
     display: block;
     text-align: center;
-    margin-top: 18px;
+    margin-top: 24px;
+    color: var(--primary);
     text-decoration: none;
+    font-weight: 600;
     font-size: 14px;
-    color: #4e73df;
-    transition: 0.3s;
 }
 
 .back-link:hover {
     text-decoration: underline;
-    color: #224abe;
-}
-
-/* =========================
-   ANIMATION
-========================= */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(15px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* =========================
-   RESPONSIVE
-========================= */
-@media (max-width: 480px) {
-    .form-card {
-        width: 90%;
-        padding: 25px;
-    }
 }
