@@ -96,16 +96,17 @@ from flask import Flask, request, redirect, render_template, session, make_respo
 import mysql.connector
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from student import (
+from student import(
     get_student_id,
-    get_student_profile,
-    save_student_profile,
-    fetch_student_courses,
-    fetch_student_payments,
+    get_student_profile_by_username,
+    update_student_profile,
+    get_all_courses_for_student,
     enroll_in_course,
     unenroll_from_course,
     submit_manual_payment,
-    fetch_student_exams
+    fetch_student_payments,
+    fetch_student_exams,
+    fetch_student_notes
 )
 
 from admin import (
@@ -131,23 +132,24 @@ from admin import (
     update_course,
     delete_course
 )
-from admin import (
-    insert_exam_questions,
-    update_exam_time_limit,
-    get_exam_questions,
-    create_attempt,
-    save_answer,
-    submit_attempt,
-    grade_attempt
+from exams import (
+    check_exam_eligibility,
+    create_exam_attempt,
+    save_student_answer,
+    finalize_exam_attempt,
+    evaluate_exam
 )
 from teacher import(
     get_teacher_profile_by_username,
     update_teacher_profile,
-    get_all_teachers,
-    get_courses_for_teacher,
-    get_exams_for_teacher,
-    create_exam_for_teacher,
-    get_teacher_id
+    get_teacher_department_id,
+    get_students_by_department,
+    get_courses_by_department,
+    verify_enrollment_teacher,
+    verify_payment_teacher,
+    get_exams_by_department,
+    publish_exam_results,
+    get_department_performance
 )
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -350,14 +352,9 @@ def student_dashboard():
         return redirect("/")
     
     from student import get_student_profile_by_username
-    profile = get_student_profile_by_username(session["username"])
-    
-    # If for some reason profile not found, try by ID
-    if not profile:
-        from student import get_student_profile
-        profile = get_student_profile(session["user_id"])
+    student = get_student_profile_by_username(session["username"])
         
-    return render_template("student.html", student=profile)
+    return render_template("student.html", student=student)
 
 
 @app.route("/teacher")
@@ -370,16 +367,10 @@ def teacher_dashboard():
         profile = get_admin_profile_by_username(session["username"])
         profile_type = 'admin'
     else:
-        from teacher import get_teacher_profile_by_username
         profile = get_teacher_profile_by_username(session["username"])
         profile_type = 'teacher'
 
-    # Fetch initial stats/data for the combined dashboard
-    from admin import get_all_courses, get_all_students, get_pending_enrollments, get_all_payments
-    courses = get_all_courses()
-    students = get_all_students()
-    
-    return render_template("teacher.html", teacher=profile, profile_type=profile_type, courses=courses, exams=[])
+    return render_template("teacher.html", teacher=profile, profile_type=profile_type)
 
 
 # -------------------------------
@@ -490,8 +481,17 @@ def edit_student_profile_page():
 def student_exam_api():
     if "user_id" not in session:
         return []
+    
+    student_id = get_student_id(session["user_id"])
+    return {"exams": fetch_student_exams(student_id)}
 
-    return fetch_student_exams(session["user_id"])
+@app.route("/api/student/notes")
+def student_notes_api():
+    if "user_id" not in session:
+        return []
+    
+    student_id = get_student_id(session["user_id"])
+    return {"notes": fetch_student_notes(student_id)}
 
 
 @app.route("/teacher/students")
@@ -499,20 +499,24 @@ def teacher_students():
     if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
         return {"error": "Unauthorized"}, 401
 
-    students = get_all_students()
+    if session["role"] == "admin":
+        students = get_all_students()
+    else:
+        dept_id = get_teacher_department_id(session["user_id"])
+        students = get_students_by_department(dept_id)
     return {"students": students}
-
-
-
-
 
 @app.route("/teacher/courses")
 def teacher_courses_api():
     if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
         return {"error": "Unauthorized"}, 401
 
-    course = get_all_courses_admin()
-    return {"courses": course}
+    if session["role"] == "admin":
+        courses = get_all_courses_admin()
+    else:
+        dept_id = get_teacher_department_id(session["user_id"])
+        courses = get_courses_by_department(dept_id)
+    return {"courses": courses}
 
 from flask import Blueprint, request, jsonify
 
@@ -530,29 +534,28 @@ def student_payments():
     return fetch_student_payments(student_id)
 
 
-#payment manual
 @app.route("/api/payment/manual", methods=["POST"])
 def manual_payment():
     if "user_id" not in session:
         return {"error": "Unauthorized"}, 401
-
     data = request.json
     student_id = get_student_id(session["user_id"])
     course_id = data["course_id"]
+    payment_type = data.get("payment_type", "Registration")
 
     submit_manual_payment(
         student_id, 
         course_id, 
-        data["payment_method"], 
+        payment_type, 
         data.get("transaction_id")
     )
 
-    return {"status": "Payment submitted"}
+    return {"status": "success", "message": "Payment submitted for verification"}
 
 
 #student enroll
 @app.route("/api/student/enroll", methods=["POST"])
-def enroll_course():
+def enroll_course_api(): # Rename to avoid conflict with imported function if any
     if "user_id" not in session:
         return {"error": "Unauthorized"}, 401
 
@@ -561,7 +564,7 @@ def enroll_course():
 
     enroll_in_course(student_id, course_id)
 
-    return {"status": "enrolled"}
+    return {"status": "success", "message": "Enrollment request submitted"}
 
 
 #un enroll
@@ -582,10 +585,12 @@ def unenroll_course():
 # -------------------------------
 @app.route("/teacher/enrollments")
 def teacher_enrollments():
-    if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
-        return {"error": "Unauthorized"}, 401
-
-    enrollments = get_pending_enrollments()
+    if session["role"] == "admin":
+        from admin import get_pending_enrollments
+        enrollments = get_pending_enrollments()
+    else:
+        dept_id = get_teacher_department_id(session["user_id"])
+        enrollments = get_pending_enrollments_by_dept(dept_id)
     return {"enrollments": enrollments}
 
 
@@ -597,7 +602,7 @@ def teacher_verify_enrollment(enrollment_id):
     if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
         return {"error": "Unauthorized"}, 401
 
-    verify_enrollment(enrollment_id)
+    verify_enrollment_teacher(enrollment_id)
     return {"status": "Enrollment verified"}
 
 
@@ -618,11 +623,12 @@ def teacher_reject_enrollment(enrollment_id):
 # -------------------------------
 @app.route("/teacher/payments")
 def teacher_payments():
-    if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
-        return {"error": "Unauthorized"}, 401
-
-    # return full payment history (not only pending) for admin view
-    payments = get_all_payments()
+    if session["role"] == "admin":
+        payments = get_all_payments()
+    else:
+        dept_id = get_teacher_department_id(session["user_id"])
+        from teacher import get_all_payments_by_dept
+        payments = get_all_payments_by_dept(dept_id)
     return {"payments": payments}
 
 
@@ -662,7 +668,7 @@ def teacher_verify_payment(payment_id):
     if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
         return {"error": "Unauthorized"}, 401
 
-    verify_payment(payment_id)
+    verify_payment_teacher(payment_id)
     return {"status": "Payment verified"}
 
 
@@ -688,6 +694,15 @@ def teacher_registrations():
     
     return {"registrations": get_all_registrations()}
 
+@app.route("/teacher/performance")
+def teacher_performance():
+    if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
+        return {"error": "Unauthorized"}, 401
+    
+    dept_id = get_teacher_department_id(session["user_id"])
+    perf = get_department_performance(dept_id)
+    return {"performance": perf}
+
 
 # -------------------------------
 # ADMIN: EXAMS API
@@ -704,8 +719,9 @@ def teacher_exams_api():
 def exam_page(exam_id):
     if "user_id" not in session or session.get("role") != "student":
         return redirect("/")
-    # simple page that loads the exam UI which will call APIs
-    return render_template("exam.html", exam_id=exam_id)
+    # fetch student_id for the UI
+    student_id = get_student_id(session["user_id"])
+    return render_template("exam.html", exam_id=exam_id, student_id=student_id)
 
 
 @app.route("/api/exam/<int:exam_id>/start", methods=["POST"])
@@ -714,12 +730,14 @@ def api_exam_start(exam_id):
         return {"error": "Unauthorized"}, 401
 
     student_id = get_student_id(session["user_id"])
-    attempt_id = create_attempt(student_id, exam_id)
+    
+    # Check if student is allowed to take this exam
+    if not check_exam_eligibility(student_id, exam_id):
+        return {"error": "Eligibility check failed. Ensure you are Enrolled & Active for this course."}, 403
 
-    # fetch questions
+    attempt_id = create_exam_attempt(student_id, exam_id)
     qs = get_exam_questions(exam_id)
 
-    # fetch time limit
     from admin import get_exam_time_limit
     tl = get_exam_time_limit(exam_id)
 
@@ -737,7 +755,7 @@ def api_exam_save(attempt_id):
     if q_no is None:
         return {"error": "Missing q_no"}, 400
 
-    save_answer(attempt_id, q_no, selected)
+    save_student_answer(attempt_id, q_no, selected)
     return {"status": "saved"}
 
 
@@ -748,8 +766,8 @@ def api_exam_submit(attempt_id):
 
     data = request.json or {}
     duration = int(data.get("duration_seconds", 0))
-    submit_attempt(attempt_id, duration)
-    result = grade_attempt(attempt_id)
+    finalize_exam_attempt(attempt_id, duration)
+    result = evaluate_exam(attempt_id)
     return {"status": "submitted", "result": result}
 
 

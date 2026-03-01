@@ -1,98 +1,5 @@
-# ============================================================
-# EXAM PORTAL DATABASE SCHEMA (MySQL)
-# ------------------------------------------------------------
-# This comment block documents the database structure used in
-# the Exam Portal Mini Project. It is for reference only.
-# Data types and variable sizes are intentionally omitted.
-# ============================================================
-
-# USERS
-# - Stores authentication credentials for all users
-# - Fields: id, username, password, role
-
-# ADMIN
-# - Stores admin profile details
-# - Linked logically with users table
-# - Fields: admin_id, full_name, dob, gender, contact_number,
-#   email, username, institute_name, institute_code, institute_email,
-#   last_login, created_at, updated_at
-
-# STUDENT
-# - Stores student profile information
-# - Each student is linked to a user account
-# - Fields: id, user_id, full_name, age, gender, email, phone,
-#   address, course, department, institute_name, year_of_study,
-#   enrollment_date, dob, blood_group, nationality, emergency_contact,
-#   city, state, pincode, country, semester, roll_number,
-#   created_at, updated_at
-
-# TEACHER
-# - Stores teacher profile information
-# - Each teacher is linked to a user account
-# - Fields: id, user_id, full_name, age, gender, email, phone,
-#   address, department, specialization, institute_name,
-#   employee_id, joining_date, created_at, updated_at
-
-# COURSES
-# - Stores course details created by admin
-# - Fields: course_id, course_name, course_code, department,
-#   description, duration, fee, status, created_by,
-#   created_at, updated_at
-
-# STUDENT_COURSES
-# - Manages student enrollment into course
-# - Tracks enrollment and payment verification status
-# - Fields: id, student_id, course_id, enrollment_status,
-#   enrollment_verification_status, payment_verification_status,
-#   created_at, enrollment_verified_at, payment_verified_at
-
-# PAYMENTS
-# - Stores payment details for course enrollment
-# - Fields: payment_id, student_id, course_id, amount,
-#   payment_method, transaction_id, verification_status,
-#   created_at
-
-# EXAMS
-# - Stores exams conducted for course
-# - Fields: exam_id, course_id, exam_name, exam_type,
-#   total_questions, duration_minutes, passing_score,
-#   exam_date, question_file, answer_file, status,
-#   created_by, created_at
-
-# EXAM_QUESTIONS
-# - Stores questions belonging to exams
-# - Fields: question_id, exam_id, question_text,
-#   option1, option2, option3, option4,
-#   correct_answer, marks, question_order
-
-# STUDENT_EXAM_RESULTS
-# - Stores exam results of students
-# - Fields: result_id, student_id, exam_id, score,
-#   total_marks, percentage, status, attempted_at
-
-# NOTES
-# - Stores study notes for course
-# - Fields: note_id, course_id, title, content,
-#   created_by, created_at
-
-# STUDENT_NOTES_ACCESS
-# - Tracks which student accessed which note
-# - Fields: id, student_id, note_id, access_date
-
-# STUDENT_PERFORMANCE
-# - Stores performance metrics of students
-# - Fields: performance_id, student_id, course_id,
-#   exam_id, performance_metric, value, recorded_at
-
-# TEACHER_STUDENT_PROGRESS
-# - Allows teachers to track student progress per course
-# - Fields: progress_id, teacher_id, student_id,
-#   course_id, progress_notes, last_updated
-
-# ============================================================
-# END OF DATABASE SCHEMA DOCUMENTATION
-# ============================================================
 import mysql.connector
+from flask import session
 
 def get_db_connection():
     return mysql.connector.connect(
@@ -114,17 +21,18 @@ def get_teacher_profile_by_username(username):
     cursor.execute(
         """
         SELECT 
+            t.id,
             t.user_id,
             t.full_name,
             t.email,
             t.phone,
-            t.department,
-            t.specialization,
-            t.institute_name,
-            t.created_at,
+            t.department_id,
+            d.name as department_name,
+            t.employee_id,
             u.username
         FROM teacher t
         JOIN users u ON t.user_id = u.id
+        LEFT JOIN department d ON t.department_id = d.id
         WHERE u.username = %s
         """,
         (username,)
@@ -133,6 +41,9 @@ def get_teacher_profile_by_username(username):
     teacher = cursor.fetchone()
     cursor.close()
     db.close()
+    if teacher:
+        # Compatibility field for existing templates
+        teacher['department'] = teacher['department_name']
     return teacher
 
 # -------------------------------
@@ -142,7 +53,6 @@ def update_teacher_profile(username, data):
     db = get_db_connection()
     cursor = db.cursor()
 
-    # Get user_id from username
     cursor.execute("SELECT id FROM users WHERE username=%s", (username,))
     user_row = cursor.fetchone()
     if not user_row:
@@ -152,201 +62,170 @@ def update_teacher_profile(username, data):
 
     user_id = user_row[0]
 
-    # Check if teacher record exists
-    cursor.execute("SELECT id FROM teacher WHERE user_id=%s", (user_id,))
-    exists = cursor.fetchone()
-
-    phone = data.get("phone") or data.get("contact_number")
-
-    if exists:
-        cursor.execute("""
-            UPDATE teacher SET 
-                full_name = %s,
-                email = %s,
-                phone = %s,
-                department = %s,
-                specialization = %s,
-                institute_name = %s
-            WHERE user_id = %s
-        """, (
-            data["full_name"],
-            data["email"],
-            phone,
-            data["department"],
-            data["specialization"],
-            data["institute_name"],
-            user_id
-        ))
-    else:
-        cursor.execute("""
-            INSERT INTO teacher (user_id, full_name, email, phone, department, specialization, institute_name, joining_date)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
-        """, (
-            user_id,
-            data["full_name"],
-            data["email"],
-            phone,
-            data["department"],
-            data["specialization"],
-            data["institute_name"]
-        ))
+    cursor.execute("UPDATE teacher SET full_name = %s, email = %s, phone = %s WHERE user_id = %s", 
+                   (data["full_name"], data["email"], data.get("phone"), user_id))
 
     db.commit()
     cursor.close()
     db.close()
 
 # -------------------------------
-# GET ALL TEACHERS (ADMIN VIEW)
+# GET DATA FOR TEACHER'S DEPT
 # -------------------------------
-def get_all_teachers():
+def get_teacher_department_id(user_id):
     db = get_db_connection()
-    cursor = db.cursor(dictionary=True)
-
-    cursor.execute("""
-        SELECT 
-            t.teacher_id,
-            t.full_name,
-            t.email,
-            t.phone,
-            t.department,
-            t.specialization,
-            t.institute_name,
-            t.created_at,
-            u.username
-        FROM teacher t
-        JOIN users u ON t.user_id = u.id
-        ORDER BY t.created_at DESC
-    """)
-
-    teachers = cursor.fetchall()
+    cursor = db.cursor()
+    cursor.execute("SELECT department_id FROM teacher WHERE user_id = %s", (user_id,))
+    row = cursor.fetchone()
     cursor.close()
     db.close()
-    return teachers
+    return row[0] if row else None
 
-# -------------------------------
-# GET ALL TEACHERS (ADMIN VIEW)
-# -------------------------------
-def get_all_teachers():
+def get_students_by_department(dept_id):
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
-
     cursor.execute("""
-        SELECT 
-            t.teacher_id,
-            t.full_name,
-            t.email,
-            t.phone,
-            t.department,
-            t.specialization,
-            t.institute_name,
-            t.created_at,
-            u.username
-        FROM teacher t
-        JOIN users u ON t.user_id = u.id
-        ORDER BY t.created_at DESC
-    """)
-
-    teachers = cursor.fetchall()
+        SELECT s.*, b.name as branch_name 
+        FROM student s
+        LEFT JOIN branch b ON s.branch_id = b.id
+        WHERE s.department_id = %s
+    """, (dept_id,))
+    students = cursor.fetchall()
     cursor.close()
     db.close()
-    return teachers
+    return students
 
-# -------------------------------
-# GET COURSES FOR TEACHER
-# -------------------------------
-def get_courses_for_teacher(teacher_id):
+def get_pending_enrollments_by_dept(dept_id):
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
-
     cursor.execute("""
-        SELECT 
-            c.course_id,
+        SELECT
+            sc.id,
+            s.full_name AS student_name,
+            s.email,
             c.course_name,
-            c.course_code,
-            c.department,
-            c.description,
-            c.fee,
-            c.status,
-            c.created_at
+            sc.status,
+            sc.created_at
+        FROM student_course sc
+        JOIN student s ON sc.student_id = s.id
+        JOIN course c ON sc.course_id = c.course_id
+        WHERE s.department_id = %s AND sc.status = 'Pending'
+        ORDER BY sc.created_at DESC
+    """, (dept_id,))
+    enrollments = cursor.fetchall()
+    cursor.close()
+    db.close()
+    return enrollments
+
+def get_courses_by_department(dept_id):
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT c.*, b.name as branch_name 
         FROM course c
-        WHERE c.department = (
-            SELECT department FROM teacher WHERE teacher_id = %s
-        )
-        ORDER BY c.created_at DESC
-    """, (teacher_id,))
-
-    course = cursor.fetchall()
+        JOIN branch b ON c.branch_id = b.id
+        WHERE b.department_id = %s
+    """, (dept_id,))
+    courses = cursor.fetchall()
     cursor.close()
     db.close()
-    return course
+    return courses
 
 # -------------------------------
-# GET EXAMS FOR TEACHER
+# VERIFICATIONS
 # -------------------------------
-def get_exams_for_teacher(teacher_id):
+def verify_enrollment_teacher(enrollment_id):
+    db = get_db_connection()
+    cursor = db.cursor()
+    # Move to next step in workflow
+    cursor.execute("UPDATE student_course SET status = 'Verified_Pending_Payment' WHERE id = %s", (enrollment_id,))
+    db.commit()
+    cursor.close()
+    db.close()
+
+def verify_payment_teacher(payment_id):
+    db = get_db_connection()
+    cursor = db.cursor()
+    # 1. Update payment status
+    cursor.execute("UPDATE payments SET status = 'Verified' WHERE payment_id = %s", (payment_id,))
+    
+    # 2. Update enrollment status to final step
+    cursor.execute("""
+        UPDATE student_course sc
+        JOIN payments p ON sc.student_id = p.student_id AND sc.course_id = p.course_id
+        SET sc.status = 'Enrolled_Active'
+        WHERE p.payment_id = %s
+    """, (payment_id,))
+    
+    db.commit()
+    cursor.close()
+    db.close()
+
+# -------------------------------
+# EXAMS & RESULTS
+# -------------------------------
+def get_all_payments_by_dept(dept_id):
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
-
     cursor.execute("""
-        SELECT 
-            e.exam_id,
-            e.exam_name,
+        SELECT
+            p.payment_id,
+            s.full_name AS student_name,
+            s.email,
             c.course_name,
-            e.exam_date,
-            e.time_limit,
-            e.status,
-            e.created_at
+            p.amount,
+            p.payment_type,
+            p.verification_status,
+            p.transaction_id,
+            p.created_at
+        FROM payments p
+        JOIN student s ON p.student_id = s.id
+        JOIN course c ON p.course_id = c.course_id
+        WHERE s.department_id = %s
+        ORDER BY p.created_at DESC
+    """, (dept_id,))
+    payments = cursor.fetchall()
+    cursor.close()
+    db.close()
+    return payments
+
+def get_exams_by_department(dept_id):
+    db = get_db_connection()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT e.*, c.course_name 
         FROM exams e
         JOIN course c ON e.course_id = c.course_id
-        WHERE c.department = (
-            SELECT department FROM teacher WHERE teacher_id = %s
-        )
-        ORDER BY e.exam_date DESC
-    """, (teacher_id,))
-
+        JOIN branch b ON c.branch_id = b.id
+        WHERE b.department_id = %s
+    """, (dept_id,))
     exams = cursor.fetchall()
     cursor.close()
     db.close()
     return exams
 
-# -------------------------------
-# CREATE EXAM FOR TEACHER
-# -------------------------------
-def create_exam_for_teacher(teacher_id, exam_name, course_id, exam_date, time_limit):
+def publish_exam_results(exam_id):
     db = get_db_connection()
     cursor = db.cursor()
-
-    # Verify teacher has access to this course
-    cursor.execute("""
-        SELECT 1 FROM course c
-        JOIN teacher t ON c.department = t.department
-        WHERE c.course_id = %s AND t.teacher_id = %s
-    """, (course_id, teacher_id))
-
-    if not cursor.fetchone():
-        cursor.close()
-        db.close()
-        return None
-
-    cursor.execute("""
-        INSERT INTO exams (exam_name, course_id, exam_date, time_limit, status)
-        VALUES (%s, %s, %s, %s, 'Draft')
-    """, (exam_name, course_id, exam_date, time_limit))
-
-    exam_id = cursor.lastrowid
+    cursor.execute("UPDATE exams SET status = 'Published' WHERE exam_id = %s", (exam_id,))
     db.commit()
     cursor.close()
     db.close()
-    return exam_id
 
 # -------------------------------
-# GET TEACHER ID
+# PERFORMANCE
 # -------------------------------
-def get_teacher_id(user_id):
+def get_department_performance(dept_id):
     db = get_db_connection()
-    cursor = db.cursor()
-    cursor.execute("SELECT teacher_id FROM teacher WHERE user_id = %s", (user_id,))
-    row = cursor.fetchone()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT s.full_name, AVG(sub.score) as avg_score
+        FROM student s
+        JOIN student_exam_submissions sub ON s.id = sub.student_id
+        WHERE s.department_id = %s
+        GROUP BY s.id
+    """, (dept_id,))
+    perf = cursor.fetchall()
     cursor.close()
     db.close()
-    return row[0] if row else None
+    return perf
