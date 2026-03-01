@@ -43,6 +43,10 @@
                 <li id="tab-profile" onclick="openTab('profile')">👤 Profile</li>
                 <li id="tab-courses" onclick="openTab('courses')">📚 Courses</li>
                 <li id="tab-students" onclick="openTab('students')">🎓 Students</li>
+                {% if profile_type == 'admin' %}
+                <li id="tab-teachers" onclick="openTab('teachers')">👨‍🏫 Teachers</li>
+                <li id="tab-departments" onclick="openTab('departments')">🏢 Departments</li>
+                {% endif %}
                 <li id="tab-registration" onclick="openTab('registration')">📝 Registrations</li>
                 <li id="tab-exam" onclick="openTab('exam')">🧪 Exams</li>
                 <li id="tab-payment" onclick="openTab('payment')">💳 Payments</li>
@@ -94,9 +98,9 @@
                     <td>Role</td>
                     <td>{{ profile_type|upper }}</td>
                 </tr>
-                </ul>
-                <a href="/teacher/update" class="teacher-btn"
-                    style="display:inline-block; margin-top:20px; text-decoration:none;">Edit Profile</a>
+            </table>
+            <a href="/teacher/update" class="teacher-btn"
+                style="display:inline-block; margin-top:20px; text-decoration:none;">Update Profile</a>
         </div>
     </div>
 

@@ -46,9 +46,18 @@
 
                         <label class="small">Phone</label>
                         <input type="tel" name="phone" placeholder="Phone Number" value="{{ student.phone }}" required>
+
+                        <label class="small">Age</label>
+                        <input type="number" name="age" value="{{ student.age or 0 }}">
+
+                        <label class="small">Address</label>
+                        <textarea name="address" style="width:100%; height:80px;">{{ student.address or '' }}</textarea>
                     </div>
 
                     <div style="flex:1; min-width:260px;">
+                        <label class="small">Institute Name</label>
+                        <input type="text" name="institute_name" value="{{ student.institute_name or '' }}">
+
                         <label class="small">Gender</label>
                         <select name="gender" required>
                             <option value="">Select Gender</option>

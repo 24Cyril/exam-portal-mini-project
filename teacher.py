@@ -138,26 +138,52 @@ def update_teacher_profile(username, data):
     db = get_db_connection()
     cursor = db.cursor()
 
-    cursor.execute("""
-        UPDATE teacher t
-        JOIN users u ON t.user_id = u.id
-        SET 
-            t.full_name = %s,
-            t.email = %s,
-            t.phone = %s,
-            t.department = %s,
-            t.specialization = %s,
-            t.institute_name = %s
-        WHERE u.username = %s
-    """, (
-        data["full_name"],
-        data["email"],
-        data["phone"],
-        data["department"],
-        data["specialization"],
-        data["institute_name"],
-        username
-    ))
+    # Get user_id from username
+    cursor.execute("SELECT id FROM users WHERE username=%s", (username,))
+    user_row = cursor.fetchone()
+    if not user_row:
+        cursor.close()
+        db.close()
+        return
+
+    user_id = user_row[0]
+
+    # Check if teacher record exists
+    cursor.execute("SELECT id FROM teacher WHERE user_id=%s", (user_id,))
+    exists = cursor.fetchone()
+
+    if exists:
+        cursor.execute("""
+            UPDATE teacher SET 
+                full_name = %s,
+                email = %s,
+                phone = %s,
+                department = %s,
+                specialization = %s,
+                institute_name = %s
+            WHERE user_id = %s
+        """, (
+            data["full_name"],
+            data["email"],
+            data["phone"],
+            data["department"],
+            data["specialization"],
+            data["institute_name"],
+            user_id
+        ))
+    else:
+        cursor.execute("""
+            INSERT INTO teacher (user_id, full_name, email, phone, department, specialization, institute_name, joining_date)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
+        """, (
+            user_id,
+            data["full_name"],
+            data["email"],
+            data["phone"],
+            data["department"],
+            data["specialization"],
+            data["institute_name"]
+        ))
 
     db.commit()
     cursor.close()
