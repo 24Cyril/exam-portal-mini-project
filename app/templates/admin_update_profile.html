@@ -1,82 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Update Admin Profile</title>
-    <link rel="stylesheet" href="/static/css/admin.css">
+
+
+
+
+    <link rel="stylesheet" href="/static/css/teacher_update_profile.css">
 </head>
+
 <body>
 
-<div class="sidebar">
-    <h2 class="logo">Admin Panel</h2>
-    <ul class="nav-list">
-        <li><a href="/admin">🏠 Home</a></li>
-        <li class="active"><a href="/admin/update">👤 Profile</a></li>
-        <li><a href="/admin/students">🎓 Students</a></li>
-        <li><a href="/admin/courses">📚 Student Courses</a></li>
-        <li><a href="/admin/enrollments">📝 Registration</a></li>
-        <li><a href="/admin/exams">🧪 Exam</a></li>
-        <li><a href="/admin/registrations">📊 Result</a></li>
-        <li><a href="/admin/payments">💳 Payment</a></li>
-        <li class="logout"><a href="/logout">🚪 Logout</a></li>
-    </ul>
-</div>
-
-<div class="main-content">
-    <h2 id="tab-title">Update Admin Profile</h2>
-    <div class="card">
-        <form action="/admin/update" method="post" style="max-width:820px;">
-            <h4>Personal Details</h4>
-
-            <label class="small">Full Name</label>
-            <input type="text" name="full_name" value="{{ admin.full_name }}">
-
-            <label class="small">Date of Birth</label>
-            <input type="date" name="dob" value="{{ admin.dob }}">
-
-            <label class="small">Gender</label>
-            <select name="gender">
-                <option value="Male" {% if admin.gender == "Male" %}selected{% endif %}>Male</option>
-                <option value="Female" {% if admin.gender == "Female" %}selected{% endif %}>Female</option>
-                <option value="Other" {% if admin.gender == "Other" %}selected{% endif %}>Other</option>
-            </select>
-
-            <label class="small">Contact Number</label>
-            <input type="text" name="contact_number" value="{{ admin.contact_number }}">
-
-            <label class="small">Email</label>
-            <input type="email" name="email" value="{{ admin.email }}">
-
-            <h4 style="margin-top:12px;">Account Information (Read Only)</h4>
-            <label class="small">Admin ID</label>
-            <input type="text" value="{{ admin.admin_id }}" disabled>
-
-            <label class="small">Username</label>
-            <input type="text" value="{{ admin.username }}" disabled>
-
-            <label class="small">Role</label>
-            <input type="text" value="{{ admin.role }}" disabled>
-
-            <label class="small">Account Status</label>
-            <input type="text" value="{{ admin.account_status }}" disabled>
-
-            <h4 style="margin-top:12px;">Institution Details</h4>
-            <label class="small">Institute Name</label>
-            <input type="text" name="institute_name" value="{{ admin.institute_name }}">
-
-            <label class="small">Institute Code</label>
-            <input type="text" name="institute_code" value="{{ admin.institute_code }}">
-
-            <label class="small">Institute Email</label>
-            <input type="email" name="institute_email" value="{{ admin.institute_email }}">
-
-            <div style="margin-top:12px; display:flex; gap:10px;">
-                <button type="submit" class="update-btn">Update Profile</button>
-                <a href="/admin" class="update-btn" style="background:#6b7280;">Cancel</a>
-            </div>
-        </form>
+    <div class="sidebar">
+        <h2 class="logo">Admin Panel</h2>
+        <ul class="nav-list">
+            <li><a href="/teacher">🏠 Home</a></li>
+            <li class="active"><a href="/teacher/update">👤 Profile</a></li>
+            <li><a href="/teacher/students">🎓 Students</a></li>
+            <li><a href="/teacher/courses">📚 Student Courses</a></li>
+            <li><a href="/teacher/enrollments">📝 Registration</a></li>
+            <li><a href="/teacher/exams">🧪 Exam</a></li>
+            <li><a href="/teacher/registrations">📊 Result</a></li>
+            <li><a href="/teacher/payments">💳 Payment</a></li>
+            <li class="logout"><a href="/logout">🚪 Logout</a></li>
+        </ul>
     </div>
-</div>
+
+    <div class="main-content">
+        <h2 id="tab-title">Update Admin Profile</h2>
+        <div class="card">
+            <form action="/teacher/update" method="post" style="max-width:820px;">
+                <h4>Personal Details</h4>
+
+                <label class="small">Full Name</label>
+                <input type="text" name="full_name" value="{{ admin.full_name }}">
+
+                <label class="small">Date of Birth</label>
+                <input type="date" name="dob" value="{{ admin.dob }}">
+
+                <label class="small">Gender</label>
+                <select name="gender">
+                    <option value="Male" {% if admin.gender=="Male" %}selected{% endif %}>Male</option>
+                    <option value="Female" {% if admin.gender=="Female" %}selected{% endif %}>Female</option>
+                    <option value="Other" {% if admin.gender=="Other" %}selected{% endif %}>Other</option>
+                </select>
+
+                <label class="small">Contact Number</label>
+                <input type="text" name="contact_number" value="{{ admin.contact_number }}">
+
+                <label class="small">Email</label>
+                <input type="email" name="email" value="{{ admin.email }}">
+
+                <h4 style="margin-top:12px;">Account Information (Read Only)</h4>
+                <label class="small">Admin ID</label>
+                <input type="text" value="{{ admin.admin_id }}" disabled>
+
+                <label class="small">Username</label>
+                <input type="text" value="{{ admin.username }}" disabled>
+
+                <label class="small">Role</label>
+                <input type="text" value="{{ admin.role }}" disabled>
+
+                <label class="small">Account Status</label>
+                <input type="text" value="{{ admin.account_status }}" disabled>
+
+                <h4 style="margin-top:12px;">Institution Details</h4>
+                <label class="small">Institute Name</label>
+                <input type="text" name="institute_name" value="{{ admin.institute_name }}">
+
+                <label class="small">Institute Code</label>
+                <input type="text" name="institute_code" value="{{ admin.institute_code }}">
+
+                <label class="small">Institute Email</label>
+                <input type="email" name="institute_email" value="{{ admin.institute_email }}">
+
+                <div style="margin-top:12px; display:flex; gap:10px;">
+                    <button type="submit" class="update-btn">Update Profile</button>
+                    <a href="/teacher" class="update-btn" style="background:#6b7280;">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
 
 </body>
+
 </html>

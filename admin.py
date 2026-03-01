@@ -37,7 +37,7 @@
 #   created_at, updated_at
 
 # STUDENT_COURSES
-# - Manages student enrollment into courses
+# - Manages student enrollment into course
 # - Tracks enrollment and payment verification status
 # - Fields: id, student_id, course_id, enrollment_status,
 #   enrollment_verification_status, payment_verification_status,
@@ -50,7 +50,7 @@
 #   created_at
 
 # EXAMS
-# - Stores exams conducted for courses
+# - Stores exams conducted for course
 # - Fields: exam_id, course_id, exam_name, exam_type,
 #   total_questions, duration_minutes, passing_score,
 #   exam_date, created_by, created_at
@@ -67,7 +67,7 @@
 #   total_marks, percentage, status, attempted_at
 
 # NOTES
-# - Stores study notes for courses
+# - Stores study notes for course
 # - Fields: note_id, course_id, title, content,
 #   created_by, created_at
 
@@ -334,16 +334,16 @@ def get_all_courses():
             c.status,
             c.created_at,
             a.full_name AS created_by_name
-        FROM courses c
+        FROM course c
         LEFT JOIN admin a ON c.created_by = a.admin_id
         ORDER BY c.created_at DESC
     """)
 
-    courses = cursor.fetchall()
+    course = cursor.fetchall()
     cursor.close()
     db.close()
 
-    return courses
+    return course
 
 # -------------------------------
 # GET COURSES BY DEPARTMENT
@@ -363,16 +363,16 @@ def get_courses_by_department(department):
             c.fee,
             c.status,
             c.created_at
-        FROM courses c
+        FROM course c
         WHERE c.department = %s
         ORDER BY c.created_at DESC
     """, (department,))
 
-    courses = cursor.fetchall()
+    course = cursor.fetchall()
     cursor.close()
     db.close()
 
-    return courses
+    return course
 
 
 # -------------------------------
@@ -393,9 +393,9 @@ def get_pending_enrollments():
             sc.enrollment_status,
             sc.enrollment_verification_status,
             sc.created_at
-        FROM student_courses sc
+        FROM student_course sc
         JOIN student s ON sc.student_id = s.id
-        JOIN courses c ON sc.course_id = c.course_id
+        JOIN course c ON sc.course_id = c.course_id
         WHERE sc.enrollment_verification_status = 'Pending'
         ORDER BY sc.created_at DESC
     """)
@@ -416,7 +416,7 @@ def verify_enrollment(enrollment_id):
 
     # Update enrollment status to Verified and set payment status to Pending
     cursor.execute("""
-        UPDATE student_courses
+        UPDATE student_course
         SET enrollment_verification_status = 'Verified',
             payment_verification_status = 'Pending'
         WHERE id = %s
@@ -425,7 +425,7 @@ def verify_enrollment(enrollment_id):
     # Get student_id and course_id to create payment record
     cursor.execute("""
         SELECT student_id, course_id
-        FROM student_courses
+        FROM student_course
         WHERE id = %s
     """, (enrollment_id,))
     
@@ -437,7 +437,7 @@ def verify_enrollment(enrollment_id):
         cursor.execute("""
             INSERT INTO payments (student_id, course_id, amount, verification_status)
             SELECT %s, course_id, fee, 'Pending'
-            FROM courses
+            FROM course
             WHERE course_id = %s
             ON DUPLICATE KEY UPDATE verification_status = 'Pending'
         """, (student_id, course_id))
@@ -455,7 +455,7 @@ def reject_enrollment(enrollment_id):
     cursor = db.cursor()
 
     cursor.execute("""
-        UPDATE student_courses
+        UPDATE student_course
         SET enrollment_verification_status = 'Rejected',
             payment_verification_status = 'Not Required'
         WHERE id = %s
@@ -488,8 +488,8 @@ def get_pending_payments():
             DATE(p.payment_date) AS payment_date
         FROM payments p
         JOIN student s ON p.student_id = s.id
-        JOIN courses c ON p.course_id = c.course_id
-        JOIN student_courses sc ON sc.student_id = p.student_id AND sc.course_id = p.course_id
+        JOIN course c ON p.course_id = c.course_id
+        JOIN student_course sc ON sc.student_id = p.student_id AND sc.course_id = p.course_id
         WHERE sc.payment_verification_status = 'Submitted'
         ORDER BY p.payment_date DESC
     """)
@@ -524,7 +524,7 @@ def get_all_payments():
             DATE(p.payment_date) AS payment_date
         FROM payments p
         JOIN student s ON p.student_id = s.id
-        JOIN courses c ON p.course_id = c.course_id
+        JOIN course c ON p.course_id = c.course_id
         ORDER BY p.payment_date DESC
     """)
 
@@ -556,7 +556,7 @@ def get_payment_by_id(payment_id):
             DATE(p.payment_date) AS payment_date
         FROM payments p
         JOIN student s ON p.student_id = s.id
-        JOIN courses c ON p.course_id = c.course_id
+        JOIN course c ON p.course_id = c.course_id
         WHERE p.payment_id = %s
     """, (payment_id,))
 
@@ -584,9 +584,9 @@ def verify_payment(payment_id):
     if result:
         student_id, course_id = result
         
-        # Update payment verification status in student_courses
+        # Update payment verification status in student_course
         cursor.execute("""
-            UPDATE student_courses
+            UPDATE student_course
             SET payment_verification_status = 'Verified'
             WHERE student_id = %s AND course_id = %s
         """, (student_id, course_id))
@@ -623,7 +623,7 @@ def reject_payment(payment_id):
         
         # Update payment verification status back to Pending
         cursor.execute("""
-            UPDATE student_courses
+            UPDATE student_course
             SET payment_verification_status = 'Pending'
             WHERE student_id = %s AND course_id = %s
         """, (student_id, course_id))
@@ -645,7 +645,7 @@ def reject_payment(payment_id):
 def get_all_registrations():  
     db = get_db_connection()  
     cursor = db.cursor(dictionary=True)  
-    cursor.execute("""SELECT s.full_name, c.course_name, sc.enrollment_status, sc.payment_verification_status AS payment_status, sc.created_at AS registered_at FROM student_courses sc JOIN student s ON sc.student_id=s.id JOIN courses c ON sc.course_id=c.course_id ORDER BY sc.created_at DESC""")  
+    cursor.execute("""SELECT s.full_name, c.course_name, sc.enrollment_status, sc.payment_verification_status AS payment_status, sc.created_at AS registered_at FROM student_course sc JOIN student s ON sc.student_id=s.id JOIN course c ON sc.course_id=c.course_id ORDER BY sc.created_at DESC""")  
     data = cursor.fetchall()  
     cursor.close()  
     db.close()  
@@ -658,7 +658,7 @@ def get_all_registrations():
 def get_all_registrations():
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
-    cursor.execute("""SELECT s.full_name, c.course_name, sc.enrollment_status, sc.payment_verification_status AS payment_status, sc.created_at AS registered_at FROM student_courses sc JOIN student s ON sc.student_id=s.id JOIN courses c ON sc.course_id=c.course_id ORDER BY sc.created_at DESC""")
+    cursor.execute("""SELECT s.full_name, c.course_name, sc.enrollment_status, sc.payment_verification_status AS payment_status, sc.created_at AS registered_at FROM student_course sc JOIN student s ON sc.student_id=s.id JOIN course c ON sc.course_id=c.course_id ORDER BY sc.created_at DESC""")
     data = cursor.fetchall()
     cursor.close()
     db.close()
@@ -671,7 +671,7 @@ def get_all_registrations():
 def get_all_exams():
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
-    cursor.execute("""SELECT e.exam_id,e.exam_name,c.course_name, e.exam_date,e.status,e.question_file,e.answer_file FROM exams e JOIN courses c ON e.course_id=c.course_id ORDER BY e.exam_date DESC""")
+    cursor.execute("""SELECT e.exam_id,e.exam_name,c.course_name, e.exam_date,e.status,e.question_file,e.answer_file FROM exams e JOIN course c ON e.course_id=c.course_id ORDER BY e.exam_date DESC""")
     data = cursor.fetchall()
     cursor.close()
     db.close()
@@ -820,7 +820,7 @@ def update_student_password(user_id, password):
 def get_course_by_id(course_id):
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM courses WHERE course_id=%s", (course_id,))
+    cursor.execute("SELECT * FROM course WHERE course_id=%s", (course_id,))
     course = cursor.fetchone()
     cursor.close()
     db.close()
@@ -834,7 +834,7 @@ def add_course(course_name, course_code, department, description, duration, fee,
     db = get_db_connection()
     cursor = db.cursor()
     cursor.execute("""
-        INSERT INTO courses
+        INSERT INTO course
         (course_name, course_code, department, description, duration, fee, status, created_by)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     """, (course_name, course_code, department, description, duration, fee, status, created_by))
@@ -850,7 +850,7 @@ def update_course(course_id, course_name, course_code, department, description, 
     db = get_db_connection()
     cursor = db.cursor()
     cursor.execute("""
-        UPDATE courses
+        UPDATE course
         SET course_name=%s,
             course_code=%s,
             department=%s,
@@ -872,7 +872,105 @@ def delete_course(course_id):
     db = get_db_connection()
     cursor = db.cursor()
     # Foreign key constraints will cascade delete related records
-    cursor.execute("DELETE FROM courses WHERE course_id=%s", (course_id,))
+    cursor.execute("DELETE FROM course WHERE course_id=%s", (course_id,))
     db.commit()
     cursor.close()
+    db.close()
+
+# -------------------------------
+# GET EXAM TIME LIMIT
+# -------------------------------
+def get_exam_time_limit(exam_id):
+    db = get_db_connection()
+    c = db.cursor()
+    c.execute("SELECT time_limit FROM exams WHERE exam_id=%s", (exam_id,))
+    row = c.fetchone()
+    tl = 30
+    if row and row[0]:
+        tl = int(row[0])
+    c.close()
+    db.close()
+    return tl
+
+# -------------------------------
+# GET STUDENT BY ID (ADMIN)
+# -------------------------------
+def get_student_by_id(student_id):
+    db = get_db_connection()
+    c = db.cursor(dictionary=True)
+    c.execute("SELECT * FROM student WHERE id=%s", (student_id,))
+    student = c.fetchone()
+    c.close()
+    db.close()
+    return student
+
+# -------------------------------
+# UPDATE STUDENT (ADMIN)
+# -------------------------------
+def update_student(student_id, data):
+    db = get_db_connection()
+    c = db.cursor()
+    c.execute("""
+        UPDATE student SET
+        full_name=%s,
+        email=%s,
+        phone=%s,
+        gender=%s,
+        course=%s,
+        department=%s,
+        year_of_study=%s
+        WHERE id=%s
+    """, (
+        data['full_name'],
+        data['email'],
+        data['phone'],
+        data['gender'],
+        data['course'],
+        data['department'],
+        data['year'],
+        student_id
+    ))
+    db.commit()
+    c.close()
+    db.close()
+
+# -------------------------------
+# DELETE STUDENT (ADMIN)
+# -------------------------------
+def delete_student(student_id):
+    db = get_db_connection()
+    c = db.cursor()
+    c.execute("SELECT user_id FROM student WHERE id=%s", (student_id,))
+    result = c.fetchone()
+    if result:
+        user_id = result[0]
+        c.execute("DELETE FROM student WHERE id=%s", (student_id,))
+        c.execute("DELETE FROM users WHERE id=%s", (user_id,))
+        db.commit()
+    c.close()
+    db.close()
+
+# -------------------------------
+# ADD STUDENT (ADMIN)
+# -------------------------------
+def add_student(username, password, name, email, phone, gender, course, department, year):
+    db = get_db_connection()
+    c = db.cursor()
+    from werkzeug.security import generate_password_hash
+    hashed_password = generate_password_hash(password)
+    
+    c.execute(
+        "INSERT INTO users(username,password,role) VALUES(%s,%s,%s)",
+        (username, hashed_password, 'student')
+    )
+    user_id = c.lastrowid
+    
+    c.execute("""
+        INSERT INTO student
+        (user_id,full_name,email,phone,gender,course,department,year_of_study,enrollment_date)
+        VALUES(%s,%s,%s,%s,%s,%s,%s,%s,NOW())
+    """, (user_id, name, email, phone, gender, course, department, year))
+    
+    db.commit()
+    c.close()
     db.close()

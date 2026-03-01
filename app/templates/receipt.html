@@ -1,23 +1,12 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <title>Payment Receipt - {{ payment.payment_id }}</title>
-  <style>
-    body { font-family: Arial, sans-serif; background:#f4f6fb; padding:20px; }
-    .receipt { max-width:720px; margin:24px auto; background:#fff; padding:22px; border-radius:8px; box-shadow:0 8px 30px rgba(2,6,23,0.08); }
-    .header { display:flex; justify-content:space-between; align-items:center; }
-    h2 { margin:0; }
-    .meta { color:#666; font-size:13px; }
-    table { width:100%; border-collapse:collapse; margin-top:18px; }
-    td { padding:10px 8px; border-bottom:1px solid #eee; }
-    .label { font-weight:700; width:35%; background:#fafafa; }
-    .actions { margin-top:18px; display:flex; gap:8px; }
-    .btn { padding:8px 12px; background:#0f172a; color:#fff; text-decoration:none; border-radius:6px; }
-    .download { background:#1e88e5; }
-    .small { font-size:13px; color:#444; }
-  </style>
+  <link rel="stylesheet" href="/static/css/receipt.css">
 </head>
+
 <body>
   <div class="receipt">
     <div class="header">
@@ -29,13 +18,34 @@
     </div>
 
     <table>
-      <tr><td class="label">Student</td><td>{{ payment.student_name }}</td></tr>
-      <tr><td class="label">Email</td><td>{{ payment.email }}</td></tr>
-      <tr><td class="label">Course</td><td>{{ payment.course_name }}</td></tr>
-      <tr><td class="label">Amount</td><td>₹{{ payment.amount }}</td></tr>
-      <tr><td class="label">Method</td><td>{{ payment.payment_method or '-' }}</td></tr>
-      <tr><td class="label">Transaction ID</td><td>{{ payment.transaction_id or '-' }}</td></tr>
-      <tr><td class="label">Status</td><td>{{ payment.payment_verification_status or payment.payment_verification_status or '-' }}</td></tr>
+      <tr>
+        <td class="label">Student</td>
+        <td>{{ payment.student_name }}</td>
+      </tr>
+      <tr>
+        <td class="label">Email</td>
+        <td>{{ payment.email }}</td>
+      </tr>
+      <tr>
+        <td class="label">Course</td>
+        <td>{{ payment.course_name }}</td>
+      </tr>
+      <tr>
+        <td class="label">Amount</td>
+        <td>₹{{ payment.amount }}</td>
+      </tr>
+      <tr>
+        <td class="label">Method</td>
+        <td>{{ payment.payment_method or '-' }}</td>
+      </tr>
+      <tr>
+        <td class="label">Transaction ID</td>
+        <td>{{ payment.transaction_id or '-' }}</td>
+      </tr>
+      <tr>
+        <td class="label">Status</td>
+        <td>{{ payment.payment_verification_status or payment.payment_verification_status or '-' }}</td>
+      </tr>
     </table>
 
     <div class="actions">
@@ -45,4 +55,5 @@
     </div>
   </div>
 </body>
+
 </html>

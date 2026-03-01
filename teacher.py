@@ -37,7 +37,7 @@
 #   created_at, updated_at
 
 # STUDENT_COURSES
-# - Manages student enrollment into courses
+# - Manages student enrollment into course
 # - Tracks enrollment and payment verification status
 # - Fields: id, student_id, course_id, enrollment_status,
 #   enrollment_verification_status, payment_verification_status,
@@ -50,7 +50,7 @@
 #   created_at
 
 # EXAMS
-# - Stores exams conducted for courses
+# - Stores exams conducted for course
 # - Fields: exam_id, course_id, exam_name, exam_type,
 #   total_questions, duration_minutes, passing_score,
 #   exam_date, created_by, created_at
@@ -67,7 +67,7 @@
 #   total_marks, percentage, status, attempted_at
 
 # NOTES
-# - Stores study notes for courses
+# - Stores study notes for course
 # - Fields: note_id, course_id, title, content,
 #   created_by, created_at
 
@@ -236,17 +236,17 @@ def get_courses_for_teacher(teacher_id):
             c.fee,
             c.status,
             c.created_at
-        FROM courses c
+        FROM course c
         WHERE c.department = (
             SELECT department FROM teacher WHERE teacher_id = %s
         )
         ORDER BY c.created_at DESC
     """, (teacher_id,))
 
-    courses = cursor.fetchall()
+    course = cursor.fetchall()
     cursor.close()
     db.close()
-    return courses
+    return course
 
 # -------------------------------
 # GET EXAMS FOR TEACHER
@@ -265,7 +265,7 @@ def get_exams_for_teacher(teacher_id):
             e.status,
             e.created_at
         FROM exams e
-        JOIN courses c ON e.course_id = c.course_id
+        JOIN course c ON e.course_id = c.course_id
         WHERE c.department = (
             SELECT department FROM teacher WHERE teacher_id = %s
         )
@@ -286,7 +286,7 @@ def create_exam_for_teacher(teacher_id, exam_name, course_id, exam_date, time_li
 
     # Verify teacher has access to this course
     cursor.execute("""
-        SELECT 1 FROM courses c
+        SELECT 1 FROM course c
         JOIN teacher t ON c.department = t.department
         WHERE c.course_id = %s AND t.teacher_id = %s
     """, (course_id, teacher_id))

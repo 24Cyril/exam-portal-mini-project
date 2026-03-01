@@ -42,7 +42,7 @@
 #   created_at, updated_at
 
 # STUDENT_COURSES
-# - Manages student enrollment into courses
+# - Manages student enrollment into course
 # - Tracks enrollment and payment verification status
 # - Fields: id, student_id, course_id, enrollment_status,
 #   enrollment_verification_status, payment_verification_status,
@@ -55,7 +55,7 @@
 #   created_at
 
 # EXAMS
-# - Stores exams conducted for courses
+# - Stores exams conducted for course
 # - Fields: exam_id, course_id, exam_name, exam_type,
 #   total_questions, duration_minutes, passing_score,
 #   exam_date, created_by, created_at
@@ -72,7 +72,7 @@
 #   total_marks, percentage, status, attempted_at
 
 # NOTES
-# - Stores study notes for courses
+# - Stores study notes for course
 # - Fields: note_id, course_id, title, content,
 #   created_by, created_at
 
@@ -192,15 +192,13 @@ def register():
         try:
             print("REGISTER HIT")
 
-            username = request.form["username"]
-            password = request.form["password"]
-            role = request.form["role"].lower()
-            email = request.form["email"]
-            full_name = request.form["full_name"]
-            a_full_name = request.form["a_full_name"]
-            s_full_name = request.form["s_full_name"]
-
-
+            username = request.form.get("username", "")
+            password = request.form.get("password", "")
+            role = request.form.get("role", "student").lower()
+            email = request.form.get("email", "")
+            full_name = request.form.get("full_name", "")
+            a_full_name = request.form.get("a_full_name", "")
+            s_full_name = request.form.get("s_full_name", "")
 
             hashed_password = generate_password_hash(password)
 
@@ -218,12 +216,26 @@ def register():
             user_id = user[0]
             print(f"User created with ID: {user_id}")
             
+            # Helper function for safe int conversion
+            def safe_int(val, default=0):
+                try:
+                    return int(val) if val else default
+                except (ValueError, TypeError):
+                    return default
+
             # ---------------- ADMIN ----------------
             if role == "admin":
                 cursor.execute("""
-                    INSERT INTO admin (username,admin_id, full_name, email, dob, gender, contact_number)
-                    VALUES (%s,%s, %s, %s, %s, %s, %s)
-                """, (username, a_full_name, full_name, email, request.form.get("dob"), request.form.get("a_gender"), request.form.get("contact_number")))
+                    INSERT INTO admin (username, full_name, email, dob, gender, contact_number)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                """, (
+                    username, 
+                    a_full_name, 
+                    email, 
+                    request.form.get("dob") or None, 
+                    request.form.get("a_gender", ""), 
+                    request.form.get("contact_number", "")
+                ))
                 print("admin created")
 
             # ---------------- STUDENT ----------------
@@ -240,16 +252,16 @@ def register():
                                %s,%s,%s)
                 """, (
                     user_id,
-                    request.form.get("s_full_name"),
-                    request.form.get("age"),
-                    request.form.get("gender"),
+                    s_full_name,
+                    safe_int(request.form.get("age")),
+                    request.form.get("gender", ""),
                     email,
-                    request.form.get("phone"),
-                    request.form.get("address"),
-                    request.form.get("course"),
-                    request.form.get("department"),
-                    request.form.get("institute_name"),
-                    request.form.get("year_of_study"),
+                    request.form.get("phone", ""),
+                    request.form.get("address", ""),
+                    request.form.get("course", ""),
+                    request.form.get("department", ""),
+                    request.form.get("institute_name", ""),
+                    safe_int(request.form.get("year_of_study")),
                     request.form.get("enrollment_date") or "2024-01-01"  ))
                 print("student created")
 
@@ -262,15 +274,15 @@ def register():
                 """, (
                     user_id,
                     full_name,
-                    request.form.get("tutor_age"),
-                    request.form.get("tutor_gender"),
+                    safe_int(request.form.get("tutor_age")),
+                    request.form.get("tutor_gender", ""),
                     email,
-                    request.form.get("tutor_phone"),
-                    request.form.get("tutor_address"),
-                    request.form.get("department"),
-                    request.form.get("specialization"),
-                    request.form.get("institute_name"),
-                    request.form.get("employee_id"),
+                    request.form.get("tutor_phone", ""),
+                    request.form.get("tutor_address", ""),
+                    request.form.get("department", ""),
+                    request.form.get("specialization", ""),
+                    request.form.get("institute_name", ""),
+                    request.form.get("employee_id", ""),
                     request.form.get("joining_date") or "2024-01-01"
                 ))
                 print("teacher created")
@@ -329,10 +341,7 @@ def login():
     session["username"] = user["username"]
     session["role"] = user["role"]
 
-    if user["role"] == "admin":
-        return redirect("/admin")
-    
-    elif user["role"]=="teacher":
+    if user["role"] == "admin" or user["role"] == "teacher":
         return redirect("/teacher")
     
     else:
@@ -340,38 +349,24 @@ def login():
 
 
 
-# -------------------------------
-# ADMIN DASHBOARD
-# -------------------------------
-@app.route("/admin")
-def admin_dashboard():
-    if "user_id" not in session or session["role"] != "admin":
-        return redirect("/")
-
-    admin = get_admin_profile_by_username(session["username"])
-    return render_template("admin.html", admin=admin)
-
-
-# -------------------------------
-# STUDENT DASHBOARD
-# -------------------------------
-@app.route("/student")
-def student_dashboard():
-    if "user_id" not in session or session["role"] != "student":
-        return redirect("/")
-
-    student = get_student_profile(session["user_id"])
-    return render_template("student.html", student=student)
-
-
-
 @app.route("/teacher")
 def teacher_dashboard():
-    if "user_id" not in session or session["role"] != "teacher":
+    if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
         return redirect("/")
 
-    teacher = get_teacher_profile_by_username(session["username"])
-    return render_template("teacher.html", teacher=teacher)
+    if session["role"] == "admin":
+        profile = get_admin_profile_by_username(session["username"])
+        profile_type = 'admin'
+    else:
+        profile = get_teacher_profile_by_username(session["username"])
+        profile_type = 'teacher'
+
+    # Fetch initial stats/data for the combined dashboard
+    from admin import get_all_courses, get_all_students, get_pending_enrollments, get_all_payments
+    courses = get_all_courses()
+    students = get_all_students()
+    
+    return render_template("teacher.html", teacher=profile, profile_type=profile_type, courses=courses, exams=[])
 
 
 
@@ -391,20 +386,13 @@ def api_student_profile():
 
 
 
-def get_student_profile(user_id):
-    db = get_db_connection()
-    cur = db.cursor(dictionary=True)
-    cur.execute("SELECT * FROM student WHERE user_id=%s", (user_id,))
-    data = cur.fetchone()
-    cur.close()
-    db.close()
-    return data
+
 
 
 # ===============================
 # COURSES (STUDENT SIDE)
 # ===============================
-@app.route("/api/student/courses")
+@app.route("/api/student/course")
 def get_all_courses():
     if "user_id" not in session:
         return []
@@ -435,9 +423,9 @@ def student_exam_api():
     return fetch_student_exams(session["user_id"])
 
 
-@app.route("/admin/students")
-def admin_students():
-    if "user_id" not in session or session["role"] != "admin":
+@app.route("/teacher/students")
+def teacher_students():
+    if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
         return {"error": "Unauthorized"}, 401
 
     students = get_all_students()
@@ -447,13 +435,13 @@ def admin_students():
 
 
 
-@app.route("/admin/courses")
-def admin_courses():
-    if "user_id" not in session or session["role"] != "admin":
+@app.route("/teacher/course")
+def teacher_courses_api():
+    if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
         return {"error": "Unauthorized"}, 401
 
-    courses = get_all_courses_admin()
-    return {"courses": courses}
+    course = get_all_courses_admin()
+    return {"course": course}
 
 from flask import Blueprint, request, jsonify
 
@@ -521,9 +509,9 @@ def unenroll_course():
 # -------------------------------
 # ADMIN: PENDING ENROLLMENTS
 # -------------------------------
-@app.route("/admin/enrollments")
-def admin_enrollments():
-    if "user_id" not in session or session["role"] != "admin":
+@app.route("/teacher/enrollments")
+def teacher_enrollments():
+    if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
         return {"error": "Unauthorized"}, 401
 
     enrollments = get_pending_enrollments()
@@ -533,9 +521,9 @@ def admin_enrollments():
 # -------------------------------
 # ADMIN: VERIFY ENROLLMENT
 # -------------------------------
-@app.route("/admin/enrollments/verify/<int:enrollment_id>", methods=["POST"])
-def admin_verify_enrollment(enrollment_id):
-    if "user_id" not in session or session["role"] != "admin":
+@app.route("/teacher/enrollments/verify/<int:enrollment_id>", methods=["POST"])
+def teacher_verify_enrollment(enrollment_id):
+    if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
         return {"error": "Unauthorized"}, 401
 
     verify_enrollment(enrollment_id)
@@ -545,9 +533,9 @@ def admin_verify_enrollment(enrollment_id):
 # -------------------------------
 # ADMIN: REJECT ENROLLMENT
 # -------------------------------
-@app.route("/admin/enrollments/reject/<int:enrollment_id>", methods=["POST"])
-def admin_reject_enrollment(enrollment_id):
-    if "user_id" not in session or session["role"] != "admin":
+@app.route("/teacher/enrollments/reject/<int:enrollment_id>", methods=["POST"])
+def teacher_reject_enrollment(enrollment_id):
+    if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
         return {"error": "Unauthorized"}, 401
 
     reject_enrollment(enrollment_id)
@@ -557,9 +545,9 @@ def admin_reject_enrollment(enrollment_id):
 # -------------------------------
 # ADMIN: PENDING PAYMENTS
 # -------------------------------
-@app.route("/admin/payments")
-def admin_payments():
-    if "user_id" not in session or session["role"] != "admin":
+@app.route("/teacher/payments")
+def teacher_payments():
+    if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
         return {"error": "Unauthorized"}, 401
 
     # return full payment history (not only pending) for admin view
@@ -598,9 +586,9 @@ def payment_receipt(payment_id):
 # -------------------------------
 # ADMIN: VERIFY PAYMENT
 # -------------------------------
-@app.route("/admin/payments/verify/<int:payment_id>", methods=["POST"])
-def admin_verify_payment(payment_id):
-    if "user_id" not in session or session["role"] != "admin":
+@app.route("/teacher/payments/verify/<int:payment_id>", methods=["POST"])
+def teacher_verify_payment(payment_id):
+    if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
         return {"error": "Unauthorized"}, 401
 
     verify_payment(payment_id)
@@ -610,9 +598,9 @@ def admin_verify_payment(payment_id):
 # -------------------------------
 # ADMIN: REJECT PAYMENT
 # -------------------------------
-@app.route("/admin/payments/reject/<int:payment_id>", methods=["POST"])
-def admin_reject_payment(payment_id):
-    if "user_id" not in session or session["role"] != "admin":
+@app.route("/teacher/payments/reject/<int:payment_id>", methods=["POST"])
+def teacher_reject_payment(payment_id):
+    if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
         return {"error": "Unauthorized"}, 401
 
     reject_payment(payment_id)
@@ -622,9 +610,9 @@ def admin_reject_payment(payment_id):
 # -------------------------------
 # ADMIN: REGISTRATIONS API
 # -------------------------------
-@app.route("/admin/registrations")
-def admin_registrations():
-    if "user_id" not in session or session["role"] != "admin":
+@app.route("/teacher/registrations")
+def teacher_registrations():
+    if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
         return {"error": "Unauthorized"}, 401
     
     return {"registrations": get_all_registrations()}
@@ -633,9 +621,9 @@ def admin_registrations():
 # -------------------------------
 # ADMIN: EXAMS API
 # -------------------------------
-@app.route("/admin/exams")
-def admin_exams():
-    if "user_id" not in session or session["role"] != "admin":
+@app.route("/teacher/exams")
+def teacher_exams_api():
+    if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
         return {"error": "Unauthorized"}, 401
     
     return {"exams": get_all_exams()}
@@ -661,15 +649,8 @@ def api_exam_start(exam_id):
     qs = get_exam_questions(exam_id)
 
     # fetch time limit
-    db = get_db_connection()
-    c = db.cursor()
-    c.execute("SELECT time_limit FROM exams WHERE exam_id=%s", (exam_id,))
-    row = c.fetchone()
-    tl = 30
-    if row and row[0]:
-        tl = int(row[0])
-    c.close()
-    db.close()
+    from admin import get_exam_time_limit
+    tl = get_exam_time_limit(exam_id)
 
     return {"attempt_id": attempt_id, "questions": qs, "time_limit": tl}
 
@@ -711,9 +692,9 @@ UPLOAD_FOLDER = "app/static/uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-@app.route("/admin/add-exam", methods=["GET", "POST"])
+@app.route("/teacher/add-exam", methods=["GET", "POST"])
 def add_exam_route():
-    if session.get("role") != "admin":
+    if session.get("role") not in ["admin", "teacher"]:
         return redirect("/")
 
     if request.method == "POST":
@@ -804,24 +785,20 @@ def add_exam_route():
             if questions:
                 insert_exam_questions(exam_id, questions)
 
-        return redirect("/admin")
+        return redirect("/teacher")
 
-    db = get_db_connection()
-    c = db.cursor(dictionary=True)
-    c.execute("SELECT course_id,course_name FROM courses")
-    courses = c.fetchall()
-    c.close()
-    db.close()
+    from admin import get_all_courses
+    course = get_all_courses()
 
-    return render_template("add_exam.html", courses=courses)
+    return render_template("add_exam.html", course=course)
 
 
 # -------------------------------
 # ADMIN: DELETE EXAM
 # -------------------------------
-@app.route("/admin/delete-exam/<int:id>", methods=["POST"])
+@app.route("/teacher/delete-exam/<int:id>", methods=["POST"])
 def delete_exam_route(id):
-    if session.get("role") != "admin":
+    if session.get("role") not in ["admin", "teacher"]:
         return {"error": "Unauthorized"}, 401
     
     delete_exam(id)
@@ -831,9 +808,9 @@ def delete_exam_route(id):
 # -------------------------------
 # ADMIN: ADD STUDENT
 # -------------------------------
-@app.route("/admin/add-student", methods=["GET", "POST"])
-def add_student_admin():
-    if session.get("role") != "admin":
+@app.route("/teacher/add-student", methods=["GET", "POST"])
+def add_student_teacher():
+    if session.get("role") not in ["admin", "teacher"]:
         return redirect("/")
 
     if request.method == "POST":
@@ -846,30 +823,10 @@ def add_student_admin():
         course = request.form["course"]
         department = request.form["department"]
         year = request.form["year"]
+        from admin import add_student
+        add_student(username, password, name, email, phone, gender, course, department, year)
 
-        hashed_password = generate_password_hash(password)
-
-        db = get_db_connection()
-        c = db.cursor()
-
-        c.execute(
-            "INSERT INTO users(username,password,role) VALUES(%s,%s,%s)",
-            (username, hashed_password, "student")
-        )
-
-        user_id = c.lastrowid
-
-        c.execute("""
-            INSERT INTO student
-            (user_id,full_name,email,phone,gender,course,department,year_of_study)
-            VALUES(%s,%s,%s,%s,%s,%s,%s,%s)
-        """, (user_id, name, email, phone, gender, course, department, year))
-
-        db.commit()
-        c.close()
-        db.close()
-
-        return redirect("/admin")
+        return redirect("/teacher")
 
     return render_template("add_student.html")
 
@@ -877,47 +834,17 @@ def add_student_admin():
 # -------------------------------
 # ADMIN: EDIT STUDENT
 # -------------------------------
-@app.route("/admin/edit-student/<int:id>", methods=["GET", "POST"])
-def edit_student_admin(id):
-    if session.get("role") != "admin":
+@app.route("/teacher/edit-student/<int:id>", methods=["GET", "POST"])
+def edit_student_teacher(id):
+    if session.get("role") not in ["admin", "teacher"]:
         return redirect("/")
-
-    db = get_db_connection()
-    c = db.cursor(dictionary=True)
+    from admin import update_student, get_student_by_id
 
     if request.method == "POST":
-        c.execute("""
-            UPDATE student SET
-            full_name=%s,
-            email=%s,
-            phone=%s,
-            gender=%s,
-            course=%s,
-            department=%s,
-            year_of_study=%s
-            WHERE id=%s
-        """, (
-            request.form["full_name"],
-            request.form["email"],
-            request.form["phone"],
-            request.form["gender"],
-            request.form["course"],
-            request.form["department"],
-            request.form["year"],
-            id
-        ))
+        update_student(id, request.form)
+        return redirect("/teacher")
 
-        db.commit()
-        c.close()
-        db.close()
-
-        return redirect("/admin")
-
-    c.execute("SELECT * FROM student WHERE id=%s", (id,))
-    student = c.fetchone()
-
-    c.close()
-    db.close()
+    student = get_student_by_id(id)
 
     return render_template("edit_student.html", student=student)
 
@@ -925,28 +852,12 @@ def edit_student_admin(id):
 # -------------------------------
 # ADMIN: DELETE STUDENT
 # -------------------------------
-@app.route("/admin/delete-student/<int:id>", methods=["POST"])
-def delete_student_admin(id):
-    if session.get("role") != "admin":
+@app.route("/teacher/delete-student/<int:id>", methods=["POST"])
+def delete_student_teacher(id):
+    if session.get("role") not in ["admin", "teacher"]:
         return {"error": "Unauthorized"}, 401
-
-    db = get_db_connection()
-    c = db.cursor()
-
-    # Get user_id first
-    c.execute("SELECT user_id FROM student WHERE id=%s", (id,))
-    result = c.fetchone()
-    
-    if result:
-        user_id = result[0]
-        # Delete from student table
-        c.execute("DELETE FROM student WHERE id=%s", (id,))
-        # Delete from users table
-        c.execute("DELETE FROM users WHERE id=%s", (user_id,))
-        db.commit()
-
-    c.close()
-    db.close()
+    from admin import delete_student
+    delete_student(id)
 
     return {"success": True}
 
@@ -954,9 +865,9 @@ def delete_student_admin(id):
 # -------------------------------
 # ADMIN: UPDATE PROFILE
 # -------------------------------
-@app.route("/admin/update", methods=["GET", "POST"])
-def admin_update():
-    if session.get("role") != "admin":
+@app.route("/teacher/update", methods=["GET", "POST"])
+def admin_update_as_teacher():
+    if session.get("role") not in ["admin", "teacher"]:
         return redirect("/")
 
     if request.method == "POST":
@@ -971,7 +882,7 @@ def admin_update():
 
         update_admin_profile(session["username"], request.form, hashed)
 
-        return redirect("/admin")
+        return redirect("/teacher")
 
     admin = get_admin_profile_by_username(session["username"])
     return render_template("admin_update_profile.html", admin=admin)
@@ -980,9 +891,9 @@ def admin_update():
 # -------------------------------
 # ADMIN: ADD COURSE
 # -------------------------------
-@app.route("/admin/add-course", methods=["GET", "POST"])
-def add_course_route():
-    if session.get("role") != "admin":
+@app.route("/teacher/add-course", methods=["GET", "POST"])
+def add_course_route_as_teacher():
+    if session.get("role") not in ["admin", "teacher"]:
         return redirect("/")
 
     if request.method == "POST":
@@ -1000,7 +911,7 @@ def add_course_route():
 
         add_course(course_name, course_code, department, description, duration, fee, status, created_by)
 
-        return redirect("/admin")
+        return redirect("/teacher")
 
     return render_template("add_courses.html")
 
@@ -1008,9 +919,9 @@ def add_course_route():
 # -------------------------------
 # ADMIN: EDIT COURSE
 # -------------------------------
-@app.route("/admin/edit-course/<int:id>", methods=["GET", "POST"])
-def edit_course_route(id):
-    if session.get("role") != "admin":
+@app.route("/teacher/edit-course/<int:id>", methods=["GET", "POST"])
+def edit_course_route_as_teacher(id):
+    if session.get("role") not in ["admin", "teacher"]:
         return redirect("/")
 
     if request.method == "POST":
@@ -1024,7 +935,7 @@ def edit_course_route(id):
 
         update_course(id, course_name, course_code, department, description, duration, fee, status)
 
-        return redirect("/admin")
+        return redirect("/teacher")
 
     course = get_course_by_id(id)
     return render_template("edit_courses.html", course=course)
@@ -1033,9 +944,9 @@ def edit_course_route(id):
 # -------------------------------
 # ADMIN: DELETE COURSE
 # -------------------------------
-@app.route("/admin/delete-course/<int:id>", methods=["POST"])
-def delete_course_route(id):
-    if session.get("role") != "admin":
+@app.route("/teacher/delete-course/<int:id>", methods=["POST"])
+def delete_course_route_as_teacher(id):
+    if session.get("role") not in ["admin", "teacher"]:
         return {"error": "Unauthorized"}, 401
     
     delete_course(id)

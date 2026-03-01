@@ -37,7 +37,7 @@
 #   created_at, updated_at
 
 # STUDENT_COURSES
-# - Manages student enrollment into courses
+# - Manages student enrollment into course
 # - Tracks enrollment and payment verification status
 # - Fields: id, student_id, course_id, enrollment_status,
 #   enrollment_verification_status, payment_verification_status,
@@ -50,7 +50,7 @@
 #   created_at
 
 # EXAMS
-# - Stores exams conducted for courses
+# - Stores exams conducted for course
 # - Fields: exam_id, course_id, exam_name, exam_type,
 #   total_questions, duration_minutes, passing_score,
 #   exam_date, created_by, created_at
@@ -67,7 +67,7 @@
 #   total_marks, percentage, status, attempted_at
 
 # NOTES
-# - Stores study notes for courses
+# - Stores study notes for course
 # - Fields: note_id, course_id, title, content,
 #   created_by, created_at
 
@@ -178,9 +178,9 @@ def fetch_student_courses(student_id):
             sc.payment_verification_status
 
         FROM student s
-        JOIN courses c
+        JOIN course c
             ON c.department = s.department
-        LEFT JOIN student_courses sc
+        LEFT JOIN student_course sc
             ON c.course_id = sc.course_id
            AND sc.student_id = s.id
 
@@ -199,7 +199,7 @@ def enroll_course(student_id, course_id):
     db = get_db_connection()
     cur = db.cursor()
     cur.execute("""
-        INSERT IGNORE INTO student_courses
+        INSERT IGNORE INTO student_course
         (student_id, course_id)
         VALUES (%s,%s)
     """, (student_id, course_id))
@@ -211,7 +211,7 @@ def unenroll_course(student_id, course_id):
     db = get_db_connection()
     cur = db.cursor()
     cur.execute("""
-        DELETE FROM student_courses
+        DELETE FROM student_course
         WHERE student_id=%s AND course_id=%s
     """, (student_id, course_id))
     db.commit()
@@ -230,8 +230,8 @@ def fetch_student_payments(student_id):
         p.payment_method, p.transaction_id,
         sc.payment_verification_status,
         DATE(p.payment_date) AS payment_date
-        FROM student_courses sc
-        JOIN courses c ON sc.course_id=c.course_id
+        FROM student_course sc
+        JOIN course c ON sc.course_id=c.course_id
         LEFT JOIN payments p
         ON p.student_id=sc.student_id AND p.course_id=sc.course_id
         WHERE sc.student_id=%s
@@ -251,7 +251,7 @@ def submit_payment(student_id, course_id, method, txn):
 
     cur.execute("""
         INSERT INTO payments (student_id, course_id, amount, payment_method, transaction_id)
-        SELECT %s, course_id, fee, %s, %s FROM courses WHERE course_id=%s
+        SELECT %s, course_id, fee, %s, %s FROM course WHERE course_id=%s
         ON DUPLICATE KEY UPDATE
             payment_method=VALUES(payment_method),
             transaction_id=VALUES(transaction_id),
@@ -259,7 +259,7 @@ def submit_payment(student_id, course_id, method, txn):
     """, (student_id, method, txn, course_id))
 
     cur.execute("""
-        UPDATE student_courses
+        UPDATE student_course
         SET payment_verification_status='Submitted'
         WHERE student_id=%s AND course_id=%s
     """, (student_id, course_id))
@@ -291,8 +291,8 @@ def get_all_courses_for_student(student_id):
             sc.enrollment_verification_status,
             sc.payment_verification_status
 
-        FROM courses c
-        LEFT JOIN student_courses sc
+        FROM course c
+        LEFT JOIN student_course sc
             ON c.course_id = sc.course_id
            AND sc.student_id = %s
     """, (student_id,))
@@ -328,7 +328,7 @@ def fetch_student_exams(user_id):
         db.close()
         return []
 
-    # select exams for courses (all exams). left join any attempt by this student
+    # select exams for course (all exams). left join any attempt by this student
     cursor.execute("""
         SELECT
             e.exam_id,
@@ -341,7 +341,7 @@ def fetch_student_exams(user_id):
             sa.graded AS graded,
             (SELECT COUNT(*) FROM exam_questions q WHERE q.exam_id = e.exam_id) AS total_questions
         FROM exams e
-        JOIN courses c ON e.course_id = c.course_id
+        JOIN course c ON e.course_id = c.course_id
         LEFT JOIN student_attempts sa ON sa.exam_id = e.exam_id AND sa.student_id = %s
         ORDER BY e.exam_date DESC
     """, (student_id,))
@@ -398,7 +398,7 @@ def create_pending_payment(student_id, course_id):
         INSERT INTO payments
         (student_id, course_id, amount, verification_status)
         SELECT %s, course_id, fee, 'Pending'
-        FROM courses
+        FROM course
         WHERE course_id = %s
         AND NOT EXISTS (
             SELECT 1 FROM payments
@@ -420,7 +420,7 @@ def enroll_in_course(student_id, course_id):
 
     # Enroll student - payment will be created only after admin verification
     cur.execute("""
-       INSERT IGNORE INTO student_courses
+       INSERT IGNORE INTO student_course
         (student_id, course_id, enrollment_status, enrollment_verification_status, payment_verification_status)
             VALUES (%s, %s, 'Enrolled', 'Pending', 'Not Required')
 
@@ -439,7 +439,7 @@ def unenroll_from_course(student_id, course_id):
     cur = db.cursor()
 
     cur.execute("""
-        DELETE FROM student_courses
+        DELETE FROM student_course
         WHERE student_id=%s AND course_id=%s
     """, (student_id, course_id))
 
@@ -461,7 +461,7 @@ def submit_manual_payment(student_id, course_id, payment_method, transaction_id)
             (student_id, course_id, amount, payment_method, transaction_id, payment_date)
         SELECT 
             %s, c.course_id, c.fee, %s, %s, NOW()
-        FROM courses c
+        FROM course c
         WHERE c.course_id = %s
         ON DUPLICATE KEY UPDATE
             payment_method = VALUES(payment_method),
@@ -476,7 +476,7 @@ def submit_manual_payment(student_id, course_id, payment_method, transaction_id)
 
     # 2️⃣ Update COURSE STATE
     cur.execute("""
-        UPDATE student_courses
+        UPDATE student_course
         SET payment_verification_status = 'Submitted'
         WHERE student_id = %s AND course_id = %s
     """, (student_id, course_id))

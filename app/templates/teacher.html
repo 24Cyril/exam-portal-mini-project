@@ -1,135 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Teacher Dashboard | Exam Portal</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher.css') }}">
+    <link rel="stylesheet" href="/static/css/teacher.css">
+    <link rel="stylesheet" href="/static/css/admin.css"> <!-- Reuse some admin styles for tabs if needed -->
+    <style>
+        /* Modern Sidebar Styles */
+        .teacher-sidebar ul li {
+            cursor: pointer;
+            padding: 12px 20px;
+            transition: all 0.3s;
+        }
+
+        .teacher-sidebar ul li:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .teacher-sidebar ul li.active {
+            background: var(--primary);
+            border-left: 4px solid #fff;
+        }
+
+        .logout-link {
+            margin-top: auto;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
 </head>
+
 <body>
-    <header class="dashboard-header">
-        <h1>Teacher Dashboard</h1>
-        <div class="user-info">
-            <span>Welcome, {{ teacher.full_name }}</span>
-            <a href="/logout" class="logout-btn">Logout</a>
-        </div>
-    </header>
-
-    <nav class="dashboard-nav">
-        <a href="/teacher" class="nav-link active">Dashboard</a>
-        <a href="/teacher/profile" class="nav-link">Profile</a>
-        <a href="/teacher/courses" class="nav-link">My Courses</a>
-        <a href="/teacher/exams" class="nav-link">My Exams</a>
-        <a href="/teacher/create-exam" class="nav-link">Create Exam</a>
-        <a href="/teacher/students" class="nav-link">Students</a>
-        <a href="/teacher/performance" class="nav-link">Performance</a>
-        <a href="/teacher/messages" class="nav-link">Messages</a>
-        <a href="/teacher/notifications" class="nav-link">Notifications</a>
-        <a href="/teacher/settings" class="nav-link">Settings</a>
-    </nav>
-
-    <main class="dashboard-main">
-        <div class="dashboard-stats">
-            <div class="stat-card">
-                <h3>Courses</h3>
-                <p class="stat-number">{{ courses|length }}</p>
+    <div class="teacher-dashboard">
+        <div class="teacher-sidebar">
+            <h2>Teacher Panel</h2>
+            <div class="teacher-user-info" style="margin-bottom: 20px; text-align:center;">
+                <span style="display:block; font-weight:bold;">{{ teacher.full_name }}</span>
+                <span style="font-size: 0.8em; opacity: 0.8;">{{ teacher.department }}</span>
             </div>
-            <div class="stat-card">
-                <h3>Exams</h3>
-                <p class="stat-number">{{ exams|length }}</p>
-            </div>
-            <div class="stat-card">
-                <h3>Students</h3>
-                <p class="stat-number" id="total-students">0</p>
-            </div>
-            <div class="stat-card">
-                <h3>Department</h3>
-                <p class="stat-text">{{ teacher.department }}</p>
-            </div>
+            <ul>
+                <li id="tab-home" class="active" onclick="openTab('home')">🏠 Dashboard</li>
+                <li id="tab-profile" onclick="openTab('profile')">👤 Profile</li>
+                <li id="tab-courses" onclick="openTab('courses')">📚 Courses</li>
+                <li id="tab-students" onclick="openTab('students')">🎓 Students</li>
+                <li id="tab-registration" onclick="openTab('registration')">📝 Registrations</li>
+                <li id="tab-exam" onclick="openTab('exam')">🧪 Exams</li>
+                <li id="tab-payment" onclick="openTab('payment')">💳 Payments</li>
+                <li class="logout-link"><a href="/logout" style="color:white; text-decoration:none;">🚪 Logout</a></li>
+            </ul>
         </div>
 
-        <div class="dashboard-content">
-            <div class="section">
-                <h2>My Courses</h2>
-                {% if courses %}
-                    <div class="courses-grid">
-                        {% for course in courses %}
-                        <div class="course-card" data-course-id="{{ course.course_id }}">
-                            <h3>{{ course.course_name }}</h3>
-                            <p class="course-code">{{ course.course_code }}</p>
-                            <p class="course-description">{{ course.description[:100] }}{% if course.description|length > 100 %}...{% endif %}</p>
-                            <div class="course-meta">
-                                <span class="course-fee">&#8377;{{ course.fee }}</span>
-                                <span class="course-status {{ course.status|lower }}">{{ course.status }}</span>
-                            </div>
-                            <div class="course-actions">
-                                <button class="btn-edit" onclick="editCourse({{ course.course_id }})">Edit</button>
-                                <button class="btn-delete" onclick="deleteCourse({{ course.course_id }})">Delete</button>
-                                <button class="btn-students" onclick="viewStudents({{ course.course_id }})">View Students</button>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="no-data">No courses available for your department.</p>
-                {% endif %}
+        <div class="teacher-main">
+            <div class="teacher-header">
+                <h1 id="tab-title">Dashboard</h1>
             </div>
 
-            <div class="section">
-                <h2>Upcoming Exams</h2>
-                {% if exams %}
-                    <div class="exams-list">
-                        {% for exam in exams %}
-                        <div class="exam-item" data-exam-id="{{ exam.exam_id }}">
-                            <div class="exam-info">
-                                <h3>{{ exam.exam_name }}</h3>
-                                <p class="exam-course">{{ exam.course_name }}</p>
-                                <p class="exam-date">{{ exam.exam_date.strftime('%d %b %Y') }}</p>
-                                <p class="exam-time">{{ exam.time_limit }} minutes</p>
-                                <p class="exam-status">Status: <span class="status-badge {{ exam.status|lower }}">{{ exam.status }}</span></p>
-                            </div>
-                            <div class="exam-actions">
-                                <button class="btn-view" onclick="viewExam({{ exam.exam_id }})">View</button>
-                                <button class="btn-edit" onclick="editExam({{ exam.exam_id }})">Edit</button>
-                                <button class="btn-results" onclick="viewResults({{ exam.exam_id }})">Results</button>
-                                <button class="btn-delete" onclick="deleteExam({{ exam.exam_id }})">Delete</button>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <p class="no-data">No exams scheduled for your department.</p>
-                {% endif %}
-            </div>
-
-            <div class="section">
-                <h2>Student Performance Overview</h2>
-                <div class="performance-overview" id="performance-overview">
-                    <div class="performance-card">
-                        <h4>Overall Performance</h4>
-                        <div class="performance-chart" id="overall-performance-chart"></div>
-                        <p class="performance-score" id="overall-performance-score">--</p>
-                    </div>
-
-                    <div class="performance-card">
-                        <h4>Top Performing Students</h4>
-                        <ul class="top-students" id="top-students">
-                            <li class="no-data">No performance data available</li>
-                        </ul>
-                    </div>
-
-                    <div class="performance-card">
-                        <h4>Struggling Students</h4>
-                        <ul class="struggling-students" id="struggling-students">
-                            <li class="no-data">No performance data available</li>
-                        </ul>
-                    </div>
-                </div>
+            <div id="tab-content" class="dashboard-content">
+                <!-- Content loaded via teacher.js -->
             </div>
         </div>
-    </main>
+    </div>
 
-    <footer class="dashboard-footer">
-        <p>&copy; 2024 Education Portal. All rights reserved.</p>
-    </footer>
+    <!-- Hidden Profile Content for JS to grab -->
+    <div id="profile-content" style="display:none">
+        <div class="card">
+            <h3>My Profile</h3>
+            <table class="profile-table">
+                <tr>
+                    <td>Full Name</td>
+                    <td>{{ teacher.full_name }}</td>
+                </tr>
+                <tr>
+                    <td>Email</td>
+                    <td>{{ teacher.email }}</td>
+                </tr>
+                <tr>
+                    <td>Phone</td>
+                    <td>{{ teacher.phone }}</td>
+                </tr>
+                <tr>
+                    <td>Department</td>
+                    <td>{{ teacher.department }}</td>
+                </tr>
+                <tr>
+                    <td>Specialization</td>
+                    <td>{{ teacher.specialization }}</td>
+                </tr>
+                <tr>
+                    <td>Institute</td>
+                    <td>{{ teacher.institute_name }}</td>
+                </tr>
+                <tr>
+                    <td>Role</td>
+                    <td>{{ profile_type|upper }}</td>
+                </tr>
+                </ul>
+                <a href="/teacher/update" class="teacher-btn"
+                    style="display:inline-block; margin-top:20px; text-decoration:none;">Edit Profile</a>
+        </div>
+    </div>
+
+    <script src="/static/js/teacher.js"></script>
+    <script>
+        // Override the default openTab to handle sidebar active state
+        const originalOpenTab = openTab;
+        openTab = function (tabName) {
+            // Remove active class from all
+            document.querySelectorAll('.teacher-sidebar ul li').forEach(li => li.classList.remove('active'));
+            // Add to current
+            const activeTab = document.getElementById('tab-' + tabName);
+            if (activeTab) activeTab.classList.add('active');
+
+            originalOpenTab(tabName);
+        };
+
+        // Initial load
+        window.onload = () => openTab('home');
+    </script>
 </body>
+
 </html>
