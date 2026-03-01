@@ -33,7 +33,7 @@
 
 <body>
     <div class="teacher-dashboard">
-        <div class="teacher-sidebar">
+        <div class="teacher-sidebar" style="display: flex; flex-direction: column;">
             <h2>Teacher Panel</h2>
             <div class="teacher-user-info" style="margin-bottom: 20px; text-align:center;">
                 <span style="display:block; font-weight:bold;">{{ teacher.full_name }}</span>
@@ -52,8 +52,10 @@
                 <li id="tab-exam" onclick="openTab('exam')">🧪 Exams</li>
                 <li id="tab-payment" onclick="openTab('payment')">💳 Payments</li>
                 <li id="tab-performance" onclick="openTab('performance')">📊 Performance</li>
-                <li class="logout-link"><a href="/logout" style="color:white; text-decoration:none;">🚪 Logout</a></li>
             </ul>
+            <div style="margin-top: auto; padding-top: 20px;">
+                <a href="/logout" class="teacher-logout-btn">🚪 Logout</a>
+            </div>
         </div>
 
         <div class="teacher-main">
