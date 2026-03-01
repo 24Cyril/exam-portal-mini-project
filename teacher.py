@@ -14,14 +14,17 @@
 # - Stores admin profile details
 # - Linked logically with users table
 # - Fields: admin_id, full_name, dob, gender, contact_number,
-#   email, username, last_login, created_at, updated_at
+#   email, username, institute_name, institute_code, institute_email,
+#   last_login, created_at, updated_at
 
 # STUDENT
 # - Stores student profile information
 # - Each student is linked to a user account
 # - Fields: id, user_id, full_name, age, gender, email, phone,
 #   address, course, department, institute_name, year_of_study,
-#   enrollment_date, created_at, updated_at
+#   enrollment_date, dob, blood_group, nationality, emergency_contact,
+#   city, state, pincode, country, semester, roll_number,
+#   created_at, updated_at
 
 # TEACHER
 # - Stores teacher profile information
@@ -53,7 +56,8 @@
 # - Stores exams conducted for course
 # - Fields: exam_id, course_id, exam_name, exam_type,
 #   total_questions, duration_minutes, passing_score,
-#   exam_date, created_by, created_at
+#   exam_date, question_file, answer_file, status,
+#   created_by, created_at
 
 # EXAM_QUESTIONS
 # - Stores questions belonging to exams
@@ -152,6 +156,8 @@ def update_teacher_profile(username, data):
     cursor.execute("SELECT id FROM teacher WHERE user_id=%s", (user_id,))
     exists = cursor.fetchone()
 
+    phone = data.get("phone") or data.get("contact_number")
+
     if exists:
         cursor.execute("""
             UPDATE teacher SET 
@@ -165,7 +171,7 @@ def update_teacher_profile(username, data):
         """, (
             data["full_name"],
             data["email"],
-            data["phone"],
+            phone,
             data["department"],
             data["specialization"],
             data["institute_name"],
@@ -179,7 +185,7 @@ def update_teacher_profile(username, data):
             user_id,
             data["full_name"],
             data["email"],
-            data["phone"],
+            phone,
             data["department"],
             data["specialization"],
             data["institute_name"]

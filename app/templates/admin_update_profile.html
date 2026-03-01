@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Update Admin Profile</title>
+    <title>Update Profile — Teacher Panel</title>
 
 
 
@@ -14,7 +14,7 @@
 <body>
 
     <div class="sidebar">
-        <h2 class="logo">Admin Panel</h2>
+        <h2 class="logo">Teacher Panel</h2>
         <ul class="nav-list">
             <li><a href="/teacher">🏠 Home</a></li>
             <li class="active"><a href="/teacher/update">👤 Profile</a></li>
@@ -29,7 +29,7 @@
     </div>
 
     <div class="main-content">
-        <h2 id="tab-title">Update Admin Profile</h2>
+        <h2 id="tab-title">Update Your Profile</h2>
         <div class="card">
             <form action="/teacher/update" method="post" style="max-width:820px;">
                 <h4>Personal Details</h4>
@@ -47,21 +47,21 @@
                     <option value="Other" {% if admin.gender=="Other" %}selected{% endif %}>Other</option>
                 </select>
 
-                <label class="small">Contact Number</label>
-                <input type="text" name="contact_number" value="{{ admin.contact_number }}">
+                <label class="small">Contact Number / Phone</label>
+                <input type="text" name="contact_number" value="{{ admin.contact_number or admin.phone }}">
 
                 <label class="small">Email</label>
                 <input type="email" name="email" value="{{ admin.email }}">
 
                 <h4 style="margin-top:12px;">Account Information (Read Only)</h4>
-                <label class="small">Admin ID</label>
-                <input type="text" value="{{ admin.admin_id }}" disabled>
+                <label class="small">ID</label>
+                <input type="text" value="{{ admin.admin_id or admin.id }}" disabled>
 
                 <label class="small">Username</label>
                 <input type="text" value="{{ admin.username }}" disabled>
 
                 <label class="small">Role</label>
-                <input type="text" value="{{ admin.role }}" disabled>
+                <input type="text" value="{{ role|upper }}" disabled>
 
                 <label class="small">Account Status</label>
                 <input type="text" value="{{ admin.account_status }}" disabled>
