@@ -30,3 +30,41 @@ enroll in a course. do mock tests.
 see performance.
 
 a particular department contains some courses if all are passed a certificate is given.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+heres how the project works:
+
+project starts
+the admin adds departments
+teacher signs in.
+aadds courses and students(maybe).
+student signs in.
+enrolls in a course of his department .
+teacher verfiers it. before that he can unenroll
+after that he pays money for registrtionn which teacher also verfies.
+then he learns note(which i have added into the folder).
+take mock tests,results shown immediately.
+when exam registration happens
+he pays again. verified by teacher again.
+
+there will be indicators in the course page of student page for all actions. they will, always be there. for example if not enrolled, it shows not enrolled and a button
+to enroll. if enrolled abutton to un enroll is there and a indicator which shows not verifed. which changes if teacher verifies. after that payment status will be there
+like the above. then admin creates a question paper txt file and uploads it with 4 options. in exam page in student page,it opens a form page with the questions and options.of course the exam name and ithers are stored in the tables;
+after filling the mcq,his answers are stored in a table in the form of a string like "aabcdcd" for answers. after completing it. the teacher evaluates it by sharing an answer sheet at the exam tab, to evaluate the answer(u get it).
+ tehn he clicks a publish b uton so the student can see it. the student and teacher in a department are a blcok another depart is another section, they dont see tjhe same notes,courses,exams etc.
+then do the performance chart.

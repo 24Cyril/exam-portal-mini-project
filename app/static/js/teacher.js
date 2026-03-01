@@ -48,6 +48,11 @@ function openTab(tabName) {
         return;
     }
 
+    if (tabName === "performance") {
+        loadPerformance();
+        return;
+    }
+
     document.getElementById("tab-content").innerHTML =
         `<p>${tabName} module coming soon...</p>`;
 }
@@ -62,8 +67,8 @@ function loadAdminHome() {
         const totalStudents = (students || []).length;
         const totalCourses = (courses || []).length;
         const pendingEnrollments = (enrollments || []).length;
-        const pendingPayments = (payments || []).filter(p => (p.payment_verification_status || '').toLowerCase() === 'submitted').length;
-        const verifiedPayments = (payments || []).filter(p => (p.payment_verification_status || '').toLowerCase() === 'verified').length;
+        const pendingPayments = (payments || []).filter(p => (p.verification_status || '').toLowerCase() === 'pending' || (p.verification_status || '').toLowerCase() === 'submitted').length;
+        const verifiedPayments = (payments || []).filter(p => (p.verification_status || '').toLowerCase() === 'verified').length;
 
         document.getElementById('tab-content').innerHTML = `
             <div class="card admin-home">
@@ -294,7 +299,7 @@ function renderEnrollmentsTable(enrollments) {
             <td>${e.student_name || ""}</td>
             <td>${e.email || ""}</td>
             <td>${e.course_name}</td>
-            <td><span class="badge pending">${e.enrollment_verification_status}</span></td>
+            <td><span class="badge ${e.status === 'Pending' ? 'pending' : 'active'}">${e.status}</span></td>
             <td>${e.created_at || ""}</td>
             <td>
                 <button class="verify-btn" onclick="verifyEnrollment(${e.id})">✓ Verify</button>
@@ -404,7 +409,7 @@ function applyPaymentsFilters() {
             ok = ok && hay.includes(q);
         }
 
-        if (status) ok = ok && ((p.payment_verification_status || '').toString() === status);
+        if (status) ok = ok && ((p.verification_status || '').toString() === status);
         if (from) ok = ok && (p.payment_date && p.payment_date >= from);
         if (to) ok = ok && (p.payment_date && p.payment_date <= to);
 
@@ -452,13 +457,13 @@ function paymentsGoTo(n) { paymentsCurrentPage = n; renderPaymentsPage(); }
 
 function renderPaymentsTable(payments) {
     const rows = (payments || []).map(p => {
-        const status = (p.payment_verification_status || '').toString();
+        const status = (p.verification_status || '').toString();
 
         // receipt button (always visible if payment exists)
         const receiptBtn = p.payment_id ? `<button class="edit-btn" onclick="window.open('/payment/receipt/${p.payment_id}','_blank')">Receipt</button>` : '';
 
         let action = '';
-        if ((status || '').toLowerCase() === 'submitted') {
+        if ((status || '').toLowerCase() === 'submitted' || (status || '').toLowerCase() === 'pending') {
             action = `
                 <button class="verify-btn" onclick="verifyPayment(${p.payment_id})">✓ Verify</button>
                 <button class="reject-btn" onclick="rejectPayment(${p.payment_id})">✗ Reject</button>
@@ -475,9 +480,9 @@ function renderPaymentsTable(payments) {
                 <td>${p.email || ''}</td>
                 <td>${p.course_name || ''}</td>
                 <td>₹${p.amount || ''}</td>
-                <td>${p.payment_method || ''}</td>
+                <td>${p.payment_type || 'Registration'}</td>
                 <td>${p.transaction_id || ''}</td>
-                <td>${p.payment_date || ''}</td>
+                <td>${p.created_at || ''}</td>
                 <td>${action}</td>
             </tr>
         `;
@@ -493,7 +498,7 @@ function renderPaymentsTable(payments) {
                 <th>Email</th>
                 <th>Course</th>
                 <th>Amount</th>
-                <th>Method</th>
+                <th>Type</th>
                 <th>Transaction ID</th>
                 <th>Date</th>
                 <th>Actions</th>
@@ -815,4 +820,66 @@ function deleteDepartment(id) {
         fetch("/teacher/delete-department/" + id, { method: "POST" })
             .then(() => loadDepartments());
     }
+}
+
+/* =====================================================
+   PERFORMANCE TAB
+===================================================== */
+
+function loadPerformance() {
+    fetch("/teacher/performance")
+        .then(res => res.json())
+        .then(data => renderPerformanceChart(data.performance || []));
+}
+
+function renderPerformanceChart(perf) {
+    if (!perf || perf.length === 0) {
+        document.getElementById("tab-content").innerHTML = `
+            <h3>Department Performance</h3>
+            <p>No performance data available yet. Ensure students have completed exams and teachers have published results.</p>
+        `;
+        return;
+    }
+
+    const labels = perf.map(p => p.full_name);
+    const scores = perf.map(p => parseFloat(p.avg_score).toFixed(2));
+
+    document.getElementById("tab-content").innerHTML = `
+        <h3>Department Performance Overview</h3>
+        <div class="card" style="margin-top:20px;">
+            <canvas id="performanceChart" width="400" height="200"></canvas>
+        </div>
+        <div style="margin-top:20px;">
+            <h4>Rank List</h4>
+            <table class="profile-table">
+                <tr><th>Rank</th><th>Student Name</th><th>Avg Score</th></tr>
+                ${perf.sort((a, b) => b.avg_score - a.avg_score).map((p, i) => `
+                    <tr><td>${i + 1}</td><td>${p.full_name}</td><td>${parseFloat(p.avg_score).toFixed(2)}%</td></tr>
+                `).join('')}
+            </table>
+        </div>
+    `;
+
+    const ctx = document.getElementById('performanceChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Average Score (%)',
+                data: scores,
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
 }

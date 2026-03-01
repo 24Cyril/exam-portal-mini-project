@@ -1,319 +1,330 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Student Dashboard | Exam Portal</title>
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
     <link rel="stylesheet" href="/static/css/student.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
-<div class="sidebar">
-    <h2>Student Panel</h2>
+    <div class="sidebar">
+        <h2>Student Panel</h2>
 
-    <ul>
-        <li id="tab-home" onclick="openTab('home')">🏠 Home</li>
-        <li id="tab-profile" onclick="openTab('profile')">👤 Profile</li>
-        <li id="tab-courses" onclick="openTab('courses')">📚 Courses</li>
-        <li id="tab-notes" onclick="openTab('notes')">📄 Notes</li>
-        <li id="tab-mock-exams" onclick="openTab('mock-exams')">🧠 Mock Exams</li>
-        <li id="tab-test-exams" onclick="openTab('test-exams')">📝 Test Exams</li>
-        <li id="tab-main-exam" onclick="openTab('main-exam')">📝 Main Exam</li>
-        <li id="tab-results" onclick="openTab('results')">📊 Results</li>
-        <li id="tab-performance" onclick="openTab('performance')">📈 Performance</li>
-        <li id="tab-certificates" onclick="openTab('certificates')">🏆 Certificates</li>
-        <li id="tab-messages" onclick="openTab('messages')">💬 Messages</li>
-        <li id="tab-notifications" onclick="openTab('notifications')">🔔 Notifications</li>
-        <li id="tab-payment" onclick="openTab('payment')">💳 Payment</li>
-        <li id="tab-settings" onclick="openTab('settings')">⚙️ Settings</li>
+        <ul>
+            <li id="tab-home" onclick="openTab('home')">🏠 Home</li>
+            <li id="tab-profile" onclick="openTab('profile')">👤 Profile</li>
+            <li id="tab-courses" onclick="openTab('courses')">📚 Courses</li>
+            <li id="tab-notes" onclick="openTab('notes')">📄 Notes</li>
+            <li id="tab-mock-exams" onclick="openTab('mock-exams')">🧠 Mock Exams</li>
+            <li id="tab-test-exams" onclick="openTab('test-exams')">📝 Test Exams</li>
+            <li id="tab-main-exam" onclick="openTab('main-exam')">📝 Main Exam</li>
+            <li id="tab-results" onclick="openTab('results')">📊 Results</li>
+            <li id="tab-performance" onclick="openTab('performance')">📈 Performance</li>
+            <li id="tab-certificates" onclick="openTab('certificates')">🏆 Certificates</li>
+            <li id="tab-messages" onclick="openTab('messages')">💬 Messages</li>
+            <li id="tab-notifications" onclick="openTab('notifications')">🔔 Notifications</li>
+            <li id="tab-payment" onclick="openTab('payment')">💳 Payment</li>
+            <li id="tab-settings" onclick="openTab('settings')">⚙️ Settings</li>
 
-        <!-- LOGOUT INSIDE NAV -->
-        <li id="logout">
-            <a href="/logout">🚪 Logout</a>
-        </li>
-    </ul>
-</div>
+            <!-- LOGOUT INSIDE NAV -->
+            <li id="logout">
+                <a href="/logout">🚪 Logout</a>
+            </li>
+        </ul>
+    </div>
 
 
-<div class="content">
-    <h2 id="page-title">HOME</h2>
-    <div id="tab-content">
-        <!-- HOME TAB CONTENT -->
-        <div id="home" class="tab-content">
-            <div class="dashboard-stats">
-                <div class="stat-card">
-                    <h3>Courses Enrolled</h3>
-                    <p class="stat-number" id="courses-enrolled">0</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Exams Completed</h3>
-                    <p class="stat-number" id="exams-completed">0</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Overall Grade</h3>
-                    <p class="stat-text" id="overall-grade">--</p>
-                </div>
-            </div>
-
-            <div class="dashboard-notifications">
-                <h3>Upcoming Exams</h3>
-                <ul id="upcoming-exams">
-                    <li class="no-data">No upcoming exams</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- PROFILE TAB CONTENT -->
-        <div id="profile" class="tab-content" style="display: none;">
-            <div class="profile-header">
-                <div class="profile-picture">
-                    <img id="profile-img" src="../static/uploads/default-avatar.png" alt="Profile Picture">
-                    <button onclick="editProfile()">Edit Profile</button>
-                </div>
-                <div class="profile-info">
-                    <h2 id="profile-name">Loading...</h2>
-                    <p id="profile-email"></p>
-                    <p id="profile-course"></p>
-                    <p id="profile-year"></p>
-                </div>
-            </div>
-
-            <div class="profile-details">
-                <div class="profile-section">
-                    <h3>Personal Information</h3>
-                    <ul>
-                        <li><strong>Date of Birth:</strong> <span id="dob">--</span></li>
-                        <li><strong>Age:</strong> <span id="age">--</span></li>
-                        <li><strong>Gender:</strong> <span id="gender">--</span></li>
-                        <li><strong>Blood Group:</strong> <span id="blood-group">--</span></li>
-                        <li><strong>Nationality:</strong> <span id="nationality">--</span></li>
-                    </ul>
+    <div class="content">
+        <h2 id="page-title">HOME</h2>
+        <div id="tab-content">
+            <!-- HOME TAB CONTENT -->
+            <div id="home" class="tab-content">
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <h3>Courses Enrolled</h3>
+                        <p class="stat-number" id="courses-enrolled">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Exams Completed</h3>
+                        <p class="stat-number" id="exams-completed">0</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Overall Grade</h3>
+                        <p class="stat-text" id="overall-grade">--</p>
+                    </div>
                 </div>
 
-                <div class="profile-section">
-                    <h3>Contact Information</h3>
-                    <ul>
-                        <li><strong>Email:</strong> <span id="contact-email">--</span></li>
-                        <li><strong>Phone:</strong> <span id="phone">--</span></li>
-                        <li><strong>Emergency Contact:</strong> <span id="emergency-contact">--</span></li>
-                    </ul>
-                </div>
-
-                <div class="profile-section">
-                    <h3>Address</h3>
-                    <ul>
-                        <li><strong>Address:</strong> <span id="address">--</span></li>
-                        <li><strong>City:</strong> <span id="city">--</span></li>
-                        <li><strong>State:</strong> <span id="state">--</span></li>
-                        <li><strong>Pincode:</strong> <span id="pincode">--</span></li>
-                        <li><strong>Country:</strong> <span id="country">--</span></li>
-                    </ul>
-                </div>
-
-                <div class="profile-section">
-                    <h3>Academic Information</h3>
-                    <ul>
-                        <li><strong>Course:</strong> <span id="academic-course">--</span></li>
-                        <li><strong>Department:</strong> <span id="department">--</span></li>
-                        <li><strong>Institute:</strong> <span id="institute">--</span></li>
-                        <li><strong>Year of Study:</strong> <span id="year-of-study">--</span></li>
-                        <li><strong>Semester:</strong> <span id="semester">--</span></li>
-                        <li><strong>Roll Number:</strong> <span id="roll-number">--</span></li>
+                <div class="dashboard-notifications">
+                    <h3>Upcoming Exams</h3>
+                    <ul id="upcoming-exams">
+                        <li class="no-data">No upcoming exams</li>
                     </ul>
                 </div>
             </div>
-        </div>
 
-        <!-- COURSES TAB CONTENT -->
-        <div id="courses" class="tab-content" style="display: none;">
-            <h3>My Courses</h3>
-            <div class="courses-grid" id="courses-grid">
-                <div class="no-data">No courses enrolled yet</div>
-            </div>
-        </div>
-
-        <!-- NOTES TAB CONTENT -->
-        <div id="notes" class="tab-content" style="display: none;">
-            <h3>Course Notes</h3>
-            <div class="notes-container" id="notes-container">
-                <div class="no-data">No notes available</div>
-            </div>
-        </div>
-
-        <!-- MOCK EXAMS TAB CONTENT -->
-        <div id="mock-exams" class="tab-content" style="display: none;">
-            <h3>Mock Exams</h3>
-            <div class="exams-list" id="mock-exams-list">
-                <div class="no-data">No mock exams available</div>
-            </div>
-        </div>
-
-        <!-- TEST EXAMS TAB CONTENT -->
-        <div id="test-exams" class="tab-content" style="display: none;">
-            <h3>Test Exams</h3>
-            <div class="exams-list" id="test-exams-list">
-                <div class="no-data">No test exams available</div>
-            </div>
-        </div>
-
-        <!-- MAIN EXAM TAB CONTENT -->
-        <div id="main-exam" class="tab-content" style="display: none;">
-            <h3>Main Exam</h3>
-            <div class="main-exam-container" id="main-exam-container">
-                <div class="no-data">No main exam scheduled</div>
-            </div>
-        </div>
-
-        <!-- RESULTS TAB CONTENT -->
-        <div id="results" class="tab-content" style="display: none;">
-            <h3>Exam Results</h3>
-            <div class="results-table" id="results-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Exam</th>
-                            <th>Course</th>
-                            <th>Date</th>
-                            <th>Marks</th>
-                            <th>Grade</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="results-tbody">
-                        <tr>
-                            <td colspan="6">No results available</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- PERFORMANCE TAB CONTENT -->
-        <div id="performance" class="tab-content" style="display: none;">
-            <h3>Performance Analytics</h3>
-            <div class="performance-overview">
-                <div class="performance-card">
-                    <h4>Overall Performance</h4>
-                    <div class="performance-chart" id="overall-chart"></div>
-                    <p class="performance-score" id="overall-score">--</p>
+            <!-- PROFILE TAB CONTENT -->
+            <div id="profile" class="tab-content" style="display: none;">
+                <div class="profile-header">
+                    <div class="profile-picture">
+                        <img id="profile-img" src="../static/uploads/default-avatar.png" alt="Profile Picture">
+                        <button onclick="editProfile()">Edit Profile</button>
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="profile-name">Loading...</h2>
+                        <p id="profile-email"></p>
+                        <p id="profile-course"></p>
+                        <p id="profile-year"></p>
+                    </div>
                 </div>
 
-                <div class="performance-card">
-                    <h4>Subject-wise Performance</h4>
-                    <ul class="subject-performance" id="subject-performance">
-                        <li class="no-data">No performance data available</li>
-                    </ul>
-                </div>
-
-                <div class="performance-card">
-                    <h4>Exam-wise Performance</h4>
-                    <ul class="exam-performance" id="exam-performance">
-                        <li class="no-data">No exam data available</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- CERTIFICATES TAB CONTENT -->
-        <div id="certificates" class="tab-content" style="display: none;">
-            <h3>Certificates</h3>
-            <div class="certificates-grid" id="certificates-grid">
-                <div class="no-data">No certificates earned yet</div>
-            </div>
-        </div>
-
-        <!-- MESSAGES TAB CONTENT -->
-        <div id="messages" class="tab-content" style="display: none;">
-            <h3>Messages</h3>
-            <div class="messages-container" id="messages-container">
-                <div class="no-data">No messages available</div>
-            </div>
-        </div>
-
-        <!-- NOTIFICATIONS TAB CONTENT -->
-        <div id="notifications" class="tab-content" style="display: none;">
-            <h3>Notifications</h3>
-            <div class="notifications-list" id="notifications-list">
-                <div class="no-data">No notifications available</div>
-            </div>
-        </div>
-
-        <!-- PAYMENT TAB CONTENT -->
-        <div id="payment" class="tab-content" style="display: none;">
-            <h3>Payment History</h3>
-            <div class="payment-history" id="payment-history">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Course</th>
-                            <th>Amount</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="payment-tbody">
-                        <tr>
-                            <td colspan="4">No payment history available</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- SETTINGS TAB CONTENT -->
-        <div id="settings" class="tab-content" style="display: none;">
-            <h3>Settings</h3>
-            <div class="settings-form">
-                <form id="settingsForm">
-                    <div class="form-group">
-                        <label>Notification Preferences</label>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="email-notifications" name="email-notifications" checked>
-                            <label for="email-notifications">Email Notifications</label>
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="sms-notifications" name="sms-notifications" checked>
-                            <label for="sms-notifications">SMS Notifications</label>
-                        </div>
+                <div class="profile-details">
+                    <div class="profile-section">
+                        <h3>Personal Information</h3>
+                        <ul>
+                            <li><strong>Date of Birth:</strong> <span id="dob">--</span></li>
+                            <li><strong>Age:</strong> <span id="age">--</span></li>
+                            <li><strong>Gender:</strong> <span id="gender">--</span></li>
+                            <li><strong>Blood Group:</strong> <span id="blood-group">--</span></li>
+                            <li><strong>Nationality:</strong> <span id="nationality">--</span></li>
+                        </ul>
                     </div>
 
-                    <div class="form-group">
-                        <label>Privacy Settings</label>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="profile-public" name="profile-public" checked>
-                            <label for="profile-public">Make Profile Public</label>
-                        </div>
-                        <div class="checkbox-group">
-                            <input type="checkbox" id="results-public" name="results-public" checked>
-                            <label for="results-public">Share Results with Teachers</label>
-                        </div>
+                    <div class="profile-section">
+                        <h3>Contact Information</h3>
+                        <ul>
+                            <li><strong>Email:</strong> <span id="contact-email">--</span></li>
+                            <li><strong>Phone:</strong> <span id="phone">--</span></li>
+                            <li><strong>Emergency Contact:</strong> <span id="emergency-contact">--</span></li>
+                        </ul>
                     </div>
 
-                    <div class="form-group">
-                        <label>Password</label>
-                        <input type="password" id="current-password" placeholder="Current Password">
-                        <input type="password" id="new-password" placeholder="New Password">
-                        <input type="password" id="confirm-new-password" placeholder="Confirm New Password">
+                    <div class="profile-section">
+                        <h3>Address</h3>
+                        <ul>
+                            <li><strong>Address:</strong> <span id="address">--</span></li>
+                            <li><strong>City:</strong> <span id="city">--</span></li>
+                            <li><strong>State:</strong> <span id="state">--</span></li>
+                            <li><strong>Pincode:</strong> <span id="pincode">--</span></li>
+                            <li><strong>Country:</strong> <span id="country">--</span></li>
+                        </ul>
                     </div>
 
-                    <button type="button" onclick="saveSettings()">Save Settings</button>
-                </form>
+                    <div class="profile-section">
+                        <h3>Academic Information</h3>
+                        <ul>
+                            <li><strong>Course:</strong> <span id="academic-course">--</span></li>
+                            <li><strong>Department:</strong> <span id="department">--</span></li>
+                            <li><strong>Institute:</strong> <span id="institute">--</span></li>
+                            <li><strong>Year of Study:</strong> <span id="year-of-study">--</span></li>
+                            <li><strong>Semester:</strong> <span id="semester">--</span></li>
+                            <li><strong>Roll Number:</strong> <span id="roll-number">--</span></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COURSES TAB CONTENT -->
+            <div id="courses" class="tab-content" style="display: none;">
+                <h3>My Courses</h3>
+                <div class="courses-grid" id="courses-grid">
+                    <div class="no-data">No courses enrolled yet</div>
+                </div>
+            </div>
+
+            <!-- NOTES TAB CONTENT -->
+            <div id="notes" class="tab-content" style="display: none;">
+                <h3>Course Materials & Notes</h3>
+                <div class="notes-grid" id="notes-container">
+                    <div class="no-data">Enroll in a course to access notes</div>
+                </div>
+            </div>
+
+            <!-- MOCK EXAMS TAB CONTENT -->
+            <div id="mock-exams" class="tab-content" style="display: none;">
+                <h3>Mock Exams</h3>
+                <div class="exams-list" id="mock-exams-list">
+                    <div class="no-data">No mock exams available</div>
+                </div>
+            </div>
+
+            <!-- TEST EXAMS TAB CONTENT -->
+            <div id="test-exams" class="tab-content" style="display: none;">
+                <h3>Test Exams</h3>
+                <div class="exams-list" id="test-exams-list">
+                    <div class="no-data">No test exams available</div>
+                </div>
+            </div>
+
+            <!-- MAIN EXAM TAB CONTENT -->
+            <div id="main-exam" class="tab-content" style="display: none;">
+                <h3>Main Exam</h3>
+                <div class="main-exam-container" id="main-exam-container">
+                    <div class="no-data">No main exam scheduled</div>
+                </div>
+            </div>
+
+            <!-- RESULTS TAB CONTENT -->
+            <div id="results" class="tab-content" style="display: none;">
+                <h3>Exam Results</h3>
+                <div class="results-table" id="results-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Exam</th>
+                                <th>Course</th>
+                                <th>Date</th>
+                                <th>Marks</th>
+                                <th>Grade</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-tbody">
+                            <tr>
+                                <td colspan="6">No results available</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PERFORMANCE TAB CONTENT -->
+            <div id="performance" class="tab-content" style="display: none;">
+                <!-- Content will be injected by student.js loadPerformance() -->
+            </div>
+
+            <!-- CERTIFICATES TAB CONTENT -->
+            <div id="certificates" class="tab-content" style="display: none;">
+                <h3>Certificates</h3>
+                <div class="certificates-grid" id="certificates-grid">
+                    <div class="no-data">No certificates earned yet</div>
+                </div>
+            </div>
+
+            <!-- MESSAGES TAB CONTENT -->
+            <div id="messages" class="tab-content" style="display: none;">
+                <h3>Messages</h3>
+                <div class="messages-container" id="messages-container">
+                    <div class="no-data">No messages available</div>
+                </div>
+            </div>
+
+            <!-- NOTIFICATIONS TAB CONTENT -->
+            <div id="notifications" class="tab-content" style="display: none;">
+                <h3>Notifications</h3>
+                <div class="notifications-list" id="notifications-list">
+                    <div class="no-data">No notifications available</div>
+                </div>
+            </div>
+
+            <!-- PAYMENT TAB CONTENT -->
+            <div id="payment" class="tab-content" style="display: none;">
+                <h3>My Payment History</h3>
+                <div class="payment-history" id="payment-history">
+                    <table class="profile-table">
+                        <thead>
+                            <tr>
+                                <th>Course</th>
+                                <th>Amount</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>ID</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payment-tbody">
+                            <tr>
+                                <td colspan="6">No payment history available</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SETTINGS TAB CONTENT -->
+            <div id="settings" class="tab-content" style="display: none;">
+                <h3>Settings</h3>
+                <div class="settings-form">
+                    <form id="settingsForm">
+                        <div class="form-group">
+                            <label>Notification Preferences</label>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="email-notifications" name="email-notifications" checked>
+                                <label for="email-notifications">Email Notifications</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="sms-notifications" name="sms-notifications" checked>
+                                <label for="sms-notifications">SMS Notifications</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Privacy Settings</label>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="profile-public" name="profile-public" checked>
+                                <label for="profile-public">Make Profile Public</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="results-public" name="results-public" checked>
+                                <label for="results-public">Share Results with Teachers</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="current-password" placeholder="Current Password">
+                            <input type="password" id="new-password" placeholder="New Password">
+                            <input type="password" id="confirm-new-password" placeholder="Confirm New Password">
+                        </div>
+
+                        <button type="button" onclick="saveSettings()">Save Settings</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- 🔒 Inject student data from backend -->
-<script>
-    const studentData = {{ student | tojson }};
-</script>
+    <!-- PAYMENT MODAL -->
+    <div id="paymentModal" class="modal"
+        style="display:none; position:fixed; z-index:100; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5);">
+        <div class="modal-content"
+            style="background:white; margin:10% auto; padding:20px; width:400px; border-radius:8px;">
+            <h3>Complete Payment</h3>
+            <p id="paymentCourseName"></p>
+            <p id="paymentAmount"></p>
+            <div class="form-group" style="margin-top:15px;">
+                <label>Payment Method</label>
+                <select id="payMethod" class="form-control" style="width:100%; padding:8px; margin-bottom:10px;">
+                    <option value="UPI">UPI / GPay</option>
+                    <option value="Card">Credit / Debit Card</option>
+                    <option value="NetBanking">Net Banking</option>
+                </select>
+                <label>Transaction ID / UTR</label>
+                <input type="text" id="txnId" placeholder="Enter Transaction ID"
+                    style="width:100%; padding:8px; margin-bottom:10px;">
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-top:15px;">
+                <button class="unenroll-btn" onclick="closePaymentModal()">Cancel</button>
+                <button class="pay-btn" onclick="confirmPayment()">Submit Payment</button>
+            </div>
+        </div>
+    </div>
 
-<script src="../static/js/student.js"></script>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <!-- 🔒 Inject student data from backend -->
+    <script>
+        const studentData = {{ student | tojson }};
+    </script>
+
+    <script src="../static/js/student.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </body>
+
 </html>

@@ -6,6 +6,7 @@
     <title>Teacher Dashboard | Exam Portal</title>
     <link rel="stylesheet" href="/static/css/teacher.css">
     <link rel="stylesheet" href="/static/css/admin.css"> <!-- Reuse some admin styles for tabs if needed -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Modern Sidebar Styles */
         .teacher-sidebar ul li {
@@ -50,6 +51,7 @@
                 <li id="tab-registration" onclick="openTab('registration')">📝 Registrations</li>
                 <li id="tab-exam" onclick="openTab('exam')">🧪 Exams</li>
                 <li id="tab-payment" onclick="openTab('payment')">💳 Payments</li>
+                <li id="tab-performance" onclick="openTab('performance')">📊 Performance</li>
                 <li class="logout-link"><a href="/logout" style="color:white; text-decoration:none;">🚪 Logout</a></li>
             </ul>
         </div>
