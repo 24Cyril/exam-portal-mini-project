@@ -130,7 +130,13 @@ from admin import (
     get_course_by_id,
     add_course,
     update_course,
-    delete_course
+    delete_course,
+    get_all_teachers,
+    add_teacher_account,
+    delete_teacher,
+    get_all_departments,
+    add_department,
+    delete_department
 )
 from exams import (
     check_exam_eligibility,
@@ -228,10 +234,10 @@ def register():
             # ---------------- ADMIN ----------------
             if role == "admin":
                 cursor.execute("""
-                    INSERT INTO admin (username, full_name, email, dob, gender, contact_number)
+                    INSERT INTO admin (user_id, full_name, email, dob, gender, contact_number)
                     VALUES (%s, %s, %s, %s, %s, %s)
                 """, (
-                    username, 
+                    user_id, 
                     a_full_name, 
                     email, 
                     request.form.get("dob") or None, 
@@ -244,8 +250,8 @@ def register():
             elif role == "student":
                 cursor.execute("""
                     INSERT INTO student
-                    (user_id, full_name, age,gender, email, phone,address, course, department, institute_name, year_of_study, enrollment_date)
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                    (user_id, full_name, age, gender, email, phone, address, department, branch, institute_name, year_of_study, enrollment_date, roll_number)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """, (
                     user_id,
                     s_full_name,
@@ -254,11 +260,13 @@ def register():
                     email,
                     request.form.get("phone", ""),
                     request.form.get("address", ""),
-                    request.form.get("course", ""),
                     request.form.get("department", ""),
+                    request.form.get("course", ""), # In HTML the Branch input has name="course"
                     request.form.get("institute_name", ""),
                     safe_int(request.form.get("year_of_study")),
-                    request.form.get("enrollment_date") or "2024-01-01"  ))
+                    request.form.get("enrollment_date") or "2024-01-01",
+                    request.form.get("roll_number", "")
+                ))
                 logger.info(f"Student record created for {user_id}")
 
             # ---------------- TEACHER ----------------
@@ -352,9 +360,9 @@ def student_dashboard():
         return redirect("/")
     
     from student import get_student_profile_by_username
-    student = get_student_profile_by_username(session["username"])
+    student_profile = get_student_profile_by_username(session["username"])
         
-    return render_template("student.html", student=student)
+    return render_template("student.html", student=student_profile)
 
 
 @app.route("/teacher")
@@ -699,8 +707,11 @@ def teacher_performance():
     if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
         return {"error": "Unauthorized"}, 401
     
-    dept_id = get_teacher_department_id(session["user_id"])
-    perf = get_department_performance(dept_id)
+    if session["role"] == "admin":
+        perf = get_department_performance(None)
+    else:
+        dept_id = get_teacher_department_id(session["user_id"])
+        perf = get_department_performance(dept_id)
     return {"performance": perf}
 
 
@@ -1081,25 +1092,6 @@ def change_student_password():
     update_student_password(user_id, new_password)
 
     return redirect("/student/profile")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -58,12 +58,19 @@ function openTab(tabName) {
 }
 
 function loadAdminHome() {
-    Promise.all([
+    const requests = [
         fetch('/teacher/students').then(r => r.json()).then(d => d.students || []).catch(() => []),
         fetch('/teacher/courses').then(r => r.json()).then(d => d.courses || []).catch(() => []),
         fetch('/teacher/enrollments').then(r => r.json()).then(d => d.enrollments || []).catch(() => []),
         fetch('/teacher/payments').then(r => r.json()).then(d => d.payments || []).catch(() => [])
-    ]).then(([students, courses, enrollments, payments]) => {
+    ];
+
+    if (PROFILE_TYPE === 'admin') {
+        requests.push(fetch('/teacher/teachers').then(r => r.json()).then(d => d.teachers || []).catch(() => []));
+        requests.push(fetch('/teacher/departments').then(r => r.json()).then(d => d.departments || []).catch(() => []));
+    }
+
+    Promise.all(requests).then(([students, courses, enrollments, payments, teachers, departments]) => {
         const totalStudents = (students || []).length;
         const totalCourses = (courses || []).length;
         const pendingEnrollments = (enrollments || []).length;
@@ -78,18 +85,49 @@ function loadAdminHome() {
                 <div class="admin-stats" style="display:flex; gap:14px; margin-top:18px; flex-wrap:wrap;">
                     <div class="stat-card"><div class="stat-value">${totalStudents}</div><div class="stat-label">Students</div></div>
                     <div class="stat-card"><div class="stat-value">${totalCourses}</div><div class="stat-label">Courses</div></div>
+                    ${PROFILE_TYPE === 'admin' ? `
+                        <div class="stat-card"><div class="stat-value">${(teachers || []).length}</div><div class="stat-label">Teachers</div></div>
+                        <div class="stat-card"><div class="stat-value">${(departments || []).length}</div><div class="stat-label">Departments</div></div>
+                    ` : ''}
                     <div class="stat-card"><div class="stat-value">${pendingEnrollments}</div><div class="stat-label">Pending Enrollments</div></div>
                     <div class="stat-card"><div class="stat-value">${pendingPayments}</div><div class="stat-label">Pending Payments</div></div>
-                    <div class="stat-card"><div class="stat-value">${verifiedPayments}</div><div class="stat-label">Payments Verified</div></div>
+                </div>
+
+                <div class="card" style="margin-top:20px;">
+                    <h3>Department Performance Summary</h3>
+                    <canvas id="miniPerfChart" height="100"></canvas>
                 </div>
 
                 <div style="margin-top:18px; display:flex; gap:10px;">
-                    <button class="add-btn" onclick="openTab('students')">Manage Students</button>
-                    <button class="add-btn" onclick="openTab('courses')">Manage Courses</button>
-                    <button class="add-btn" onclick="openTab('payment')">Payments</button>
+                    <button class="add-btn" onclick="openTab('students')">View Students</button>
+                    <button class="add-btn" onclick="openTab('payment')">Manage Payments</button>
+                    <button class="add-btn" onclick="openTab('performance')">Full Analytics</button>
                 </div>
             </div>
         `;
+        // Load mini chart
+        fetch("/teacher/performance")
+            .then(res => res.json())
+            .then(data => {
+                const perf = data.performance || [];
+                if (perf.length > 0) renderMiniPerfChart(perf);
+            });
+    });
+}
+
+function renderMiniPerfChart(perf) {
+    const ctx = document.getElementById('miniPerfChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: perf.map(p => p.full_name === "All Students" ? p.department_name : p.full_name),
+            datasets: [{
+                label: 'Avg Score (%)',
+                data: perf.map(p => p.avg_score),
+                backgroundColor: 'rgba(37, 99, 235, 0.6)'
+            }]
+        },
+        options: { scales: { y: { beginAtZero: true, max: 100 } } }
     });
 }
 
@@ -841,7 +879,7 @@ function renderPerformanceChart(perf) {
         return;
     }
 
-    const labels = perf.map(p => p.full_name);
+    const labels = perf.map(p => p.full_name === "All Students" ? p.department_name : p.full_name);
     const scores = perf.map(p => parseFloat(p.avg_score).toFixed(2));
 
     document.getElementById("tab-content").innerHTML = `

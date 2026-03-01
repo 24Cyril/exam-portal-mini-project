@@ -990,7 +990,7 @@ def add_student(username, password, name, email, phone, gender, course, departme
     
     c.execute("""
         INSERT INTO student
-        (user_id, full_name, age, gender, email, phone, address, course, department, institute_name, year_of_study, enrollment_date)
+        (user_id, full_name, age, gender, email, phone, address, branch, department, institute_name, year_of_study, enrollment_date)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
     """, (user_id, name, age, gender, email, phone, address, course, department, institute, year))
     
