@@ -215,16 +215,29 @@ def publish_exam_results(exam_id):
 # -------------------------------
 # PERFORMANCE
 # -------------------------------
-def get_department_performance(dept_id):
+def get_department_performance(dept_id=None):
     db = get_db_connection()
     cursor = db.cursor(dictionary=True)
-    cursor.execute("""
-        SELECT s.full_name, AVG(sub.score) as avg_score
-        FROM student s
-        JOIN student_exam_submissions sub ON s.id = sub.student_id
-        WHERE s.department_id = %s
-        GROUP BY s.id
-    """, (dept_id,))
+    
+    if dept_id:
+        cursor.execute("""
+            SELECT s.full_name, AVG(sub.score) as avg_score, d.name as department_name
+            FROM student s
+            JOIN student_exam_submissions sub ON s.id = sub.student_id
+            JOIN department d ON s.department_id = d.id
+            WHERE s.department_id = %s
+            GROUP BY s.id
+        """, (dept_id,))
+    else:
+        # Admin view: Average per department
+        cursor.execute("""
+            SELECT d.name as department_name, AVG(sub.score) as avg_score, 'All Students' as full_name
+            FROM student s
+            JOIN student_exam_submissions sub ON s.id = sub.student_id
+            JOIN department d ON s.department_id = d.id
+            GROUP BY d.id
+        """)
+        
     perf = cursor.fetchall()
     cursor.close()
     db.close()

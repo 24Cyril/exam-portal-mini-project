@@ -48,31 +48,64 @@ function loadHome() {
     fetch("/api/student/courses")
         .then(res => res.json())
         .then(data => {
-            const enrolled = data.filter(c => c.enrollment_status === 'Enrolled').length;
+            const enrolled = data.filter(c => c.enrollment_status === 'Enrolled_Active').length;
             document.getElementById("courses-enrolled").innerText = enrolled;
         });
 
     fetch("/api/student/exams")
         .then(res => res.json())
         .then(data => {
-            const completed = data.filter(e => e.attended === 'Attended').length;
-            document.getElementById("exams-completed").innerText = completed;
+            const exams = data.exams || [];
+            const completed = exams.filter(e => e.score !== null);
+            document.getElementById("exams-completed").innerText = completed.length;
+
+            // Calculate Overall Grade
+            if (completed.length > 0) {
+                const totalScore = completed.reduce((sum, e) => sum + e.score, 0);
+                const avg = totalScore / completed.length;
+                document.getElementById("overall-grade").innerText = calculateGrade(avg) + ` (${avg.toFixed(1)}%)`;
+                renderHomePerformanceChart(completed);
+            }
 
             // Upcoming Exams list
             const upcomingList = document.getElementById("upcoming-exams");
-            const upcoming = data.filter(e => e.attended !== 'Attended');
+            const upcoming = exams.filter(e => e.score === null);
 
             if (upcoming.length > 0) {
                 upcomingList.innerHTML = upcoming.map(e => `
                     <li>
                         <strong>${e.course_name}</strong> - ${e.exam_date}
-                        <button class="attend-btn btn-small" onclick="goToExam(${e.exam_id})">Attend</button>
+                        <button class="attend-btn btn-small" onclick="goToExam(${e.exam_id})">Attend Now</button>
                     </li>
                 `).join("");
             } else {
                 upcomingList.innerHTML = '<li class="no-data">No upcoming exams</li>';
             }
         });
+}
+
+function renderHomePerformanceChart(completed) {
+    const ctx = document.getElementById('homePerformanceChart').getContext('2d');
+    if (window.homeChartIns) window.homeChartIns.destroy();
+
+    window.homeChartIns = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: completed.map(e => e.exam_name || e.course_name),
+            datasets: [{
+                label: 'Score History',
+                data: completed.map(e => e.score),
+                borderColor: '#2563eb',
+                tension: 0.4,
+                fill: true,
+                backgroundColor: 'rgba(37, 99, 235, 0.1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true, max: 100 } }
+        }
+    });
 }
 
 // ===============================
