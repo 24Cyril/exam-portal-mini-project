@@ -114,7 +114,7 @@ def get_admin_profile_by_username(username):
     cursor = db.cursor(dictionary=True)
 
     cursor.execute(
-        "SELECT *, contact_number as phone FROM admin WHERE username = %s",
+        "SELECT a.*, a.contact_number as phone FROM admin a JOIN users u ON a.user_id = u.id WHERE u.username = %s",
         (username,)
     )
 
@@ -133,29 +133,25 @@ def update_admin_profile(username, data, new_password=None):
     cursor = db.cursor()
 
     # Check if admin record exists
-    cursor.execute("SELECT admin_id FROM admin WHERE username=%s", (username,))
+    cursor.execute("SELECT a.admin_id FROM admin a JOIN users u ON a.user_id = u.id WHERE u.username=%s", (username,))
     exists = cursor.fetchone()
 
     if exists:
         if new_password:
              cursor.execute("""
-                UPDATE users u
-                JOIN admin a ON a.username = u.username
-                SET u.password = %s
-                WHERE a.username = %s
+                UPDATE users SET password = %s WHERE username = %s
             """, (new_password, username))
 
         cursor.execute("""
-            UPDATE admin
-            SET full_name=%s,
-                dob=%s,
-                gender=%s,
-                contact_number=%s,
-                email=%s,
-                institute_name=%s,
-                institute_code=%s,
-                institute_email=%s
-            WHERE username=%s
+            UPDATE admin a
+            JOIN users u ON a.user_id = u.id
+            SET a.full_name=%s,
+                a.dob=%s,
+                a.gender=%s,
+                a.contact_number=%s,
+                a.email=%s,
+                a.institute_name=%s
+            WHERE u.username=%s
         """, (
             data["full_name"],
             data["dob"],
@@ -163,26 +159,26 @@ def update_admin_profile(username, data, new_password=None):
             data["contact_number"],
             data["email"],
             data["institute_name"],
-            data["institute_code"],
-            data["institute_email"],
             username
         ))
     else:
         # INSERT
-        cursor.execute("""
-            INSERT INTO admin (username, full_name, dob, gender, contact_number, email, institute_name, institute_code, institute_email)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (
-            username,
-            data["full_name"],
-            data["dob"],
-            data["gender"],
-            data["contact_number"],
-            data["email"],
-            data["institute_name"],
-            data["institute_code"],
-            data["institute_email"]
-        ))
+        cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
+        uid_row = cursor.fetchone()
+        if uid_row:
+            user_id = uid_row[0]
+            cursor.execute("""
+                INSERT INTO admin (user_id, full_name, dob, gender, contact_number, email, institute_name)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (
+                user_id,
+                data["full_name"],
+                data["dob"],
+                data["gender"],
+                data["contact_number"],
+                data["email"],
+                data["institute_name"]
+            ))
         
         if new_password:
              cursor.execute("""
