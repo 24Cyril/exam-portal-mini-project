@@ -1,0 +1,104 @@
+.teacher-dashboard {
+    display: flex;
+    min-height: 100vh;
+}
+
+.teacher-sidebar {
+    width: 280px;
+    background-color: var(--sidebar-bg);
+    color: white;
+    padding: 30px 0;
+    flex-shrink: 0;
+}
+
+.teacher-sidebar h2 {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 40px;
+    color: var(--primary);
+}
+
+.teacher-sidebar ul {
+    list-style: none;
+}
+
+.teacher-sidebar li {
+    padding: 12px 30px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.teacher-sidebar li:hover {
+    background-color: var(--sidebar-hover);
+}
+
+.teacher-sidebar li.active {
+    background-color: var(--sidebar-active);
+    font-weight: 700;
+}
+
+.teacher-main {
+    flex-grow: 1;
+    background-color: var(--bg-main);
+    padding: 40px;
+}
+
+.teacher-header {
+    margin-bottom: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.teacher-header h1 {
+    font-size: 28px;
+    color: var(--sidebar-bg);
+}
+
+.teacher-btn {
+    background-color: var(--primary);
+    color: white;
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+
+.teacher-btn:hover {
+    background-color: var(--primary-hover);
+}
+
+.profile-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.profile-table tr {
+    border-bottom: 1px solid var(--border);
+}
+
+.profile-table td {
+    padding: 12px 0;
+}
+
+.profile-table td:first-child {
+    font-weight: 600;
+    color: var(--text-muted);
+    width: 180px;
+}
+
+.teacher-logout-btn {
+    color: white;
+    text-decoration: none;
+    display: block;
+    padding: 12px 30px;
+}
+
+.teacher-logout-btn:hover {
+    background-color: var(--danger);
+}
