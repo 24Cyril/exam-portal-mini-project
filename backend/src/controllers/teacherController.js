@@ -1,0 +1,144 @@
+import { db } from '../config/firebase.js';
+
+// Get current teacher's profile and dashboard details
+export const getTeacherDashboard = async (req, res) => {
+    try {
+        const teacherDoc = await db.collection('users').doc(req.user.uid).get();
+        if (!teacherDoc.exists) {
+            return res.status(404).json({ error: 'Teacher profile not found' });
+        }
+        res.status(200).json(teacherDoc.data());
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// --- ENROLLMENTS & PAYMENTS (Verification) ---
+
+// Get all pending enrollments for teacher's department
+export const getPendingEnrollments = async (req, res) => {
+    try {
+        const teacherDoc = await db.collection('users').doc(req.user.uid).get();
+        const deptId = teacherDoc.data().department_id;
+
+        // In Firestore, we join manually
+        const enrollmentsSnapshot = await db.collection('student_courses')
+            .where('status', '==', 'Pending')
+            .get();
+
+        const enrollments = [];
+        for (const doc of enrollmentsSnapshot.docs) {
+            const data = doc.data();
+            // Verify student's department
+            const studentDoc = await db.collection('users').doc(data.studentId).get();
+            if (studentDoc.exists && studentDoc.data().department_id === deptId) {
+                enrollments.push({ id: doc.id, ...data, studentName: studentDoc.data().full_name });
+            }
+        }
+
+        res.status(200).json(enrollments);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Verify an enrollment (status -> Verified_Pending_Payment)
+export const verifyEnrollment = async (req, res) => {
+    try {
+        const { enrollmentId } = req.params;
+        await db.collection('student_courses').doc(enrollmentId).update({
+            status: 'Verified_Pending_Payment',
+            updatedAt: new Date().toISOString()
+        });
+        res.status(200).json({ message: 'Enrollment verified. Student can now proceed to payment.' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Get all pending payments for teacher's department
+export const getPendingPayments = async (req, res) => {
+    try {
+        const teacherDoc = await db.collection('users').doc(req.user.uid).get();
+        const deptId = teacherDoc.data().department_id;
+
+        const paymentsSnapshot = await db.collection('payments')
+            .where('status', '==', 'Pending_Approval')
+            .get();
+
+        const paymentsList = [];
+        for (const doc of paymentsSnapshot.docs) {
+            const data = doc.data();
+            const studentDoc = await db.collection('users').doc(data.studentId).get();
+            if (studentDoc.exists && studentDoc.data().department_id === deptId) {
+                paymentsList.push({ id: doc.id, ...data, studentName: studentDoc.data().full_name });
+            }
+        }
+        res.status(200).json(paymentsList);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Verify a payment (and activate enrollment)
+export const verifyPayment = async (req, res) => {
+    try {
+        const { paymentId } = req.params;
+        const paymentRef = db.collection('payments').doc(paymentId);
+        const paymentDoc = await paymentRef.get();
+
+        if (!paymentDoc.exists) return res.status(404).json({ error: 'Payment not found' });
+
+        const { studentId, courseId } = paymentDoc.data();
+
+        // 1. Update Payment
+        await paymentRef.update({ status: 'Verified', verifiedAt: new Date().toISOString() });
+
+        // 2. Update Enrollment to Active
+        const enrollmentId = `${studentId}_${courseId}`;
+        await db.collection('student_courses').doc(enrollmentId).update({
+            status: 'Enrolled_Active',
+            updatedAt: new Date().toISOString()
+        });
+
+        res.status(200).json({ message: 'Payment verified and enrollment activated.' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// --- EXAMS ---
+
+// Create a new exam
+export const createExam = async (req, res) => {
+    try {
+        const { title, description, questions, timeInMinutes, courseId } = req.body;
+        const examData = {
+            title,
+            description,
+            courseId,
+            questions: questions || [],
+            timeInMinutes: timeInMinutes || 30,
+            createdBy: req.user.uid,
+            createdAt: new Date().toISOString(),
+            status: 'Upcoming'
+        };
+
+        const docRef = await db.collection('exams').add(examData);
+        res.status(201).json({ id: docRef.id, ...examData });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Get all exams for teacher's department
+export const getExams = async (req, res) => {
+    try {
+        const examsSnapshot = await db.collection('exams').where('createdBy', '==', req.user.uid).get();
+        const examsList = examsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        res.status(200).json(examsList);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
