@@ -14,14 +14,17 @@
 # - Stores admin profile details
 # - Linked logically with users table
 # - Fields: admin_id, full_name, dob, gender, contact_number,
-#   email, username, last_login, created_at, updated_at
+#   email, username, institute_name, institute_code, institute_email,
+#   last_login, created_at, updated_at
 
 # STUDENT
 # - Stores student profile information
 # - Each student is linked to a user account
 # - Fields: id, user_id, full_name, age, gender, email, phone,
 #   address, course, department, institute_name, year_of_study,
-#   enrollment_date, created_at, updated_at
+#   enrollment_date, dob, blood_group, nationality, emergency_contact,
+#   city, state, pincode, country, semester, roll_number,
+#   created_at, updated_at
 
 # TEACHER
 # - Stores teacher profile information
@@ -29,11 +32,6 @@
 # - Fields: id, user_id, full_name, age, gender, email, phone,
 #   address, department, specialization, institute_name,
 #   employee_id, joining_date, created_at, updated_at
-
-
-#department
-#-stores department details
-#-fields:id,name,dep_code,created_by
 
 # COURSES
 # - Stores course details created by admin
@@ -58,7 +56,8 @@
 # - Stores exams conducted for course
 # - Fields: exam_id, course_id, exam_name, exam_type,
 #   total_questions, duration_minutes, passing_score,
-#   exam_date, created_by, created_at
+#   exam_date, question_file, answer_file, status,
+#   created_by, created_at
 
 # EXAM_QUESTIONS
 # - Stores questions belonging to exams
@@ -150,6 +149,9 @@ from teacher import(
     create_exam_for_teacher,
     get_teacher_id
 )
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__, template_folder="app/templates", static_folder="app/static")
 app.secret_key = "secret123"
@@ -199,22 +201,20 @@ def register():
             full_name = request.form.get("full_name", "")
             a_full_name = request.form.get("a_full_name", "")
             s_full_name = request.form.get("s_full_name", "")
+            
+            logger.debug(f"Handling registration for {username} - {role}")
 
             hashed_password = generate_password_hash(password)
 
             db = get_db_connection()
             cursor = db.cursor()
 
-            # ---------------- USERS TABLE ----------------
             cursor.execute(
                 "INSERT INTO users (username, password, role) VALUES (%s, %s, %s)",
                 (username, hashed_password, role)
             )
-            db.commit()  # Commit here to get the lastrowid
-            cursor.execute("SELECT id FROM users WHERE username=%s", (username,))
-            user = cursor.fetchone()
-            user_id = user[0]
-            print(f"User created with ID: {user_id}")
+            user_id = cursor.lastrowid
+            logger.info(f"User record created in memory with ID: {user_id}")
             
             # Helper function for safe int conversion
             def safe_int(val, default=0):
@@ -242,14 +242,8 @@ def register():
             elif role == "student":
                 cursor.execute("""
                     INSERT INTO student
-                    (user_id, full_name, age,
-                     gender, email, phone,
-                     address, course, department, 
-                               institute_name, year_of_study, enrollment_date)
-                    VALUES (%s,%s,%s
-                               ,%s,%s,%s
-                               ,%s,%s,%s,
-                               %s,%s,%s)
+                    (user_id, full_name, age,gender, email, phone,address, course, department, institute_name, year_of_study, enrollment_date)
+                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """, (
                     user_id,
                     s_full_name,
@@ -263,7 +257,7 @@ def register():
                     request.form.get("institute_name", ""),
                     safe_int(request.form.get("year_of_study")),
                     request.form.get("enrollment_date") or "2024-01-01"  ))
-                print("student created")
+                logger.info(f"Student record created for {user_id}")
 
             # ---------------- TEACHER ----------------
             elif role == "teacher":
@@ -294,9 +288,11 @@ def register():
             print("REGISTER SUCCESS")
             return redirect("/")
 
-        except Exception:
-            print(traceback.format_exc())
-            return "REGISTER ERROR — check terminal"
+        except Exception as e:
+            if 'db' in locals():
+                db.rollback()
+            logger.error(f"REGISTER ERROR: {traceback.format_exc()}")
+            return f"REGISTER ERROR: {str(e)}"
 
     return render_template("register.html")
 
@@ -347,6 +343,21 @@ def login():
     else:
          return redirect("/student")
 
+
+@app.route("/student")
+def student_dashboard():
+    if "user_id" not in session or session["role"] != "student":
+        return redirect("/")
+    
+    from student import get_student_profile_by_username
+    profile = get_student_profile_by_username(session["username"])
+    
+    # If for some reason profile not found, try by ID
+    if not profile:
+        from student import get_student_profile
+        profile = get_student_profile(session["user_id"])
+        
+    return render_template("student.html", student=profile)
 
 
 @app.route("/teacher")
@@ -451,11 +462,12 @@ def api_student_profile():
 # ===============================
 # COURSES (STUDENT SIDE)
 # ===============================
-@app.route("/api/student/course")
-def get_all_courses():
+@app.route("/api/student/courses")
+def student_get_all_courses():
     if "user_id" not in session:
         return []
 
+    from student import get_student_id, get_all_courses_for_student
     student_id = get_student_id(session["user_id"])
     return get_all_courses_for_student(student_id)
 
@@ -494,13 +506,13 @@ def teacher_students():
 
 
 
-@app.route("/teacher/course")
+@app.route("/teacher/courses")
 def teacher_courses_api():
     if "user_id" not in session or session["role"] not in ["admin", "teacher"]:
         return {"error": "Unauthorized"}, 401
 
     course = get_all_courses_admin()
-    return {"course": course}
+    return {"courses": course}
 
 from flask import Blueprint, request, jsonify
 
@@ -884,10 +896,10 @@ def add_student_teacher():
         year = request.form["year"]
         age = request.form.get("age", 0)
         address = request.form.get("address", "")
-        institute = request.form.get("institute", "")
+        institute_name = request.form.get("institute_name", "")
         
         from admin import add_student
-        add_student(username, password, name, email, phone, gender, course, department, year, age, address, institute)
+        add_student(username, password, name, email, phone, gender, course, department, year, age, address, institute_name)
 
         return redirect("/teacher")
 
@@ -933,6 +945,9 @@ def admin_update_as_teacher():
     if session.get("role") not in ["admin", "teacher"]:
         return redirect("/")
 
+    role = session.get("role")
+    username = session.get("username")
+
     if request.method == "POST":
         new_password = request.form.get("new_password")
         confirm_password = request.form.get("confirm_password")
@@ -943,12 +958,32 @@ def admin_update_as_teacher():
                 return "Passwords do not match"
             hashed = generate_password_hash(new_password)
 
-        update_admin_profile(session["username"], request.form, hashed)
+        if role == "admin":
+            update_admin_profile(username, request.form, hashed)
+        else:
+            update_teacher_profile(username, request.form)
+            # handle password update for teacher if hashed provided
+            if hashed:
+                # Update password in users table
+                db = get_db_connection()
+                cur = db.cursor()
+                cur.execute("UPDATE users SET password=%s WHERE username=%s", (hashed, username))
+                db.commit()
+                cur.close()
+                db.close()
 
         return redirect("/teacher")
 
-    admin = get_admin_profile_by_username(session["username"])
-    return render_template("admin_update_profile.html", admin=admin)
+    if role == "admin":
+        admin = get_admin_profile_by_username(username)
+        return render_template("admin_update_profile.html", admin=admin, role=role)
+    else:
+        teacher = get_teacher_profile_by_username(username)
+        # Reuse admin_update_profile.html but adapted for teacher? 
+        # Or use a dedicated teacher_update_profile.html?
+        # User said "consolidate admin into teacher role".
+        # Let's see if we can use the same template but with 'teacher' data.
+        return render_template("admin_update_profile.html", admin=teacher, role=role)
 
 
 # -------------------------------
