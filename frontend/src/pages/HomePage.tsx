@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth } from '../config/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import axios from 'axios';
 import './HomePage.css';
 
 export default function HomePage() {
@@ -16,27 +17,40 @@ export default function HomePage() {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        console.log('Login attempt:', { email, role });
 
         try {
             // 1. Sign in with Firebase
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
+            console.log('Firebase Auth success:', user.uid);
             const token = await user.getIdToken();
 
-            // Store token for subsequent API calls
+            // Store token
             localStorage.setItem('token', token);
 
-            // 2. Fetch role from user profile (could be via backend or custom token claims)
-            // For now, we use the selected role from the UI or fetch metadata
-            console.log('User signed in:', user.uid);
+            // 2. Fetch profile from backend to verify role
+            console.log('Fetching profile from backend...');
+            const response = await axios.get(`http://localhost:5000/api/auth/profile/${user.uid}`);
+            const userProfile = response.data;
+            console.log('Server response:', userProfile);
 
-            // Navigate based on role
-            if (role === 'student') navigate('/student');
-            else if (role === 'teacher') navigate('/teacher');
-            else if (role === 'admin') navigate('/admin');
+            if (userProfile.role.toLowerCase() !== role.toLowerCase()) {
+                console.warn('Role mismatch:', { dbRole: userProfile.role, selectedRole: role });
+                setError(`The selected role (${role}) does not match your registered role. Please log in as ${userProfile.role}.`);
+                // Consider logging out here if we don't want them in this state
+                return;
+            }
+
+            console.log('Login successful! Navigating to:', `/${userProfile.role}`);
+
+            // Navigate based on role from Firestore
+            if (userProfile.role.toLowerCase() === 'student') navigate('/student');
+            else if (userProfile.role.toLowerCase() === 'teacher') navigate('/teacher');
+            else if (userProfile.role.toLowerCase() === 'admin') navigate('/admin');
         } catch (error: any) {
-            console.error('Login failed:', error.message);
-            setError(error.message);
+            console.error('Login failed:', error);
+            setError(error.message === 'Firebase: Error (auth/user-not-found).' ? 'Account not found. Please register.' : error.message);
         }
     };
 

@@ -20,25 +20,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            console.log('Auth state changed:', user?.email);
             setLoading(true);
             if (user) {
                 setUser(user);
 
-                // Fetch the user role from Firestore
                 try {
-                    const userRef = doc(db, 'users', user.uid);
-                    const userSnap = await getDoc(userRef);
-                    if (userSnap.exists()) {
-                        setRole(userSnap.data().role);
+                    // 1. Check custom claims first (fastest)
+                    const idTokenResult = await user.getIdTokenResult();
+                    const claimRole = idTokenResult.claims.role as 'student' | 'teacher' | 'admin' | undefined;
+
+                    if (claimRole) {
+                        console.log('Role found in claims:', claimRole);
+                        setRole(claimRole);
+                    } else {
+                        // 2. Fallback to Firestore
+                        console.log('No role in claims, checking Firestore...');
+                        const userRef = doc(db, 'users', user.uid);
+                        const userSnap = await getDoc(userRef);
+                        if (userSnap.exists()) {
+                            const dbRole = userSnap.data().role;
+                            console.log('Role found in Firestore:', dbRole);
+                            setRole(dbRole);
+                        } else {
+                            console.warn('No user document found in Firestore for UID:', user.uid);
+                            setRole(null);
+                        }
                     }
+
+                    // Ensure token is saved
+                    const token = await user.getIdToken();
+                    localStorage.setItem('token', token);
                 } catch (error) {
                     console.error("Error fetching user role:", error);
+                    setRole(null);
                 }
-
-                // Also ensure token is saved to localStorage for the axios interceptor later
-                const token = await user.getIdToken();
-                localStorage.setItem('token', token);
             } else {
+                console.log('User logged out');
                 setUser(null);
                 setRole(null);
                 localStorage.removeItem('token');
@@ -56,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return (
         <AuthContext.Provider value={{ user, role, loading, logout }}>
-            {!loading && children}
+            {children}
         </AuthContext.Provider>
     );
 };
