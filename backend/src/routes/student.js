@@ -23,8 +23,12 @@ router.post('/enroll', enrollInCourse);
 router.delete('/unenroll/:courseId', unenrollFromCourse);
 
 // Payments
+router.post('/pay', submitPayment);
 router.post('/submit-payment', submitPayment);
 router.get('/my-payments', getMyPayments);
+
+// Materials
+router.get('/notes', (req, res) => res.status(200).json([])); // Placeholder
 
 // Exams
 router.get('/my-exams', getMyExams);

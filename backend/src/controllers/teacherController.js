@@ -1,4 +1,11 @@
 import { db } from '../config/firebase.js';
+import {
+    USER_SCHEMA,
+    ENROLLMENT_SCHEMA,
+    PAYMENT_SCHEMA,
+    EXAM_SCHEMA,
+    applySchema
+} from '../utils/schema.js';
 
 // Get current teacher's profile and dashboard details
 export const getTeacherDashboard = async (req, res) => {
@@ -7,7 +14,7 @@ export const getTeacherDashboard = async (req, res) => {
         if (!teacherDoc.exists) {
             return res.status(404).json({ error: 'Teacher profile not found' });
         }
-        res.status(200).json(teacherDoc.data());
+        res.status(200).json(applySchema(USER_SCHEMA, teacherDoc.data()));
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -21,18 +28,20 @@ export const getPendingEnrollments = async (req, res) => {
         const teacherDoc = await db.collection('users').doc(req.user.uid).get();
         const deptId = teacherDoc.data().department_id;
 
-        // In Firestore, we join manually
         const enrollmentsSnapshot = await db.collection('student_courses')
             .where('status', '==', 'Pending')
             .get();
 
         const enrollments = [];
         for (const doc of enrollmentsSnapshot.docs) {
-            const data = doc.data();
-            // Verify student's department
+            const data = applySchema(ENROLLMENT_SCHEMA, doc.data());
             const studentDoc = await db.collection('users').doc(data.studentId).get();
             if (studentDoc.exists && studentDoc.data().department_id === deptId) {
-                enrollments.push({ id: doc.id, ...data, studentName: studentDoc.data().full_name });
+                enrollments.push({
+                    id: doc.id,
+                    ...data,
+                    studentName: studentDoc.data().full_name || 'Unknown Student'
+                });
             }
         }
 
@@ -68,10 +77,14 @@ export const getPendingPayments = async (req, res) => {
 
         const paymentsList = [];
         for (const doc of paymentsSnapshot.docs) {
-            const data = doc.data();
+            const data = applySchema(PAYMENT_SCHEMA, doc.data());
             const studentDoc = await db.collection('users').doc(data.studentId).get();
             if (studentDoc.exists && studentDoc.data().department_id === deptId) {
-                paymentsList.push({ id: doc.id, ...data, studentName: studentDoc.data().full_name });
+                paymentsList.push({
+                    id: doc.id,
+                    ...data,
+                    studentName: studentDoc.data().full_name || 'Unknown Student'
+                });
             }
         }
         res.status(200).json(paymentsList);
@@ -92,7 +105,10 @@ export const verifyPayment = async (req, res) => {
         const { studentId, courseId } = paymentDoc.data();
 
         // 1. Update Payment
-        await paymentRef.update({ status: 'Verified', verifiedAt: new Date().toISOString() });
+        await paymentRef.update({
+            status: 'Verified',
+            verifiedAt: new Date().toISOString()
+        });
 
         // 2. Update Enrollment to Active
         const enrollmentId = `${studentId}_${courseId}`;
@@ -112,17 +128,11 @@ export const verifyPayment = async (req, res) => {
 // Create a new exam
 export const createExam = async (req, res) => {
     try {
-        const { title, description, questions, timeInMinutes, courseId } = req.body;
-        const examData = {
-            title,
-            description,
-            courseId,
-            questions: questions || [],
-            timeInMinutes: timeInMinutes || 30,
+        const examData = applySchema(EXAM_SCHEMA, {
+            ...req.body,
             createdBy: req.user.uid,
-            createdAt: new Date().toISOString(),
-            status: 'Upcoming'
-        };
+            createdAt: new Date().toISOString()
+        });
 
         const docRef = await db.collection('exams').add(examData);
         res.status(201).json({ id: docRef.id, ...examData });
@@ -135,7 +145,7 @@ export const createExam = async (req, res) => {
 export const getExams = async (req, res) => {
     try {
         const examsSnapshot = await db.collection('exams').where('createdBy', '==', req.user.uid).get();
-        const examsList = examsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const examsList = examsSnapshot.docs.map(doc => applySchema(EXAM_SCHEMA, { id: doc.id, ...doc.data() }));
         res.status(200).json(examsList);
     } catch (error) {
         res.status(500).json({ error: error.message });

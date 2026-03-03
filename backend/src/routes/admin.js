@@ -5,7 +5,11 @@ import {
     deleteUser,
     createCourse,
     getAllCourses,
-    deleteCourse
+    deleteCourse,
+    getAllEnrollments,
+    updateEnrollmentStatus,
+    getAllPayments,
+    updatePaymentStatus
 } from '../controllers/adminController.js';
 import { protect, authorize } from '../middlewares/auth.js';
 
@@ -24,5 +28,13 @@ router.delete('/user/:uid', deleteUser);
 router.post('/courses', createCourse);
 router.get('/courses', getAllCourses);
 router.delete('/course/:courseId', deleteCourse);
+
+// Enrollment Management
+router.get('/enrollments', getAllEnrollments);
+router.patch('/enrollment/:enrollmentId', updateEnrollmentStatus);
+
+// Payment Management
+router.get('/payments', getAllPayments);
+router.patch('/payment/:paymentId', updatePaymentStatus);
 
 export default router;
