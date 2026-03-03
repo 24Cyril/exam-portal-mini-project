@@ -39,6 +39,9 @@ export default function AdminDashboard() {
         department_id: 'Computer Science'
     });
     const [showAddForm, setShowAddForm] = useState(false);
+    const [editingItem, setEditingItem] = useState<any>(null);
+    const [editForm, setEditForm] = useState<any>({});
+    const [selectedPayment, setSelectedPayment] = useState<any>(null);
 
     const navigate = useNavigate();
 
@@ -148,6 +151,31 @@ export default function AdminDashboard() {
         } catch (error) {
             alert('Deletion failed');
         }
+    };
+
+    const handleDeleteCourse = async (id: string) => {
+        if (!window.confirm('Delete this course?')) return;
+        try {
+            await api.delete(`/admin/course/${id}`);
+            alert('Course deleted');
+            fetchData();
+        } catch (error) { alert('Deletion failed'); }
+    };
+
+    const handleEditInitiate = (item: any, type: string) => {
+        setEditingItem({ ...item, type });
+        setEditForm(item);
+    };
+
+    const handleUpdateItem = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const url = editingItem.type === 'course' ? `/admin/course/${editingItem.id}` : `/auth/profile/${editingItem.uid}`;
+            await api.patch(url, editForm);
+            alert(`${editingItem.type.toUpperCase()} Updated!`);
+            setEditingItem(null);
+            fetchData();
+        } catch (error) { alert('Update failed'); }
     };
 
     const handleVerifyEnrollment = async (id: string, status: string) => {
@@ -309,7 +337,18 @@ export default function AdminDashboard() {
                                         </thead>
                                         <tbody>
                                             {filteredCourses.map(c => (
-                                                <tr key={c.id}><td>{c.code}</td><td>{c.name}</td><td>{c.department}</td><td>₹{c.fee}</td><td><span className="success">Active</span></td></tr>
+                                                <tr key={c.id}>
+                                                    <td>{c.code}</td>
+                                                    <td>{c.name}</td>
+                                                    <td>{c.department}</td>
+                                                    <td>₹{c.fee}</td>
+                                                    <td>
+                                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                                            <button className="btn-edit-sm" onClick={() => handleEditInitiate(c, 'course')}>Edit</button>
+                                                            <button className="btn-delete" onClick={() => handleDeleteCourse(c.id)}>Del</button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
                                             ))}
                                         </tbody>
                                     </table>
@@ -353,8 +392,15 @@ export default function AdminDashboard() {
                                         </thead>
                                         <tbody>
                                             {filteredUsers.map(u => (
-                                                <tr key={u.uid}><td>{u.full_name}</td><td>{u.email}</td>
-                                                    <td><button onClick={() => handleDeleteUser(u.uid)} className="btn-delete">Delete</button></td>
+                                                <tr key={u.uid}>
+                                                    <td>{u.full_name}</td>
+                                                    <td>{u.email}</td>
+                                                    <td>
+                                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                                            <button onClick={() => handleEditInitiate(u, 'user')} className="btn-edit-sm">Edit</button>
+                                                            <button onClick={() => handleDeleteUser(u.uid)} className="btn-delete">Delete</button>
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -429,6 +475,93 @@ export default function AdminDashboard() {
                     )}
                 </section>
             </main>
+
+            {editingItem && (
+                <div className="modal-overlay">
+                    <div className="modal-content glass animate-zoom-in" style={{ maxWidth: '600px' }}>
+                        <h3>Edit {editingItem.type === 'course' ? 'Course Details' : 'User Record'}</h3>
+                        <form onSubmit={handleUpdateItem} className="edit-profile-form">
+                            {editingItem.type === 'course' ? (
+                                <>
+                                    <div className="form-row">
+                                        <div className="form-group"><label>Course Name</label><input type="text" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} required /></div>
+                                        <div className="form-group"><label>Code</label><input type="text" value={editForm.code} onChange={e => setEditForm({ ...editForm, code: e.target.value })} required /></div>
+                                    </div>
+                                    <div className="form-row">
+                                        <div className="form-group"><label>Fee (₹)</label><input type="number" value={editForm.fee} onChange={e => setEditForm({ ...editForm, fee: e.target.value })} required /></div>
+                                        <div className="form-group"><label>Department</label>
+                                            <select value={editForm.department} onChange={e => setEditForm({ ...editForm, department: e.target.value })}>
+                                                <option>Computer Science</option><option>Mechanical</option><option>Electrical</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="form-group"><label>Description</label><textarea value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })} rows={3} /></div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="form-row">
+                                        <div className="form-group"><label>Full Name</label><input type="text" value={editForm.full_name} onChange={e => setEditForm({ ...editForm, full_name: e.target.value })} required /></div>
+                                        <div className="form-group"><label>Email</label><input type="email" value={editForm.email} readOnly disabled /></div>
+                                    </div>
+                                    <div className="form-row">
+                                        <div className="form-group"><label>Phone</label><input type="text" value={editForm.contact_number} onChange={e => setEditForm({ ...editForm, contact_number: e.target.value })} /></div>
+                                        <div className="form-group"><label>Department</label><input type="text" value={editForm.department_id} onChange={e => setEditForm({ ...editForm, department_id: e.target.value })} /></div>
+                                    </div>
+                                </>
+                            )}
+                            <div className="form-actions" style={{ marginTop: '20px' }}>
+                                <button type="button" className="btn-cancel" onClick={() => setEditingItem(null)}>Cancel</button>
+                                <button type="submit" className="btn-next">Save Updates</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {selectedPayment && (
+                <div className="modal-overlay">
+                    <div className="modal-content animate-zoom-in" style={{ maxWidth: '500px', padding: '0', overflow: 'hidden' }}>
+                        <div className="receipt-view" style={{ padding: '30px', background: 'white' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #f1f5f9', paddingBottom: '15px', marginBottom: '20px' }}>
+                                <div>
+                                    <h2 style={{ margin: '0', color: 'var(--primary)' }}>Official Receipt</h2>
+                                    <p style={{ margin: '5px 0 0', fontSize: '0.8em', color: 'var(--text-muted)' }}>ID: {selectedPayment.id}</p>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <p style={{ margin: '0', fontWeight: '700' }}>Edu-Assess Admin</p>
+                                    <p style={{ margin: '2px 0 0', fontSize: '0.8em' }}>{new Date(selectedPayment.createdAt).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <tbody>
+                                    {[
+                                        ['User Email', selectedPayment.userEmail],
+                                        ['Course ID', selectedPayment.courseId],
+                                        ['Amount', `₹${selectedPayment.amount}`],
+                                        ['Method', selectedPayment.method || 'N/A'],
+                                        ['Transaction ID', selectedPayment.transactionId],
+                                        ['Status', selectedPayment.status]
+                                    ].map(([label, val]) => (
+                                        <tr key={label} style={{ borderBottom: '1px solid #f8fafc' }}>
+                                            <td style={{ padding: '12px 0', fontWeight: '600', color: '#64748b', fontSize: '0.9em' }}>{label}</td>
+                                            <td style={{ padding: '12px 0', textAlign: 'right', fontWeight: '700' }}>{val}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            {selectedPayment.status === 'Pending' && (
+                                <button className="btn-verify" style={{ width: '100%', marginTop: '20px' }} onClick={() => { handleVerifyPayment(selectedPayment.id, 'Verified_Paid'); setSelectedPayment(null); }}>
+                                    Verify & Mark Paid
+                                </button>
+                            )}
+                            <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
+                                <button className="btn-edit-sm" style={{ flex: 1 }} onClick={() => window.print()}>Print</button>
+                                <button className="btn-cancel" style={{ flex: 1 }} onClick={() => setSelectedPayment(null)}>Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

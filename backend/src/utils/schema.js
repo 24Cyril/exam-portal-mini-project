@@ -16,6 +16,13 @@ export const USER_SCHEMA = {
     contact_number: '',
     address: '',
     age: '',
+    blood_group: '',
+    nationality: '',
+    emergency_contact: '',
+    city: '',
+    state: '',
+    pincode: '',
+    country: '',
 
     // Student specific
     course: '', // Branch

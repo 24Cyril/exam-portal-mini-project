@@ -15,7 +15,9 @@ export default function StudentDashboard() {
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState<any>({});
     const [notes, setNotes] = useState<any[]>([]);
+    const [results, setResults] = useState<any[]>([]);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [selectedPayment, setSelectedPayment] = useState<any>(null);
     const [paymentData, setPaymentData] = useState({ courseId: '', amount: 0, transactionId: '', method: 'UPI' });
 
     // Search & Sort States
@@ -68,6 +70,10 @@ export default function StudentDashboard() {
                 const res = await api.get('/student/notes');
                 setNotes(res.data);
             }
+            if (activeTab === 'results') {
+                const res = await api.get('/student/my-results');
+                setResults(res.data);
+            }
         } catch (error) {
             console.error('Error fetching student data:', error);
         } finally {
@@ -95,6 +101,27 @@ export default function StudentDashboard() {
         } catch (error) {
             alert('Failed to update profile');
         }
+    };
+
+    const handleUnenroll = async (courseId: string) => {
+        if (!window.confirm('Are you sure you want to cancel your enrollment request?')) return;
+        try {
+            await api.post('/student/unenroll', { courseId });
+            alert('Enrollment request cancelled');
+            fetchData();
+        } catch (error: any) {
+            alert(error.response?.data?.error || 'Operation failed');
+        }
+    };
+
+    const calculateGrade = (score: number, total: number) => {
+        const perc = (score / total) * 100;
+        if (perc >= 90) return 'A+';
+        if (perc >= 80) return 'A';
+        if (perc >= 70) return 'B';
+        if (perc >= 60) return 'C';
+        if (perc >= 50) return 'D';
+        return 'F';
     };
 
     const handlePay = async (e: React.FormEvent) => {
@@ -210,18 +237,32 @@ export default function StudentDashboard() {
                                         <tbody>
                                             <tr><td>DOB</td><td>{profile.dob || '--'}</td></tr>
                                             <tr><td>Gender</td><td>{profile.gender || '--'}</td></tr>
-                                            <tr><td>Address</td><td>{profile.address || '--'}</td></tr>
+                                            <tr><td>Age</td><td>{profile.age || '--'}</td></tr>
+                                            <tr><td>Blood Group</td><td>{profile.blood_group || '--'}</td></tr>
+                                            <tr><td>Nationality</td><td>{profile.nationality || '--'}</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
                                 <div className="card glass">
+                                    <h3>Contact Info</h3>
+                                    <table className="profile-table">
+                                        <tbody>
+                                            <tr><td>Phone</td><td>{profile.contact_number || '--'}</td></tr>
+                                            <tr><td>Emergency</td><td>{profile.emergency_contact || '--'}</td></tr>
+                                            <tr><td>Address</td><td>{profile.address || '--'}</td></tr>
+                                            <tr><td>City/State</td><td>{profile.city ? `${profile.city}, ${profile.state}` : '--'}</td></tr>
+                                            <tr><td>Pincode</td><td>{profile.pincode || '--'}</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div className="card glass" style={{ gridColumn: 'span 2' }}>
                                     <h3>Academic Identity</h3>
                                     <table className="profile-table">
                                         <tbody>
+                                            <tr><td>Institute</td><td>{profile.institute_name || '--'}</td></tr>
                                             <tr><td>Department</td><td>{profile.department_id || '--'}</td></tr>
                                             <tr><td>Roll Number</td><td>{profile.roll_number || '--'}</td></tr>
-                                            <tr><td>Year</td><td>{profile.year_of_study || '--'}</td></tr>
-                                            <tr><td>Semester</td><td>{profile.semester || '--'}</td></tr>
+                                            <tr><td>Year / Sem</td><td>{profile.year_of_study || '--'} / {profile.semester || '--'}</td></tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -231,35 +272,106 @@ export default function StudentDashboard() {
 
                     {activeTab === 'profile' && isEditing && (
                         <div className="card glass animate-fade-in">
-                            <h3>Edit Your Profile</h3>
+                            <h3 style={{ marginBottom: '20px' }}>Comprehensive Profile Update</h3>
                             <form className="edit-profile-form" onSubmit={handleUpdateProfile}>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>Full Name</label>
-                                        <input type="text" value={editData.full_name} onChange={e => setEditData({ ...editData, full_name: e.target.value })} required />
+                                <div className="form-section">
+                                    <h4>Basic Identity</h4>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label>Full Name</label>
+                                            <input type="text" value={editData.full_name || ''} onChange={e => setEditData({ ...editData, full_name: e.target.value })} required />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Age</label>
+                                            <input type="number" value={editData.age || ''} onChange={e => setEditData({ ...editData, age: e.target.value })} />
+                                        </div>
                                     </div>
-                                    <div className="form-group">
-                                        <label>Contact Number</label>
-                                        <input type="text" value={editData.contact_number} onChange={e => setEditData({ ...editData, contact_number: e.target.value })} />
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label>Gender</label>
+                                            <select value={editData.gender || ''} onChange={e => setEditData({ ...editData, gender: e.target.value })}>
+                                                <option value="">Select</option>
+                                                <option value="Male">Male</option>
+                                                <option value="Female">Female</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Date of Birth</label>
+                                            <input type="date" value={editData.dob || ''} onChange={e => setEditData({ ...editData, dob: e.target.value })} />
+                                        </div>
+                                    </div>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label>Blood Group</label>
+                                            <input type="text" placeholder="e.g. O+" value={editData.blood_group || ''} onChange={e => setEditData({ ...editData, blood_group: e.target.value })} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Nationality</label>
+                                            <input type="text" value={editData.nationality || ''} onChange={e => setEditData({ ...editData, nationality: e.target.value })} />
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label>Roll Number</label>
-                                        <input type="text" value={editData.roll_number} onChange={e => setEditData({ ...editData, roll_number: e.target.value })} />
+
+                                <div className="form-section">
+                                    <h4>Contact & Location</h4>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label>Primary Phone</label>
+                                            <input type="text" value={editData.contact_number || ''} onChange={e => setEditData({ ...editData, contact_number: e.target.value })} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Emergency Contact</label>
+                                            <input type="text" value={editData.emergency_contact || ''} onChange={e => setEditData({ ...editData, emergency_contact: e.target.value })} />
+                                        </div>
                                     </div>
                                     <div className="form-group">
-                                        <label>Date of Birth</label>
-                                        <input type="date" value={editData.dob} onChange={e => setEditData({ ...editData, dob: e.target.value })} />
+                                        <label>Full Address</label>
+                                        <textarea value={editData.address || ''} onChange={e => setEditData({ ...editData, address: e.target.value })} rows={2} />
+                                    </div>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label>City</label>
+                                            <input type="text" value={editData.city || ''} onChange={e => setEditData({ ...editData, city: e.target.value })} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>State</label>
+                                            <input type="text" value={editData.state || ''} onChange={e => setEditData({ ...editData, state: e.target.value })} />
+                                        </div>
+                                    </div>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label>Pincode</label>
+                                            <input type="text" value={editData.pincode || ''} onChange={e => setEditData({ ...editData, pincode: e.target.value })} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Country</label>
+                                            <input type="text" value={editData.country || ''} onChange={e => setEditData({ ...editData, country: e.target.value })} />
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="form-group">
-                                    <label>Address</label>
-                                    <textarea value={editData.address} onChange={e => setEditData({ ...editData, address: e.target.value })} rows={3} />
+
+                                <div className="form-section">
+                                    <h4>Academic Profile</h4>
+                                    <div className="form-row">
+                                        <div className="form-group">
+                                            <label>Roll Number</label>
+                                            <input type="text" value={editData.roll_number || ''} onChange={e => setEditData({ ...editData, roll_number: e.target.value })} />
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Semester</label>
+                                            <input type="number" value={editData.semester || ''} onChange={e => setEditData({ ...editData, semester: e.target.value })} />
+                                        </div>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Institute Name</label>
+                                        <input type="text" value={editData.institute_name || ''} onChange={e => setEditData({ ...editData, institute_name: e.target.value })} />
+                                    </div>
                                 </div>
-                                <div className="form-actions">
-                                    <button type="button" className="btn-cancel" onClick={() => setIsEditing(false)}>Cancel</button>
-                                    <button type="submit" className="btn-next">Save Changes</button>
+
+                                <div className="form-actions" style={{ position: 'sticky', bottom: '-20px', background: 'white', padding: '10px 0', borderTop: '1px solid var(--border)' }}>
+                                    <button type="button" className="btn-cancel" onClick={() => setIsEditing(false)}>Discard</button>
+                                    <button type="submit" className="btn-next">Apply Updates</button>
                                 </div>
                             </form>
                         </div>
@@ -275,12 +387,17 @@ export default function StudentDashboard() {
                                     <div className={`status-badge ${course.enrollmentStatus.toLowerCase().replace(' ', '-')}`}>
                                         {course.enrollmentStatus}
                                     </div>
-                                    {course.enrollmentStatus === 'Not Enrolled' && (
-                                        <button onClick={() => handleEnroll(course.id)} className="btn-enroll">Enroll Now</button>
-                                    )}
-                                    {course.enrollmentStatus === 'Verified_Pending_Payment' && (
-                                        <button onClick={() => { setPaymentData({ ...paymentData, courseId: course.id, amount: course.fee }); setShowPaymentModal(true); }} className="btn-enroll" style={{ background: 'var(--accent)' }}>💰 Pay Fee</button>
-                                    )}
+                                    <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                                        {course.enrollmentStatus === 'Pending' && (
+                                            <button className="btn-cancel" onClick={() => handleUnenroll(course.id)}>Cancel Request</button>
+                                        )}
+                                        {course.enrollmentStatus === 'Verified_Pending_Payment' && (
+                                            <button className="btn-pay" onClick={() => { setPaymentData({ ...paymentData, courseId: course.id, amount: course.fee }); setShowPaymentModal(true); }}>💰 Pay Fee (₹{course.fee})</button>
+                                        )}
+                                        {(!course.enrollmentStatus || course.enrollmentStatus === 'Not Enrolled') && (
+                                            <button className="btn-enroll" onClick={() => handleEnroll(course.id)}>Enroll Now</button>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                             {courses.length === 0 && <div className="no-data">No courses available for your department.</div>}
@@ -293,7 +410,7 @@ export default function StudentDashboard() {
                                 {filteredNotes.map(n => (
                                     <div key={n.id} className="card glass animate-slide-up">
                                         <h4>{n.title}</h4>
-                                        <p className="code">Course: {n.courseId}</p>
+                                        <p className="code">Course: {n.courseName || n.courseId}</p>
                                         <p style={{ margin: '10px 0', fontSize: '0.9em' }}>{n.description}</p>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px' }}>
                                             <span style={{ fontSize: '0.8em', color: 'var(--text-muted)' }}>{new Date(n.createdAt).toLocaleDateString()}</span>
@@ -322,7 +439,7 @@ export default function StudentDashboard() {
                                     </thead>
                                     <tbody>
                                         {filteredPayments.map(p => (
-                                            <tr key={p.id}>
+                                            <tr key={p.id} onClick={() => setSelectedPayment(p)} style={{ cursor: 'pointer' }}>
                                                 <td>{new Date(p.createdAt).toLocaleDateString()}</td>
                                                 <td>{p.courseId}</td>
                                                 <td>₹{p.amount}</td>
@@ -337,37 +454,60 @@ export default function StudentDashboard() {
                         </div>
                     )}
 
-                    {['notes', 'mock-exams', 'test-exams', 'main-exam', 'results', 'performance', 'certificates', 'messages', 'notifications', 'settings'].includes(activeTab) && activeTab !== 'main-exam' && (
-                        <div className="card glass animate-fade-in">
-                            <h3 style={{ textTransform: 'capitalize' }}>{activeTab.replace('-', ' ')}</h3>
-                            <div className="no-data">
-                                <p>This feature is being synchronized with the new system.</p>
-                                <p style={{ fontSize: '0.8em', color: 'var(--text-muted)' }}>Check back soon for updates.</p>
-                            </div>
+                    {activeTab === 'results' && (
+                        <div className="card glass animate-slide-up">
+                            <h3>Examination Results</h3>
+                            <table className="admin-table">
+                                <thead>
+                                    <tr><th>Exam</th><th>Score</th><th>Grade</th><th>Percentage</th><th>Date</th></tr>
+                                </thead>
+                                <tbody>
+                                    {results.map(r => (
+                                        <tr key={r.id}>
+                                            <td>{r.examId}</td>
+                                            <td>{r.score} / {r.total}</td>
+                                            <td><span style={{ fontWeight: 700 }}>{calculateGrade(r.score, r.total)}</span></td>
+                                            <td style={{ fontWeight: 700, color: (r.score / r.total) >= 0.4 ? 'var(--success)' : 'var(--danger)' }}>
+                                                {((r.score / r.total) * 100).toFixed(1)}%
+                                            </td>
+                                            <td>{new Date(r.createdAt).toLocaleDateString()}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            {results.length === 0 && <div className="no-data">No results available yet.</div>}
                         </div>
                     )}
 
-                    {activeTab === 'main-exam' && (
+                    {['main-exam', 'mock-exams', 'test-exams'].includes(activeTab) && (
                         <div className="card glass animate-slide-up">
-                            <h3>Scheduled Main Exams</h3>
+                            <h3 style={{ textTransform: 'capitalize' }}>{activeTab.replace('-', ' ')}</h3>
                             {exams.length > 0 ? (
                                 <table className="admin-table">
                                     <thead>
-                                        <tr><th>Title</th><th>Course</th><th>Duration</th><th>Action</th></tr>
+                                        <tr><th>Title</th><th>Course</th><th>Date</th><th>Duration</th><th>Action</th></tr>
                                     </thead>
                                     <tbody>
-                                        {filteredExams.map(ex => (
+                                        {exams.filter(ex => {
+                                            if (activeTab === 'main-exam') return ex.exam_type === 'Main' || !ex.exam_type;
+                                            if (activeTab === 'mock-exams') return ex.exam_type === 'Mock';
+                                            if (activeTab === 'test-exams') return ex.exam_type === 'Test';
+                                            return true;
+                                        }).map(ex => (
                                             <tr key={ex.id}>
-                                                <td>{ex.title}</td>
-                                                <td>{ex.courseId}</td>
-                                                <td>{ex.timeInMinutes} min</td>
-                                                <td><button className="btn-verify">Start Exam</button></td>
+                                                <td>{ex.title || ex.name}</td>
+                                                <td>{ex.courseId || ex.course_id}</td>
+                                                <td>{new Date(ex.date || ex.exam_date).toLocaleDateString()}</td>
+                                                <td>{ex.timeInMinutes || ex.time_limit} mins</td>
+                                                <td>
+                                                    <button className="btn-verify" onClick={() => navigate(`/exam/${ex.id}`)}>Start Exam</button>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
                             ) : (
-                                <div className="no-data">No main exam scheduled currently.</div>
+                                <div className="no-data">No {activeTab.replace('-', ' ')} available at this time.</div>
                             )}
                         </div>
                     )}
@@ -406,6 +546,46 @@ export default function StudentDashboard() {
                                 <button type="submit" className="btn-next">Submit Payment</button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+            {selectedPayment && (
+                <div className="modal-overlay">
+                    <div className="modal-content animate-zoom-in" style={{ maxWidth: '500px', padding: '0', overflow: 'hidden' }}>
+                        <div className="receipt-view" style={{ padding: '30px', background: 'white' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #f1f5f9', paddingBottom: '15px', marginBottom: '20px' }}>
+                                <div>
+                                    <h2 style={{ margin: '0', color: 'var(--primary)' }}>Payment Receipt</h2>
+                                    <p style={{ margin: '5px 0 0', fontSize: '0.8em', color: 'var(--text-muted)' }}>ID: {selectedPayment.id}</p>
+                                </div>
+                                <div style={{ textAlign: 'right' }}>
+                                    <p style={{ margin: '0', fontWeight: '700' }}>Edu-Assess Portal</p>
+                                    <p style={{ margin: '2px 0 0', fontSize: '0.8em' }}>{new Date(selectedPayment.createdAt).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <tbody>
+                                    {[
+                                        ['Student', profile?.full_name],
+                                        ['Email', profile?.email],
+                                        ['Course ID', selectedPayment.courseId],
+                                        ['Amount', `₹${selectedPayment.amount}`],
+                                        ['Method', selectedPayment.method],
+                                        ['Transaction ID', selectedPayment.transactionId],
+                                        ['Status', selectedPayment.status]
+                                    ].map(([label, val]) => (
+                                        <tr key={label} style={{ borderBottom: '1px solid #f8fafc' }}>
+                                            <td style={{ padding: '12px 0', fontWeight: '600', color: '#64748b', fontSize: '0.9em' }}>{label}</td>
+                                            <td style={{ padding: '12px 0', textAlign: 'right', fontWeight: '700' }}>{val}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            <div style={{ marginTop: '30px', display: 'flex', gap: '10px' }}>
+                                <button className="btn-edit-sm" style={{ flex: 1 }} onClick={() => window.print()}>Print Receipt</button>
+                                <button className="btn-cancel" style={{ flex: 1 }} onClick={() => setSelectedPayment(null)}>Close</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
