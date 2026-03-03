@@ -1,5 +1,5 @@
 import express from 'express';
-import { createUserProfile, getUserProfile } from '../controllers/adminController.js';
+import { createUserProfile, getUserProfile, updateUserProfile } from '../controllers/adminController.js';
 
 const router = express.Router();
 
@@ -8,5 +8,8 @@ router.post('/sync-profile', createUserProfile);
 
 // Route to get a specific user's public profile
 router.get('/profile/:uid', getUserProfile);
+
+// Route to update profile details
+router.patch('/profile/:uid', updateUserProfile);
 
 export default router;

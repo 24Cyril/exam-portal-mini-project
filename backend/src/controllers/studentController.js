@@ -1,17 +1,22 @@
 import { db } from '../config/firebase.js';
+import {
+    USER_SCHEMA,
+    COURSE_SCHEMA,
+    ENROLLMENT_SCHEMA,
+    PAYMENT_SCHEMA,
+    EXAM_SCHEMA,
+    RESULT_SCHEMA,
+    applySchema
+} from '../utils/schema.js';
 
 // --- COURSES & ENROLLMENT ---
 
 // Get all available courses for a student's department/branch
 export const getAvailableCourses = async (req, res) => {
     try {
-        // First get student's branch/dept from their profile
         const studentDoc = await db.collection('users').doc(req.user.uid).get();
         if (!studentDoc.exists) return res.status(404).json({ error: 'Student not found' });
 
-        const studentInfo = studentDoc.data();
-
-        // Fetch all courses
         const coursesSnapshot = await db.collection('courses').get();
         const studentEnrollments = await db.collection('student_courses').where('studentId', '==', req.user.uid).get();
 
@@ -20,11 +25,14 @@ export const getAvailableCourses = async (req, res) => {
             enrolledMap[doc.data().courseId] = doc.data().status;
         });
 
-        const coursesList = coursesSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            enrollmentStatus: enrolledMap[doc.id] || 'Not Enrolled'
-        }));
+        const coursesList = coursesSnapshot.docs.map(doc => {
+            const courseData = applySchema(COURSE_SCHEMA, doc.data());
+            return {
+                id: doc.id,
+                ...courseData,
+                enrollmentStatus: enrolledMap[doc.id] || 'Not Enrolled'
+            };
+        });
 
         res.status(200).json(coursesList);
     } catch (error) {
@@ -45,12 +53,12 @@ export const enrollInCourse = async (req, res) => {
             return res.status(400).json({ error: 'Enrollment already exists' });
         }
 
-        const enrollmentData = {
+        const enrollmentData = applySchema(ENROLLMENT_SCHEMA, {
             studentId: req.user.uid,
             courseId,
             status: 'Pending',
             updatedAt: new Date().toISOString()
-        };
+        });
 
         await enrollmentRef.set(enrollmentData);
         res.status(201).json({ id: enrollmentId, ...enrollmentData });
@@ -69,7 +77,7 @@ export const unenrollFromCourse = async (req, res) => {
 
         if (!doc.exists) return res.status(404).json({ error: 'Enrollment not found' });
 
-        const status = doc.data().status;
+        const { status } = applySchema(ENROLLMENT_SCHEMA, doc.data());
         if (!['Pending', 'Rejected'].includes(status)) {
             return res.status(403).json({ error: 'Cannot unenroll from an active or approved course' });
         }
@@ -88,7 +96,7 @@ export const submitPayment = async (req, res) => {
     try {
         const { courseId, paymentType, transactionId, amount } = req.body;
 
-        const paymentData = {
+        const paymentData = applySchema(PAYMENT_SCHEMA, {
             studentId: req.user.uid,
             courseId,
             amount,
@@ -96,7 +104,7 @@ export const submitPayment = async (req, res) => {
             transactionId,
             status: 'Pending_Approval',
             createdAt: new Date().toISOString()
-        };
+        });
 
         const paymentRef = await db.collection('payments').add(paymentData);
 
@@ -118,7 +126,7 @@ export const submitPayment = async (req, res) => {
 export const getMyPayments = async (req, res) => {
     try {
         const snapshot = await db.collection('payments').where('studentId', '==', req.user.uid).get();
-        const payments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const payments = snapshot.docs.map(doc => applySchema(PAYMENT_SCHEMA, { id: doc.id, ...doc.data() }));
         res.status(200).json(payments);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -142,7 +150,7 @@ export const getMyExams = async (req, res) => {
 
         // 2. Fetch exams for those courses
         const examsSnapshot = await db.collection('exams').where('courseId', 'in', courseIds).get();
-        const examsList = examsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const examsList = examsSnapshot.docs.map(doc => applySchema(EXAM_SCHEMA, { id: doc.id, ...doc.data() }));
 
         res.status(200).json(examsList);
     } catch (error) {
@@ -156,7 +164,8 @@ export const startExam = async (req, res) => {
         const examDoc = await db.collection('exams').doc(examId).get();
         if (!examDoc.exists) return res.status(404).json({ error: 'Exam not found' });
 
-        res.status(200).json({ sessionId: Date.now().toString(), ...examDoc.data() });
+        const examData = applySchema(EXAM_SCHEMA, examDoc.data());
+        res.status(200).json({ sessionId: Date.now().toString(), ...examData });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -170,7 +179,7 @@ export const submitResult = async (req, res) => {
         const examDoc = await db.collection('exams').doc(examId).get();
         if (!examDoc.exists) return res.status(404).json({ error: 'Exam not found' });
 
-        const examData = examDoc.data();
+        const examData = applySchema(EXAM_SCHEMA, examDoc.data());
         const questions = examData.questions || [];
 
         // 2. Grading logic
@@ -188,7 +197,7 @@ export const submitResult = async (req, res) => {
             }
         });
 
-        const resultData = {
+        const resultData = applySchema(RESULT_SCHEMA, {
             examId,
             studentId: req.user.uid,
             score,
@@ -197,7 +206,7 @@ export const submitResult = async (req, res) => {
             answers: userAnswers,
             submittedAt: new Date().toISOString(),
             status: 'Evaluated'
-        };
+        });
 
         const docRef = await db.collection('results').add(resultData);
         res.status(201).json({ id: docRef.id, ...resultData });

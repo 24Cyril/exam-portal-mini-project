@@ -11,11 +11,36 @@
     flex-shrink: 0;
 }
 
-.teacher-sidebar h2 {
-    text-align: center;
-    font-size: 24px;
-    margin-bottom: 40px;
+.sidebar-header {
+    padding: 0 30px;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sidebar-header h2 {
+    font-size: 20px;
+    margin: 0;
     color: var(--primary);
+}
+
+.teacher-user-info {
+    padding: 0 30px;
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+}
+
+.teacher-user-info .name {
+    font-weight: 700;
+    font-size: 16px;
+    color: white;
+}
+
+.teacher-user-info .dept {
+    font-size: 12px;
+    color: #a0aec0;
 }
 
 .teacher-sidebar ul {
@@ -54,51 +79,251 @@
     align-items: center;
 }
 
+.user-info-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
 .teacher-header h1 {
     font-size: 28px;
     color: var(--sidebar-bg);
 }
 
-.teacher-btn {
-    background-color: var(--primary);
+.badge {
+    padding: 4px 12px;
+    background: var(--primary);
     color: white;
-    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.stat-card {
+    background: white;
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    text-align: center;
+}
+
+.stat-card.urgent {
+    border-top: 4px solid var(--danger);
+}
+
+.stat-card h3 {
+    font-size: 16px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+
+.stat-number {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.quick-management {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.teacher-btn {
+    flex: 1;
+    padding: 15px;
+    background: var(--bg-main);
+    border: 1px solid var(--border);
     border-radius: var(--radius);
-    font-weight: 600;
-    border: none;
+    font-weight: 700;
     cursor: pointer;
+    transition: all 0.2s;
 }
 
 .teacher-btn:hover {
-    background-color: var(--primary-hover);
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.card {
+    background: white;
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 24px;
+}
+
+.glass {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
 }
 
 .profile-table {
     width: 100%;
-    border-collapse: collapse;
-}
-
-.profile-table tr {
-    border-bottom: 1px solid var(--border);
+    margin-top: 15px;
 }
 
 .profile-table td {
-    padding: 12px 0;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--border);
 }
 
 .profile-table td:first-child {
+    font-weight: 700;
+    color: var(--text-muted);
+    width: 200px;
+}
+
+.header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.btn-verify {
+    padding: 8px 16px;
+    background: var(--primary);
+    color: white;
+    border-radius: var(--radius);
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-table th {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 2px solid var(--border);
+    color: var(--text-muted);
+}
+
+.admin-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.btn-edit-sm {
+    padding: 4px 10px;
+    background: #ebf4ff;
+    color: #2b6cb0;
+    border: none;
+    border-radius: 4px;
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.btn-delete-sm {
+    padding: 4px 10px;
+    background: #fff5f5;
+    color: #c53030;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.no-data {
+    text-align: center;
+    padding: 50px;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Edit Form */
+.edit-profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
     font-weight: 600;
     color: var(--text-muted);
-    width: 180px;
 }
 
-.teacher-logout-btn {
+.form-group input {
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+}
+
+.btn-next {
+    padding: 10px 25px;
+    background: var(--primary);
     color: white;
-    text-decoration: none;
-    display: block;
-    padding: 12px 30px;
+    border: none;
+    border-radius: var(--radius);
+    font-weight: 700;
 }
 
-.teacher-logout-btn:hover {
-    background-color: var(--danger);
+.btn-cancel {
+    padding: 10px 25px;
+    background: #f7fafc;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.animate-slide-up {
+    animation: slideUp 0.4s ease-out;
 }

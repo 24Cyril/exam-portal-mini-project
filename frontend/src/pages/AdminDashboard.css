@@ -92,16 +92,160 @@
     border-collapse: collapse;
 }
 
-.admin-table tr {
-    border-bottom: 1px solid var(--border);
+.admin-table th {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 2px solid var(--border);
+    color: var(--text-muted);
 }
 
 .admin-table td {
-    padding: 12px 0;
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
 }
 
-.admin-table td:first-child {
+.glass {
+    background: rgba(255, 255, 255, 0.82) !important;
+    backdrop-filter: blur(10px);
+}
+
+.profile-info-compact p {
+    margin-bottom: 10px;
+    font-size: 15px;
+}
+
+.btn-edit-sm,
+.btn-delete {
+    padding: 6px 14px;
+    border-radius: 4px;
+    border: none;
     font-weight: 600;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.btn-edit-sm {
+    background: var(--bg-main);
+    color: var(--primary);
+    border: 1px solid var(--primary);
+}
+
+.btn-edit-sm:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-delete {
+    background: #fff5f5;
+    color: #e53e3e;
+    border: 1px solid #fed7d7;
+}
+
+.btn-delete:hover {
+    background: #e53e3e;
+    color: white;
+}
+
+.success {
+    color: var(--success);
+    font-weight: 700;
+}
+
+/* Form Styles */
+.edit-profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-weight: 600;
+    font-size: 14px;
     color: var(--text-muted);
-    width: 180px;
+}
+
+.form-group input,
+.form-group select {
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-main);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.btn-next {
+    padding: 12px 24px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-weight: 700;
+}
+
+.btn-cancel {
+    padding: 12px 24px;
+    background: #f7fafc;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-muted);
+}
+
+.course-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr auto;
+    gap: 10px;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.course-form input,
+.course-form select {
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+}
+
+/* Animations */
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(15px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
