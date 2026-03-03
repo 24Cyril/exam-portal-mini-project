@@ -108,30 +108,20 @@ export default function RegisterPage() {
                         <div className="form-section">
                             <h3>Student Details</h3>
                             <div className="form-grid">
-                                <div className="form-group">
-                                    <label>Full Name</label>
-                                    <input name="s_full_name" type="text" onChange={handleChange} required />
+                                <div className="form-group"><label>Full Name</label><input name="s_full_name" type="text" onChange={handleChange} required /></div>
+                                <div className="form-group"><label>Age</label><input name="age" type="number" onChange={handleChange} /></div>
+                                <div className="form-group"><label>Gender</label>
+                                    <select name="gender" onChange={handleChange}>
+                                        <option value="">Select</option><option>Male</option><option>Female</option><option>Other</option>
+                                    </select>
                                 </div>
-                                <div className="form-group">
-                                    <label>Age</label>
-                                    <input name="age" type="number" onChange={handleChange} />
-                                </div>
-                                <div className="form-group">
-                                    <label>Branch</label>
-                                    <input name="course" type="text" onChange={handleChange} required />
-                                </div>
-                                <div className="form-group">
-                                    <label>Department</label>
-                                    <input name="department" type="text" onChange={handleChange} required />
-                                </div>
-                                <div className="form-group">
-                                    <label>Institute Name</label>
-                                    <input name="institute_name" type="text" onChange={handleChange} required />
-                                </div>
-                                <div className="form-group">
-                                    <label>Enrollment Date</label>
-                                    <input name="enrollment_date" type="date" onChange={handleChange} />
-                                </div>
+                                <div className="form-group"><label>Phone</label><input name="phone" type="tel" onChange={handleChange} /></div>
+                                <div className="form-group"><label>Branch/Course</label><input name="course" type="text" onChange={handleChange} required /></div>
+                                <div className="form-group"><label>Department</label><input name="department" type="text" onChange={handleChange} required /></div>
+                                <div className="form-group"><label>Institute Name</label><input name="institute_name" type="text" onChange={handleChange} required /></div>
+                                <div className="form-group"><label>Year of Study</label><input name="year_of_study" type="number" onChange={handleChange} /></div>
+                                <div className="form-group"><label>Enrollment Date</label><input name="enrollment_date" type="date" onChange={handleChange} /></div>
+                                <div className="form-group" style={{ gridColumn: '1 / -1' }}><label>Address</label><textarea name="address" onChange={handleChange}></textarea></div>
                             </div>
                         </div>
                     )}
@@ -140,26 +130,20 @@ export default function RegisterPage() {
                         <div className="form-section">
                             <h3>Tutor / Teacher Details</h3>
                             <div className="form-grid">
-                                <div className="form-group">
-                                    <label>Full Name</label>
-                                    <input name="full_name" type="text" onChange={handleChange} required />
+                                <div className="form-group"><label>Full Name</label><input name="full_name" type="text" onChange={handleChange} required /></div>
+                                <div className="form-group"><label>Age</label><input name="tutor_age" type="number" onChange={handleChange} /></div>
+                                <div className="form-group"><label>Gender</label>
+                                    <select name="tutor_gender" onChange={handleChange}>
+                                        <option value="">Select</option><option>Male</option><option>Female</option><option>Other</option>
+                                    </select>
                                 </div>
-                                <div className="form-group">
-                                    <label>Department</label>
-                                    <input name="department" type="text" onChange={handleChange} required />
-                                </div>
-                                <div className="form-group">
-                                    <label>Specialization</label>
-                                    <input name="specialization" type="text" onChange={handleChange} required />
-                                </div>
-                                <div className="form-group">
-                                    <label>Institute Name</label>
-                                    <input name="institute_name" type="text" onChange={handleChange} required />
-                                </div>
-                                <div className="form-group">
-                                    <label>Employee ID</label>
-                                    <input name="employee_id" type="text" onChange={handleChange} required />
-                                </div>
+                                <div className="form-group"><label>Phone</label><input name="tutor_phone" type="tel" onChange={handleChange} /></div>
+                                <div className="form-group"><label>Department</label><input name="department" type="text" onChange={handleChange} required /></div>
+                                <div className="form-group"><label>Specialization</label><input name="specialization" type="text" onChange={handleChange} required /></div>
+                                <div className="form-group"><label>Institute Name</label><input name="institute_name" type="text" onChange={handleChange} required /></div>
+                                <div className="form-group"><label>Employee ID</label><input name="employee_id" type="text" onChange={handleChange} required /></div>
+                                <div className="form-group"><label>Joining Date</label><input name="joining_date" type="date" onChange={handleChange} /></div>
+                                <div className="form-group" style={{ gridColumn: '1 / -1' }}><label>Address</label><textarea name="tutor_address" onChange={handleChange}></textarea></div>
                             </div>
                         </div>
                     )}
@@ -168,18 +152,15 @@ export default function RegisterPage() {
                         <div className="form-section">
                             <h3>Admin Details</h3>
                             <div className="form-grid">
-                                <div className="form-group">
-                                    <label>Full Name</label>
-                                    <input name="a_full_name" type="text" onChange={handleChange} required />
+                                <div className="form-group"><label>Full Name</label><input name="a_full_name" type="text" onChange={handleChange} required /></div>
+                                <div className="form-group"><label>Date of Birth</label><input name="dob" type="date" onChange={handleChange} /></div>
+                                <div className="form-group"><label>Gender</label>
+                                    <select name="a_gender" onChange={handleChange}>
+                                        <option value="">Select</option><option>Male</option><option>Female</option><option>Other</option>
+                                    </select>
                                 </div>
-                                <div className="form-group">
-                                    <label>Contact Number</label>
-                                    <input name="contact_number" type="tel" onChange={handleChange} required />
-                                </div>
-                                <div className="form-group">
-                                    <label>Institute Code</label>
-                                    <input name="institute_code" type="text" onChange={handleChange} required />
-                                </div>
+                                <div className="form-group"><label>Contact Number</label><input name="contact_number" type="tel" onChange={handleChange} required /></div>
+                                <div className="form-group"><label>Institute Code</label><input name="institute_code" type="text" onChange={handleChange} required /></div>
                             </div>
                         </div>
                     )}

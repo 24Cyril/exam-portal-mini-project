@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import './ExamPage.css';
+import './LiveExam.css';
 import api from '../config/api';
 import { useAuth } from '../config/AuthContext';
 
-export default function ExamPage() {
+export default function LiveExam() {
     const { examId } = useParams();
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -22,7 +22,7 @@ export default function ExamPage() {
     useEffect(() => {
         startExam();
         return () => clearInterval(timerRef.current);
-    }, [examId]);
+    }, []);
 
     const startExam = async () => {
         try {
@@ -73,14 +73,14 @@ export default function ExamPage() {
                 answers: responses
             });
             alert(`Exam Submitted! Your Score: ${res.data.score}/${res.data.total}`);
-            navigate('/student/results');
+            navigate('/student');
         } catch (error) {
             alert('Submission failed');
             setSubmitting(false);
         }
     };
 
-    if (loading) return <div className="loading">Preparing your examination environment...</div>;
+    if (loading) return <div className="exam-loading">Preparing your examination environment...</div>;
 
     const q = questions[currentIdx];
     const formatTime = (seconds: number) => {
@@ -90,52 +90,36 @@ export default function ExamPage() {
     };
 
     return (
-        <div className="exam-page">
+        <div className="live-exam-page">
             <header className="exam-header">
-                <div className="exam-logo" style={{ fontWeight: 800, fontSize: '1.2rem' }}>EDU-ASSESS LIVE</div>
-                <div className="exam-info" style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+                <div className="exam-logo">EDU-ASSESS LIVE</div>
+                <div className="exam-info">
                     <span>{user?.email}</span>
-                    <div className="timer-pill" style={{
-                        background: 'rgba(255,255,255,0.1)',
-                        padding: '6px 16px',
-                        borderRadius: '20px',
-                        color: timeLeft < 300 ? '#ff4d4d' : 'inherit'
-                    }}>
+                    <div className="timer-pill" style={{ color: timeLeft < 300 ? '#ff4d4d' : 'inherit' }}>
                         ⏱️ {formatTime(timeLeft)}
                     </div>
                 </div>
             </header>
 
             <div className="exam-layout">
-                <main className="exam-main">
-                    <div className="question-card animate-slide-up">
-                        <div className="q-header">
-                            <span className="q-no">Question {currentIdx + 1} of {questions.length}</span>
-                            <button className={`btn-bookmark ${bookmarks.has(currentIdx) ? 'active' : ''}`} onClick={toggleBookmark} style={{ background: 'transparent', border: '1px solid #ddd', padding: '5px 10px', borderRadius: '5px' }}>
+                <main className="exam-content">
+                    <div className="question-card glass animate-slide-up">
+                        <div className="q-meta">
+                            <span className="q-number">Question {currentIdx + 1} of {questions.length}</span>
+                            <button className={`btn-bookmark ${bookmarks.has(currentIdx) ? 'active' : ''}`} onClick={toggleBookmark}>
                                 {bookmarks.has(currentIdx) ? '🔖 Bookmarked' : '📑 Bookmark'}
                             </button>
                         </div>
-                        <h2 className="q-text" style={{ margin: '20px 0', fontSize: '1.5rem' }}>{q.question}</h2>
-                        <div className="options-list">
+                        <h2 className="q-text">{q.question}</h2>
+                        <div className="options-grid">
                             {['A', 'B', 'C', 'D'].map((opt) => (
                                 <div
                                     key={opt}
-                                    className={`option-item ${responses[currentIdx + 1] === opt ? 'selected' : ''}`}
+                                    className={`option-box ${responses[currentIdx + 1] === opt ? 'selected' : ''}`}
                                     onClick={() => handleSelect(opt)}
-                                    style={{
-                                        padding: '15px',
-                                        border: '2px solid #f1f5f9',
-                                        borderRadius: '10px',
-                                        cursor: 'pointer',
-                                        marginBottom: '10px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: '15px',
-                                        background: responses[currentIdx + 1] === opt ? 'var(--primary-light)' : 'white'
-                                    }}
                                 >
-                                    <span style={{ fontWeight: 800, color: 'var(--primary)' }}>{opt}</span>
-                                    <span>{q[`option_${opt.toLowerCase()}`] || q[opt]}</span>
+                                    <span className="opt-letter">{opt}</span>
+                                    <span className="opt-val">{q[`option_${opt.toLowerCase()}`] || q[opt]}</span>
                                 </div>
                             ))}
                         </div>
@@ -143,7 +127,7 @@ export default function ExamPage() {
 
                     <div className="exam-footer">
                         <button
-                            className="btn btn-prev"
+                            className="btn-nav"
                             disabled={currentIdx === 0}
                             onClick={() => setCurrentIdx(prev => prev - 1)}
                         >← Previous</button>
@@ -153,25 +137,30 @@ export default function ExamPage() {
                                 {submitting ? 'Submitting...' : 'Finish Exam'}
                             </button>
                         ) : (
-                            <button className="btn btn-next" onClick={() => setCurrentIdx(prev => prev + 1)}>Next Question →</button>
+                            <button className="btn-nav" onClick={() => setCurrentIdx(prev => prev + 1)}>Next Question →</button>
                         )}
                     </div>
                 </main>
 
-                <aside className="exam-sidebar">
+                <aside className="exam-sidebar glass">
                     <h3>Question Navigator</h3>
-                    <div className="question-grid">
+                    <div className="nav-grid">
                         {questions.map((_, idx) => (
                             <div
                                 key={idx}
-                                className={`q-num ${currentIdx === idx ? 'active' : ''} ${responses[idx + 1] ? 'answered' : ''} ${bookmarks.has(idx) ? 'bookmarked' : ''}`}
+                                className={`nav-item ${currentIdx === idx ? 'active' : ''} ${responses[idx + 1] ? 'answered' : ''} ${bookmarks.has(idx) ? 'bookmarked' : ''}`}
                                 onClick={() => setCurrentIdx(idx)}
                             >
                                 {idx + 1}
                             </div>
                         ))}
                     </div>
-                    <button className="btn-finish" style={{ marginTop: 'auto' }} onClick={() => handleSubmit()} disabled={submitting}>Submit All</button>
+                    <div className="nav-legend">
+                        <div className="leg-item"><span className="dot answered"></span> Answered</div>
+                        <div className="leg-item"><span className="dot bookmarked"></span> Bookmarked</div>
+                        <div className="leg-item"><span className="dot current"></span> Current</div>
+                    </div>
+                    <button className="btn-submit-sidebar" onClick={() => handleSubmit()} disabled={submitting}>Submit All</button>
                 </aside>
             </div>
         </div>

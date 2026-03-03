@@ -11,6 +11,8 @@ import {
 } from '../controllers/studentController.js';
 import { protect, authorize } from '../middlewares/auth.js';
 
+import * as noteController from '../controllers/noteController.js';
+
 const router = express.Router();
 
 // Routes for student dashboard, courses, and exams
@@ -28,7 +30,7 @@ router.post('/submit-payment', submitPayment);
 router.get('/my-payments', getMyPayments);
 
 // Materials
-router.get('/notes', (req, res) => res.status(200).json([])); // Placeholder
+router.get('/notes', noteController.getStudentNotes);
 
 // Exams
 router.get('/my-exams', getMyExams);

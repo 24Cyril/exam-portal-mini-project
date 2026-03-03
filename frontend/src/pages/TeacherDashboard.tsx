@@ -13,6 +13,8 @@ export default function TeacherDashboard() {
     const [courses, setCourses] = useState<any[]>([]);
     const [students, setStudents] = useState<any[]>([]);
     const [exams, setExams] = useState<any[]>([]);
+    const [performance, setPerformance] = useState<any[]>([]);
+    const [notes, setNotes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [editData, setEditData] = useState<any>({});
@@ -35,6 +37,9 @@ export default function TeacherDashboard() {
         department: '', year: ''
     });
 
+    const [editingItem, setEditingItem] = useState<any>(null);
+    const [editForm, setEditForm] = useState<any>({});
+
     useEffect(() => {
         fetchData();
     }, [activeTab]);
@@ -56,6 +61,9 @@ export default function TeacherDashboard() {
 
     const filteredPayments = (pendingPayments || [])
         .filter(p => p.studentId.toLowerCase().includes(searchTerm.toLowerCase()) || p.courseId.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const filteredNotes = (notes || [])
+        .filter(n => n.title.toLowerCase().includes(searchTerm.toLowerCase()) || n.courseId?.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const fetchData = async () => {
         setLoading(true);
@@ -81,8 +89,16 @@ export default function TeacherDashboard() {
                 setStudents(res.data);
             }
             if (activeTab === 'exam') {
-                const res = await api.get('/teacher/exams'); // Assuming this exists or falls back to all
+                const res = await api.get('/teacher/exams');
                 setExams(res.data);
+            }
+            if (activeTab === 'performance') {
+                const res = await api.get('/teacher/performance');
+                setPerformance(res.data.performance || []);
+            }
+            if (activeTab === 'notes') {
+                const res = await api.get('/notes/my-notes');
+                setNotes(res.data);
             }
         } catch (error) {
             console.error('Error fetching teacher data:', error);
@@ -157,6 +173,22 @@ export default function TeacherDashboard() {
         } catch (error) { alert('Registration failed'); }
     };
 
+    const handleEditInitiate = (item: any, type: string) => {
+        setEditingItem({ ...item, type });
+        setEditForm(item);
+    };
+
+    const handleUpdateItem = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const url = editingItem.type === 'course' ? `/admin/course/${editingItem.id}` : `/auth/profile/${editingItem.uid}`;
+            await api.patch(url, editForm);
+            alert(`${editingItem.type.toUpperCase()} Updated!`);
+            setEditingItem(null);
+            fetchData();
+        } catch (error) { alert('Update failed'); }
+    };
+
     // Filter Logic
     const filteredExams = exams
         .filter(ex => ex.title?.toLowerCase().includes(searchTerm.toLowerCase()) || ex.name?.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -188,6 +220,7 @@ export default function TeacherDashboard() {
                     {role === 'admin' && <li className={activeTab === 'teachers' ? 'active' : ''} onClick={() => { setActiveTab('teachers'); setSearchTerm(''); setShowAddForm(false); }}>👨‍🏫 Teachers</li>}
                     <li className={activeTab === 'registration' ? 'active' : ''} onClick={() => { setActiveTab('registration'); setSearchTerm(''); setShowAddForm(false); }}>📝 Enrollments</li>
                     <li className={activeTab === 'exam' ? 'active' : ''} onClick={() => { setActiveTab('exam'); setSearchTerm(''); setShowAddForm(false); }}>🧪 Exams</li>
+                    <li className={activeTab === 'notes' ? 'active' : ''} onClick={() => { setActiveTab('notes'); setSearchTerm(''); setShowAddForm(false); }}>📄 Study Notes</li>
                     <li className={activeTab === 'payment' ? 'active' : ''} onClick={() => { setActiveTab('payment'); setSearchTerm(''); setShowAddForm(false); }}>💳 Payments</li>
                     <li className={activeTab === 'performance' ? 'active' : ''} onClick={() => { setActiveTab('performance'); setSearchTerm(''); setShowAddForm(false); }}>📊 Performance</li>
                     <li style={{ marginTop: 'auto', borderTop: '1px solid rgba(255,255,255,0.1)' }} onClick={handleLogout}>🚪 Logout</li>
@@ -304,7 +337,7 @@ export default function TeacherDashboard() {
                                             {filteredCourses.map(c => (
                                                 <tr key={c.id}><td>{c.code}</td><td>{c.name}</td><td>₹{c.fee}</td>
                                                     <td>
-                                                        <button className="btn-edit-sm">Edit</button>
+                                                        <button className="btn-edit-sm" onClick={() => handleEditInitiate(c, 'course')}>Edit</button>
                                                         <button className="btn-delete-sm" onClick={() => handleDeleteCourse(c.id)}>Delete</button>
                                                     </td>
                                                 </tr>
@@ -359,7 +392,7 @@ export default function TeacherDashboard() {
                                             {filteredStudents.map(s => (
                                                 <tr key={s.uid}><td>{s.full_name}</td><td>{s.email}</td><td>{s.roll_number || 'N/A'}</td>
                                                     <td>
-                                                        <button className="btn-edit-sm">View</button>
+                                                        <button className="btn-edit-sm" onClick={() => handleEditInitiate(s, 'student')}>Edit</button>
                                                         <button className="btn-delete-sm">Rem</button>
                                                     </td>
                                                 </tr>
@@ -417,7 +450,57 @@ export default function TeacherDashboard() {
                         </div>
                     )}
 
-                    {['teachers', 'departments', 'performance'].includes(activeTab) && (
+                    {activeTab === 'notes' && (
+                        <div className="card glass animate-slide-up">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                <h3>Shared Study Materials</h3>
+                                <button className="btn-verify" onClick={() => alert('Feature coming soon: File Upload')}>+ Upload New Note (PDF/Doc)</button>
+                            </div>
+                            <table className="admin-table">
+                                <thead>
+                                    <tr><th>Title</th><th>Course</th><th>Date Added</th><th>Actions</th></tr>
+                                </thead>
+                                <tbody>
+                                    {filteredNotes.map(n => (
+                                        <tr key={n.id}>
+                                            <td style={{ fontWeight: 600 }}>{n.title}</td>
+                                            <td>{n.courseName || n.courseId}</td>
+                                            <td>{new Date(n.createdAt).toLocaleDateString()}</td>
+                                            <td>
+                                                <button className="btn-edit-sm" onClick={() => window.open(n.file_path)}>View</button>
+                                                <button className="btn-delete-sm" onClick={() => alert('Delete feature pending synchronization')}>Del</button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            {filteredNotes.length === 0 && <div className="no-data">No study materials found.</div>}
+                        </div>
+                    )}
+
+                    {activeTab === 'performance' && (
+                        <div className="card glass animate-slide-up">
+                            <h3>Student Rank List</h3>
+                            <table className="admin-table">
+                                <thead>
+                                    <tr><th>Rank</th><th>Student Name</th><th>Department</th><th>Avg Score</th></tr>
+                                </thead>
+                                <tbody>
+                                    {performance.sort((a, b) => b.avg_score - a.avg_score).map((p, i) => (
+                                        <tr key={i}>
+                                            <td style={{ fontWeight: 800 }}>#{i + 1}</td>
+                                            <td>{p.full_name}</td>
+                                            <td>{p.department_name}</td>
+                                            <td style={{ fontWeight: 700, color: 'var(--primary)' }}>{parseFloat(p.avg_score).toFixed(2)}%</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            {performance.length === 0 && <div className="no-data">No performance data available.</div>}
+                        </div>
+                    )}
+
+                    {['teachers', 'departments'].includes(activeTab) && (
                         <div className="card glass animate-fade-in">
                             <h3 style={{ textTransform: 'capitalize' }}>{activeTab} Management</h3>
                             <div className="no-data"><p>System module synchronization in progress.</p></div>
@@ -425,6 +508,52 @@ export default function TeacherDashboard() {
                     )}
                 </section>
             </main>
+
+            {editingItem && (
+                <div className="modal-overlay">
+                    <div className="modal-content glass animate-zoom-in" style={{ maxWidth: '600px' }}>
+                        <h3>Edit {editingItem.type === 'course' ? 'Course Details' : 'Student Record'}</h3>
+                        <form onSubmit={handleUpdateItem} className="edit-profile-form">
+                            {editingItem.type === 'course' ? (
+                                <>
+                                    <div className="form-row">
+                                        <div className="form-group"><label>Course Name</label><input type="text" value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} required /></div>
+                                        <div className="form-group"><label>Code</label><input type="text" value={editForm.code} onChange={e => setEditForm({ ...editForm, code: e.target.value })} required /></div>
+                                    </div>
+                                    <div className="form-row">
+                                        <div className="form-group"><label>Fee (₹)</label><input type="number" value={editForm.fee} onChange={e => setEditForm({ ...editForm, fee: e.target.value })} required /></div>
+                                        <div className="form-group"><label>Status</label>
+                                            <select value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })}>
+                                                <option>Active</option><option>Inactive</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="form-group"><label>Description</label><textarea value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })} rows={3} /></div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="form-row">
+                                        <div className="form-group"><label>Full Name</label><input type="text" value={editForm.full_name} onChange={e => setEditForm({ ...editForm, full_name: e.target.value })} required /></div>
+                                        <div className="form-group"><label>Phone</label><input type="text" value={editForm.contact_number} onChange={e => setEditForm({ ...editForm, contact_number: e.target.value })} /></div>
+                                    </div>
+                                    <div className="form-row">
+                                        <div className="form-group"><label>Roll Number</label><input type="text" value={editForm.roll_number} onChange={e => setEditForm({ ...editForm, roll_number: e.target.value })} /></div>
+                                        <div className="form-group"><label>Semester</label><input type="number" value={editForm.semester} onChange={e => setEditForm({ ...editForm, semester: e.target.value })} /></div>
+                                    </div>
+                                    <div className="form-row">
+                                        <div className="form-group"><label>Department</label><input type="text" value={editForm.department_id} onChange={e => setEditForm({ ...editForm, department_id: e.target.value })} /></div>
+                                        <div className="form-group"><label>Course/Branch</label><input type="text" value={editForm.course} onChange={e => setEditForm({ ...editForm, course: e.target.value })} /></div>
+                                    </div>
+                                </>
+                            )}
+                            <div className="form-actions">
+                                <button type="button" className="btn-cancel" onClick={() => setEditingItem(null)}>Cancel</button>
+                                <button type="submit" className="btn-next">Save Updates</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
