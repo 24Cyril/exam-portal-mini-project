@@ -46,14 +46,17 @@ export default function TeacherDashboard() {
 
     // Filtering & Sorting Logic
     const filteredStudents = students
-        .filter(s => s.full_name.toLowerCase().includes(searchTerm.toLowerCase()) || s.email.toLowerCase().includes(searchTerm.toLowerCase()))
-        .sort((a, b) => a.full_name.localeCompare(b.full_name));
+        .filter(s => role === 'admin' || (profile && s.department_id === profile.department_id))
+        .filter(s => s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || s.email?.toLowerCase().includes(searchTerm.toLowerCase()))
+        .sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
 
     const filteredCourses = courses
-        .filter(c => (c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.code.toLowerCase().includes(searchTerm.toLowerCase())) && (filterDept === 'All' || c.department === filterDept))
-        .sort((a, b) => a.name.localeCompare(b.name));
+        .filter(c => role === 'admin' || (profile && c.department === profile.department_id))
+        .filter(c => (c.name?.toLowerCase().includes(searchTerm.toLowerCase()) || c.code?.toLowerCase().includes(searchTerm.toLowerCase())) && (filterDept === 'All' || c.department === filterDept))
+        .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     const filteredExams = exams
+        .filter(ex => role === 'admin' || (profile && courses.find(c => c.id === ex.courseId)?.department === profile.department_id))
         .filter(ex => ex.title?.toLowerCase().includes(searchTerm.toLowerCase()) || ex.name?.toLowerCase().includes(searchTerm.toLowerCase()))
         .sort((a, b) => {
             if (sortBy === 'name') return (a.title || a.name || '').localeCompare(b.title || b.name || '');
@@ -61,6 +64,7 @@ export default function TeacherDashboard() {
         });
 
     const filteredEnrollments = (pendingEnrollments || [])
+        .filter(e => role === 'admin' || (profile && courses.find(c => c.id === e.courseId)?.department === profile.department_id))
         .filter(e => e.studentId.toLowerCase().includes(searchTerm.toLowerCase()) || e.courseId.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const filteredPayments = (pendingPayments || [])
@@ -293,6 +297,15 @@ export default function TeacherDashboard() {
                                 <div className="form-group"><label>Full Name</label><input type="text" value={editData.full_name} onChange={e => setEditData({ ...editData, full_name: e.target.value })} required /></div>
                                 <div className="form-group"><label>Specialization</label><input type="text" value={editData.specialization} onChange={e => setEditData({ ...editData, specialization: e.target.value })} /></div>
                                 <div className="form-group"><label>Joining Date</label><input type="date" value={editData.joining_date} onChange={e => setEditData({ ...editData, joining_date: e.target.value })} /></div>
+                                <div className="form-group"><label>Department</label>
+                                    <select value={editData.department_id || ''} onChange={e => setEditData({ ...editData, department_id: e.target.value })}>
+                                        <option value="">Select Department</option>
+                                        <option value="Computer Science">Computer Science</option>
+                                        <option value="Mechanical Engineering">Mechanical Engineering</option>
+                                        <option value="Electrical Engineering">Electrical Engineering</option>
+                                        <option value="Civil Engineering">Civil Engineering</option>
+                                    </select>
+                                </div>
                                 <div className="form-actions">
                                     <button type="button" className="btn-cancel" onClick={() => setIsEditing(false)}>Cancel</button>
                                     <button type="submit" className="btn-next">Save Profile</button>
@@ -314,6 +327,13 @@ export default function TeacherDashboard() {
                                         <div className="form-row">
                                             <div className="form-group"><label>Fee (₹)</label><input type="number" required /></div>
                                             <div className="form-group"><label>Duration</label><input type="text" placeholder="e.g. 6 months" /></div>
+                                        </div>
+                                        <div className="form-group"><label>Department</label>
+                                            <select required defaultValue={profile?.department_id}>
+                                                <option value="">Select Department</option>
+                                                <option value="Computer Science">Computer Science</option>
+                                                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                                            </select>
                                         </div>
                                         <div className="form-group"><label>Description</label><textarea rows={3} /></div>
                                         <div className="form-actions">
@@ -360,6 +380,13 @@ export default function TeacherDashboard() {
                                                     <option>Select</option><option>Male</option><option>Female</option>
                                                 </select>
                                             </div>
+                                            <div className="form-group"><label>Department</label>
+                                                <select value={newStudent.department} onChange={e => setNewStudent({ ...newStudent, department: e.target.value })}>
+                                                    <option>Select</option>
+                                                    <option value="Computer Science">Computer Science</option>
+                                                    <option value="Mechanical Engineering">Mechanical Engineering</option>
+                                                </select>
+                                            </div>
                                         </div>
                                         <div className="form-row">
                                             <div className="form-group"><label>Course</label><input type="text" required value={newStudent.course} onChange={e => setNewStudent({ ...newStudent, course: e.target.value })} /></div>
@@ -381,10 +408,10 @@ export default function TeacherDashboard() {
                                 <>
                                     <h3>Student Directory</h3>
                                     <table className="admin-table">
-                                        <thead><tr><th>Name</th><th>Email</th><th>Roll No</th><th>Actions</th></tr></thead>
+                                        <thead><tr><th>Name</th><th>Email</th><th>Department</th><th>Roll No</th><th>Actions</th></tr></thead>
                                         <tbody>
                                             {filteredStudents.map(s => (
-                                                <tr key={s.uid}><td>{s.full_name}</td><td>{s.email}</td><td>{s.roll_number || 'N/A'}</td>
+                                                <tr key={s.uid}><td>{s.full_name}</td><td>{s.email}</td><td>{s.department_id || 'N/A'}</td><td>{s.roll_number || 'N/A'}</td>
                                                     <td>
                                                         <button className="btn-edit-sm" onClick={() => handleEditInitiate(s, 'student')}>Edit</button>
                                                         <button className="btn-delete-sm">Rem</button>
@@ -433,7 +460,7 @@ export default function TeacherDashboard() {
                                     <table className="admin-table">
                                         <thead><tr><th>Title</th><th>Course</th><th>Time</th><th>Status</th><th>Actions</th></tr></thead>
                                         <tbody>
-                                            {.map(ex => (
+                                            {filteredExams.map(ex => (
                                                 <tr key={ex.id}><td>{ex.title || ex.name}</td><td>{ex.courseId || ex.course_id}</td><td>{ex.timeInMinutes || ex.time_limit}m</td><td>{ex.status || 'Active'}</td>
                                                     <td><button className="btn-edit-sm">Edit</button><button className="btn-delete-sm">Del</button></td></tr>
                                             ))}
@@ -472,25 +499,66 @@ export default function TeacherDashboard() {
                         </div>
                     )}
 
+                    {activeTab === 'payment' && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            <div className="card glass animate-slide-up">
+                                <h3>Pending Enrollment Approvals</h3>
+                                <table className="admin-table">
+                                    <thead><tr><th>Student</th><th>Course</th><th>Status</th><th>Action</th></tr></thead>
+                                    <tbody>
+                                        {filteredEnrollments.map(e => (
+                                            <tr key={e.id}>
+                                                <td>{e.studentName || e.studentId}</td>
+                                                <td>{e.courseId}</td>
+                                                <td><span className="badge pending">{e.status}</span></td>
+                                                <td><button className="btn-verify" onClick={() => handleVerifyEnrollment(e.id)}>✅ Verify</button></td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                {filteredEnrollments.length === 0 && <div className="no-data">No pending enrollment requests.</div>}
+                            </div>
+                            <div className="card glass animate-slide-up">
+                                <h3>Pending Payment Verifications</h3>
+                                <table className="admin-table">
+                                    <thead><tr><th>Student</th><th>Course</th><th>Amount</th><th>Transaction ID</th><th>Action</th></tr></thead>
+                                    <tbody>
+                                        {filteredPayments.map(p => (
+                                            <tr key={p.id}>
+                                                <td>{p.studentName || p.studentId}</td>
+                                                <td>{p.courseId}</td>
+                                                <td style={{ fontWeight: 700 }}>₹{p.amount}</td>
+                                                <td><code>{p.transactionId}</code></td>
+                                                <td><button className="btn-verify" onClick={() => handleVerifyPayment(p.id)}>✅ Verify</button></td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                {filteredPayments.length === 0 && <div className="no-data">No pending payment verifications.</div>}
+                            </div>
+                        </div>
+                    )}
+
                     {activeTab === 'performance' && (
                         <div className="card glass animate-slide-up">
-                            <h3>Student Rank List</h3>
+                            <h3>Performance Track Records</h3>
                             <table className="admin-table">
                                 <thead>
-                                    <tr><th>Rank</th><th>Student Name</th><th>Department</th><th>Avg Score</th></tr>
+                                    <tr><th>Student</th><th>Exam Activity</th><th>Study Time (s)</th><th>Exam Duration (s)</th><th>Score</th></tr>
                                 </thead>
                                 <tbody>
-                                    {performance.sort((a, b) => b.avg_score - a.avg_score).map((p, i) => (
+                                    {performance.map((p, i) => (
                                         <tr key={i}>
-                                            <td style={{ fontWeight: 800 }}>#{i + 1}</td>
-                                            <td>{p.full_name}</td>
-                                            <td>{p.department_name}</td>
-                                            <td style={{ fontWeight: 700, color: 'var(--primary)' }}>{parseFloat(p.avg_score).toFixed(2)}%</td>
+                                            <td style={{ fontWeight: 600 }}>{students.find(s => s.uid === p.studentId)?.full_name || p.studentId || "Unknown"}</td>
+                                            <td>{p.examId}</td>
+                                            <td style={{ color: 'var(--primary)', fontWeight: 700 }}>{p.noteReadTime || 0} s</td>
+                                            <td style={{ color: 'var(--accent)', fontWeight: 700 }}>{p.examDuration || 0} s</td>
+                                            <td style={{ fontWeight: 800 }}>{p.score || 0}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
-                            {performance.length === 0 && <div className="no-data">No performance data available.</div>}
+                            {performance.length === 0 && <div className="no-data">No comprehensive performance data logged yet.</div>}
                         </div>
                     )}
 

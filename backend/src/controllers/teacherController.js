@@ -141,14 +141,26 @@ export const createExam = async (req, res) => {
     }
 };
 
-// Get all exams for teacher's department
+// Get all exams created by this teacher
 export const getExams = async (req, res) => {
     try {
         const examsSnapshot = await db.collection('exams').where('createdBy', '==', req.user.uid).get();
-        const examsList = examsSnapshot.docs.map(doc => applySchema(EXAM_SCHEMA, { id: doc.id, ...doc.data() }));
+        const examsList = examsSnapshot.docs
+            .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
+            .map(doc => applySchema(EXAM_SCHEMA, { id: doc.id, ...doc.data() }));
         res.status(200).json(examsList);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
+// Get all performance logs (for teacher's view)
+export const getPerformance = async (req, res) => {
+    try {
+        const snapshot = await db.collection('performance').get();
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        res.json({ performance: data });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};

@@ -6,7 +6,8 @@ import {
     getPendingEnrollments,
     verifyEnrollment,
     getPendingPayments,
-    verifyPayment
+    verifyPayment,
+    getPerformance
 } from '../controllers/teacherController.js';
 import { protect, authorize } from '../middlewares/auth.js';
 
@@ -27,5 +28,8 @@ router.patch('/verify-payment/:paymentId', verifyPayment);
 // Exams
 router.post('/exams', createExam);
 router.get('/exams', getExams);
+
+// Performance
+router.get('/performance', getPerformance);
 
 export default router;
