@@ -11,7 +11,9 @@ export const getStudentNotes = async (req, res) => {
         if (studentDept) {
             // Fetch only notes for this department
             const snapshot = await admin.firestore().collection('notes').where('department_id', '==', studentDept).get();
-            notes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            notes = snapshot.docs
+                .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
+                .map(doc => ({ id: doc.id, ...doc.data() }));
         } else {
             // Fallback: if no department set, maybe show nothing or all (let's go with all for now but warn)
             notes = await Note.getAllNotes();

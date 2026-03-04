@@ -16,9 +16,14 @@ export default function StudentDashboard() {
     const [editData, setEditData] = useState<any>({});
     const [notes, setNotes] = useState<any[]>([]);
     const [results, setResults] = useState<any[]>([]);
+    const [performance, setPerformance] = useState<any[]>([]);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [selectedPayment, setSelectedPayment] = useState<any>(null);
     const [paymentData, setPaymentData] = useState({ courseId: '', amount: 0, transactionId: '', method: 'UPI' });
+
+    // Note Timer State
+    const [timers, setTimers] = useState<{ [key: string]: { time: number, isRunning: boolean } }>({});
+    const [intervalIds, setIntervalIds] = useState<{ [key: string]: NodeJS.Timeout }>({});
 
     // Search & Sort States
     const [searchTerm, setSearchTerm] = useState('');
@@ -73,6 +78,10 @@ export default function StudentDashboard() {
             if (activeTab === 'home' || activeTab === 'results') {
                 const res = await api.get('/student/my-results');
                 setResults(res.data);
+            }
+            if (activeTab === 'performance') {
+                const res = await api.get('/student/performance');
+                setPerformance(res.data);
             }
         } catch (error) {
             console.error('Error fetching student data:', error);
@@ -137,6 +146,50 @@ export default function StudentDashboard() {
     const handleLogout = async () => {
         await logout();
         navigate('/');
+    };
+
+    // Timer functions
+    const toggleTimer = (noteId: string) => {
+        setTimers(prev => {
+            const current = prev[noteId] || { time: 0, isRunning: false };
+            const isRunning = !current.isRunning;
+
+            if (isRunning) {
+                const id = setInterval(() => {
+                    setTimers(t => ({
+                        ...t,
+                        [noteId]: { ...t[noteId], time: (t[noteId]?.time || 0) + 1 }
+                    }));
+                }, 1000);
+                setIntervalIds(ids => ({ ...ids, [noteId]: id }));
+            } else {
+                if (intervalIds[noteId]) clearInterval(intervalIds[noteId]);
+            }
+
+            return { ...prev, [noteId]: { ...current, isRunning } };
+        });
+    };
+
+    const resetTimer = (noteId: string) => {
+        if (intervalIds[noteId]) clearInterval(intervalIds[noteId]);
+        setTimers(prev => ({ ...prev, [noteId]: { time: 0, isRunning: false } }));
+    };
+
+    const recordTime = async (noteId: string, courseId: string) => {
+        const timeSpent = timers[noteId]?.time || 0;
+        if (timeSpent === 0) return alert('No time recorded yet!');
+        try {
+            await api.post('/student/performance', {
+                examId: `note_${noteId}`,
+                noteReadTime: timeSpent,
+                examDuration: 0,
+                score: 0
+            });
+            alert(`Logged ${timeSpent}s reading time for note!`);
+            fetchData();
+        } catch (error) {
+            alert('Failed to log performance');
+        }
     };
 
     if (loading && !profile && activeTab === 'home') return <div className="loading">Loading Dashboard...</div>;
@@ -444,6 +497,22 @@ export default function StudentDashboard() {
                                             <span style={{ fontSize: '0.8em', color: 'var(--text-muted)' }}>{new Date(n.createdAt).toLocaleDateString()}</span>
                                             <a href={n.file_path} target="_blank" rel="noreferrer" className="btn-edit-sm" style={{ textDecoration: 'none', display: 'inline-block' }}>📄 View Material</a>
                                         </div>
+                                        <div style={{ marginTop: '15px', padding: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                                <span style={{ fontWeight: '600' }}>Study Timer:</span>
+                                                <span style={{ fontFamily: 'monospace', fontSize: '1.2em', color: 'var(--accent)' }}>
+                                                    {Math.floor((timers[n.id]?.time || 0) / 60).toString().padStart(2, '0')}:
+                                                    {((timers[n.id]?.time || 0) % 60).toString().padStart(2, '0')}
+                                                </span>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '5px' }}>
+                                                <button onClick={() => toggleTimer(n.id)} className={timers[n.id]?.isRunning ? "btn-cancel" : "btn-verify"} style={{ flex: 1, padding: '5px' }}>
+                                                    {timers[n.id]?.isRunning ? '⏸ Pause' : '▶️ Start'}
+                                                </button>
+                                                <button onClick={() => resetTimer(n.id)} className="btn-delete-sm" style={{ padding: '5px 10px' }}>⏹</button>
+                                                <button onClick={() => recordTime(n.id, n.courseId)} className="btn-next" style={{ padding: '5px 10px' }}>Log Time</button>
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
                                 {filteredNotes.length === 0 && <div className="no-data">No study materials available for your courses.</div>}
@@ -539,6 +608,77 @@ export default function StudentDashboard() {
                             )}
                         </div>
                     )}
+                    {activeTab === 'performance' && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            <div className="card glass animate-slide-up">
+                                <h3>Academic Results</h3>
+                                <div className="dashboard-stats" style={{ marginBottom: '20px' }}>
+                                    <div className="stat-card">
+                                        <h3>Total Tests Taken</h3>
+                                        <p className="stat-number">{results.length}</p>
+                                    </div>
+                                    <div className="stat-card">
+                                        <h3>Average Score</h3>
+                                        <p className="stat-number" style={{ color: 'var(--primary)' }}>
+                                            {results.length > 0
+                                                ? (results.reduce((acc, r) => acc + (r.score / r.total), 0) / results.length * 100).toFixed(1)
+                                                : '0'}%
+                                        </p>
+                                    </div>
+                                    <div className="stat-card">
+                                        <h3>Highest Score</h3>
+                                        <p className="stat-number" style={{ color: 'var(--success)' }}>
+                                            {results.length > 0
+                                                ? Math.max(...results.map(r => (r.score / r.total) * 100)).toFixed(1)
+                                                : '0'}%
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <h4>Recent Test History</h4>
+                                <table className="admin-table">
+                                    <thead>
+                                        <tr><th>Exam ID</th><th>Score</th><th>Result</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        {results.slice(0, 10).map(r => (
+                                            <tr key={r.id}>
+                                                <td>{r.examId}</td>
+                                                <td>{r.score} / {r.total}</td>
+                                                <td style={{ fontWeight: 700, color: (r.score / r.total) >= 0.4 ? 'var(--success)' : 'var(--danger)' }}>
+                                                    {((r.score / r.total) * 100).toFixed(1)}%
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                {results.length === 0 && <div className="no-data">Take some exams to see your performance!</div>}
+                            </div>
+
+                            <div className="card glass animate-slide-up">
+                                <h3>Memorization Speed Analytics</h3>
+                                <p style={{ marginBottom: '15px', color: 'var(--text-muted)' }}>Track the time spent studying your notes.</p>
+                                <table className="admin-table">
+                                    <thead>
+                                        <tr><th>Study Item (Note ID)</th><th>Time Logged (seconds)</th><th>Date</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        {performance.filter(p => (p.examId || '').startsWith('note_')).map(p => (
+                                            <tr key={p.id}>
+                                                <td style={{ fontWeight: '600', color: 'var(--primary)' }}>{p.examId.replace('note_', 'Note #')}</td>
+                                                <td style={{ fontFamily: 'monospace', fontSize: '1.1em' }}>{p.noteReadTime}s</td>
+                                                <td>{new Date(p.createdAt).toLocaleDateString()}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                {performance.filter(p => (p.examId || '').startsWith('note_')).length === 0 && (
+                                    <div className="no-data">No study time recorded yet. Use the timer on the Notes page!</div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
                 </section>
             </main>
 

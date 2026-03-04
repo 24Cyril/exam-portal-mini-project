@@ -7,7 +7,9 @@ import {
     enrollInCourse,
     unenrollFromCourse,
     submitPayment,
-    getMyPayments
+    getMyPayments,
+    updatePerformance,
+    getMyPerformance
 } from '../controllers/studentController.js';
 import { protect, authorize } from '../middlewares/auth.js';
 
@@ -36,5 +38,9 @@ router.get('/notes', noteController.getStudentNotes);
 router.get('/my-exams', getMyExams);
 router.post('/start-exam', startExam);
 router.post('/submit-result', submitResult);
+
+// Performance
+router.post('/performance', updatePerformance);
+router.get('/performance', getMyPerformance);
 
 export default router;

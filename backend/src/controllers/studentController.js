@@ -35,14 +35,16 @@ export const getAvailableCourses = async (req, res) => {
             enrolledMap[doc.data().courseId] = doc.data().status;
         });
 
-        const coursesList = coursesSnapshot.docs.map(doc => {
-            const courseData = applySchema(COURSE_SCHEMA, doc.data());
-            return {
-                id: doc.id,
-                ...courseData,
-                enrollmentStatus: enrolledMap[doc.id] || 'Not Enrolled'
-            };
-        });
+        const coursesList = coursesSnapshot.docs
+            .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
+            .map(doc => {
+                const courseData = applySchema(COURSE_SCHEMA, doc.data());
+                return {
+                    id: doc.id,
+                    ...courseData,
+                    enrollmentStatus: enrolledMap[doc.id] || 'Not Enrolled'
+                };
+            });
 
         res.status(200).json(coursesList);
     } catch (error) {
@@ -136,7 +138,9 @@ export const submitPayment = async (req, res) => {
 export const getMyPayments = async (req, res) => {
     try {
         const snapshot = await db.collection('payments').where('studentId', '==', req.user.uid).get();
-        const payments = snapshot.docs.map(doc => applySchema(PAYMENT_SCHEMA, { id: doc.id, ...doc.data() }));
+        const payments = snapshot.docs
+            .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
+            .map(doc => applySchema(PAYMENT_SCHEMA, { id: doc.id, ...doc.data() }));
         res.status(200).json(payments);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -160,7 +164,9 @@ export const getMyExams = async (req, res) => {
 
         // 2. Fetch exams for those courses
         const examsSnapshot = await db.collection('exams').where('courseId', 'in', courseIds).get();
-        const examsList = examsSnapshot.docs.map(doc => applySchema(EXAM_SCHEMA, { id: doc.id, ...doc.data() }));
+        const examsList = examsSnapshot.docs
+            .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
+            .map(doc => applySchema(EXAM_SCHEMA, { id: doc.id, ...doc.data() }));
 
         res.status(200).json(examsList);
     } catch (error) {
@@ -224,5 +230,29 @@ export const submitResult = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+export const updatePerformance = async (req, res) => {
+    try {
+        const { examId, noteReadTime, examDuration, score } = req.body;
+        await db.collection('performance').add({
+            studentId: req.user.uid,
+            examId,
+            noteReadTime,
+            examDuration,
+            score,
+            createdAt: new Date().toISOString()
+        });
+        res.status(201).json({ message: 'Performance logged' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
 
-
+export const getMyPerformance = async (req, res) => {
+    try {
+        const snapshot = await db.collection('performance').where('studentId', '==', req.user.uid).get();
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        res.status(200).json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};

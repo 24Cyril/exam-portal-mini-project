@@ -6,7 +6,9 @@ const collection = db.collection('notes');
 
 export const getNotesByCourse = async (courseId) => {
     const snapshot = await collection.where('courseId', '==', courseId).get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return snapshot.docs
+        .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
+        .map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
 export const createNote = async (data) => {
@@ -17,5 +19,7 @@ export const createNote = async (data) => {
 
 export const getAllNotes = async () => {
     const snapshot = await collection.get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return snapshot.docs
+        .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
+        .map(doc => ({ id: doc.id, ...doc.data() }));
 };

@@ -60,7 +60,9 @@ export const getAllUsers = async (req, res) => {
         }
 
         const snapshot = await query.get();
-        const users = snapshot.docs.map(doc => applySchema(USER_SCHEMA, { uid: doc.id, ...doc.data() }));
+        const users = snapshot.docs
+            .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
+            .map(doc => applySchema(USER_SCHEMA, { uid: doc.id, ...doc.data() }));
         res.status(200).json(users);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -139,7 +141,9 @@ export const createCourse = async (req, res) => {
 export const getAllCourses = async (req, res) => {
     try {
         const snapshot = await db.collection('courses').get();
-        const courses = snapshot.docs.map(doc => applySchema(COURSE_SCHEMA, { id: doc.id, ...doc.data() }));
+        const courses = snapshot.docs
+            .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
+            .map(doc => applySchema(COURSE_SCHEMA, { id: doc.id, ...doc.data() }));
         res.status(200).json(courses);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -163,7 +167,9 @@ export const deleteCourse = async (req, res) => {
 export const getAllEnrollments = async (req, res) => {
     try {
         const snapshot = await db.collection('student_courses').get();
-        const enrollments = snapshot.docs.map(doc => applySchema(ENROLLMENT_SCHEMA, { id: doc.id, ...doc.data() }));
+        const enrollments = snapshot.docs
+            .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
+            .map(doc => applySchema(ENROLLMENT_SCHEMA, { id: doc.id, ...doc.data() }));
         res.status(200).json(enrollments);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -193,7 +199,9 @@ export const updateEnrollmentStatus = async (req, res) => {
 export const getAllPayments = async (req, res) => {
     try {
         const snapshot = await db.collection('payments').get();
-        const payments = snapshot.docs.map(doc => applySchema(PAYMENT_SCHEMA, { id: doc.id, ...doc.data() }));
+        const payments = snapshot.docs
+            .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
+            .map(doc => applySchema(PAYMENT_SCHEMA, { id: doc.id, ...doc.data() }));
         res.status(200).json(payments);
     } catch (error) {
         res.status(500).json({ error: error.message });
