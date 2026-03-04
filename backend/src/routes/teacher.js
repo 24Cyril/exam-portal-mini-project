@@ -7,7 +7,11 @@ import {
     verifyEnrollment,
     getPendingPayments,
     verifyPayment,
-    getPerformance
+    getPerformance,
+    getCoursesByDept,
+    getStudentsByDept,
+    getAllExamsForDept,
+    createCourseByTeacher
 } from '../controllers/teacherController.js';
 import { protect, authorize } from '../middlewares/auth.js';
 
@@ -28,6 +32,14 @@ router.patch('/verify-payment/:paymentId', verifyPayment);
 // Exams
 router.post('/exams', createExam);
 router.get('/exams', getExams);
+router.get('/all-exams', getAllExamsForDept);
+
+// Courses (teacher-scoped)
+router.get('/courses', getCoursesByDept);
+router.post('/courses', createCourseByTeacher);
+
+// Students (teacher-scoped)
+router.get('/students', getStudentsByDept);
 
 // Performance
 router.get('/performance', getPerformance);

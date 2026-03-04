@@ -36,6 +36,9 @@ export default function TeacherDashboard() {
         age: '0', gender: '', address: '', institute_name: '', course: '',
         department: '', year: ''
     });
+    const [newCourse, setNewCourse] = useState({
+        name: '', code: '', fee: '0', duration: '', description: '', department: ''
+    });
 
     const [editingItem, setEditingItem] = useState<any>(null);
     const [editForm, setEditForm] = useState<any>({});
@@ -44,19 +47,16 @@ export default function TeacherDashboard() {
         fetchData();
     }, [activeTab]);
 
-    // Filtering & Sorting Logic
+    // Filtering & Sorting Logic (backend already scopes by dept; frontend just searches/sorts)
     const filteredStudents = students
-        .filter(s => role === 'admin' || (profile && s.department_id === profile.department_id))
         .filter(s => s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) || s.email?.toLowerCase().includes(searchTerm.toLowerCase()))
         .sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
 
     const filteredCourses = courses
-        .filter(c => role === 'admin' || (profile && c.department === profile.department_id))
         .filter(c => (c.name?.toLowerCase().includes(searchTerm.toLowerCase()) || c.code?.toLowerCase().includes(searchTerm.toLowerCase())) && (filterDept === 'All' || c.department === filterDept))
         .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
     const filteredExams = exams
-        .filter(ex => role === 'admin' || (profile && courses.find(c => c.id === ex.courseId)?.department === profile.department_id))
         .filter(ex => ex.title?.toLowerCase().includes(searchTerm.toLowerCase()) || ex.name?.toLowerCase().includes(searchTerm.toLowerCase()))
         .sort((a, b) => {
             if (sortBy === 'name') return (a.title || a.name || '').localeCompare(b.title || b.name || '');
@@ -64,14 +64,13 @@ export default function TeacherDashboard() {
         });
 
     const filteredEnrollments = (pendingEnrollments || [])
-        .filter(e => role === 'admin' || (profile && courses.find(c => c.id === e.courseId)?.department === profile.department_id))
-        .filter(e => e.studentId.toLowerCase().includes(searchTerm.toLowerCase()) || e.courseId.toLowerCase().includes(searchTerm.toLowerCase()));
+        .filter(e => e.studentId?.toLowerCase().includes(searchTerm.toLowerCase()) || e.courseId?.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const filteredPayments = (pendingPayments || [])
-        .filter(p => p.studentId.toLowerCase().includes(searchTerm.toLowerCase()) || p.courseId.toLowerCase().includes(searchTerm.toLowerCase()));
+        .filter(p => p.studentId?.toLowerCase().includes(searchTerm.toLowerCase()) || p.courseId?.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const filteredNotes = (notes || [])
-        .filter(n => n.title.toLowerCase().includes(searchTerm.toLowerCase()) || n.courseId?.toLowerCase().includes(searchTerm.toLowerCase()));
+        .filter(n => n.title?.toLowerCase().includes(searchTerm.toLowerCase()) || n.courseId?.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const fetchData = async () => {
         setLoading(true);
@@ -89,15 +88,15 @@ export default function TeacherDashboard() {
                 setPendingPayments(res.data);
             }
             if (activeTab === 'courses') {
-                const res = await api.get('/admin/courses');
+                const res = await api.get('/teacher/courses');
                 setCourses(res.data);
             }
             if (activeTab === 'students') {
-                const res = await api.get('/admin/users?role=student');
+                const res = await api.get('/teacher/students');
                 setStudents(res.data);
             }
             if (activeTab === 'exam') {
-                const res = await api.get('/teacher/exams');
+                const res = await api.get('/teacher/all-exams');
                 setExams(res.data);
             }
             if (activeTab === 'performance') {
@@ -105,8 +104,10 @@ export default function TeacherDashboard() {
                 setPerformance(res.data.performance || []);
             }
             if (activeTab === 'notes') {
-                const res = await api.get('/notes/my-notes');
-                setNotes(res.data);
+                try {
+                    const res = await api.get('/notes/department');
+                    setNotes(res.data);
+                } catch { setNotes([]); }
             }
         } catch (error) {
             console.error('Error fetching teacher data:', error);
@@ -168,6 +169,18 @@ export default function TeacherDashboard() {
             setShowAddForm(false);
             fetchData();
         } catch (error) { alert('Exam publication failed'); }
+    };
+
+    const handleAddCourse = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const payload = { ...newCourse, department: newCourse.department || profile?.department_id };
+            await api.post('/teacher/courses', payload);
+            alert('Course Created!');
+            setShowAddForm(false);
+            setNewCourse({ name: '', code: '', fee: '0', duration: '', description: '', department: '' });
+            fetchData();
+        } catch (error: any) { alert(error.response?.data?.error || 'Course creation failed'); }
     };
 
     const handleAddStudent = async (e: React.FormEvent) => {
@@ -319,23 +332,26 @@ export default function TeacherDashboard() {
                             {showAddForm ? (
                                 <div className="animate-fade-in">
                                     <h3>Add Detailed Course</h3>
-                                    <form className="edit-profile-form">
+                                    <form className="edit-profile-form" onSubmit={handleAddCourse}>
                                         <div className="form-row">
-                                            <div className="form-group"><label>Course Name</label><input type="text" required /></div>
-                                            <div className="form-group"><label>Course Code</label><input type="text" required /></div>
+                                            <div className="form-group"><label>Course Name</label><input type="text" required value={newCourse.name} onChange={e => setNewCourse({ ...newCourse, name: e.target.value })} /></div>
+                                            <div className="form-group"><label>Course Code</label><input type="text" required value={newCourse.code} onChange={e => setNewCourse({ ...newCourse, code: e.target.value })} /></div>
                                         </div>
                                         <div className="form-row">
-                                            <div className="form-group"><label>Fee (₹)</label><input type="number" required /></div>
-                                            <div className="form-group"><label>Duration</label><input type="text" placeholder="e.g. 6 months" /></div>
+                                            <div className="form-group"><label>Fee (₹)</label><input type="number" required value={newCourse.fee} onChange={e => setNewCourse({ ...newCourse, fee: e.target.value })} /></div>
+                                            <div className="form-group"><label>Duration</label><input type="text" placeholder="e.g. 6 months" value={newCourse.duration} onChange={e => setNewCourse({ ...newCourse, duration: e.target.value })} /></div>
                                         </div>
                                         <div className="form-group"><label>Department</label>
-                                            <select required defaultValue={profile?.department_id}>
+                                            <select required value={newCourse.department || profile?.department_id || ''} onChange={e => setNewCourse({ ...newCourse, department: e.target.value })}>
                                                 <option value="">Select Department</option>
                                                 <option value="Computer Science">Computer Science</option>
                                                 <option value="Mechanical Engineering">Mechanical Engineering</option>
+                                                <option value="Electrical Engineering">Electrical Engineering</option>
+                                                <option value="Civil Engineering">Civil Engineering</option>
+                                                <option value="Business Administration">Business Administration</option>
                                             </select>
                                         </div>
-                                        <div className="form-group"><label>Description</label><textarea rows={3} /></div>
+                                        <div className="form-group"><label>Description</label><textarea rows={3} value={newCourse.description} onChange={e => setNewCourse({ ...newCourse, description: e.target.value })} /></div>
                                         <div className="form-actions">
                                             <button type="button" className="btn-cancel" onClick={() => setShowAddForm(false)}>Cancel</button>
                                             <button type="submit" className="btn-next">Create Course</button>
@@ -344,12 +360,13 @@ export default function TeacherDashboard() {
                                 </div>
                             ) : (
                                 <>
-                                    <h3>Managed Courses</h3>
+                                    <h3>📚 Department Courses {profile?.department_id ? `— ${profile?.department_id}` : ''}</h3>
+                                    {filteredCourses.length === 0 && <div className="no-data">No courses found for your department. Add a course using the button above.</div>}
                                     <table className="admin-table">
-                                        <thead><tr><th>Code</th><th>Name</th><th>Fee</th><th>Actions</th></tr></thead>
+                                        <thead><tr><th>Code</th><th>Name</th><th>Dept</th><th>Fee</th><th>Status</th><th>Actions</th></tr></thead>
                                         <tbody>
                                             {filteredCourses.map(c => (
-                                                <tr key={c.id}><td>{c.code}</td><td>{c.name}</td><td>₹{c.fee}</td>
+                                                <tr key={c.id}><td>{c.code}</td><td>{c.name}</td><td>{c.department}</td><td>₹{c.fee}</td><td>{c.status}</td>
                                                     <td>
                                                         <button className="btn-edit-sm" onClick={() => handleEditInitiate(c, 'course')}>Edit</button>
                                                         <button className="btn-delete-sm" onClick={() => handleDeleteCourse(c.id)}>Delete</button>
