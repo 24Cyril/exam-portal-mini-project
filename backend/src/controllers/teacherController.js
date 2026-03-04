@@ -1,6 +1,7 @@
 import { db } from '../config/firebase.js';
 import {
     USER_SCHEMA,
+    COURSE_SCHEMA,
     ENROLLMENT_SCHEMA,
     PAYMENT_SCHEMA,
     EXAM_SCHEMA,
@@ -149,6 +150,111 @@ export const getExams = async (req, res) => {
             .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
             .map(doc => applySchema(EXAM_SCHEMA, { id: doc.id, ...doc.data() }));
         res.status(200).json(examsList);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Get ALL exams for courses in teacher's department
+export const getAllExamsForDept = async (req, res) => {
+    try {
+        const teacherDoc = await db.collection('users').doc(req.user.uid).get();
+        const deptId = teacherDoc.data()?.department_id;
+
+        // Get all courses in this department
+        let coursesSnap;
+        if (deptId) {
+            coursesSnap = await db.collection('courses').where('department', '==', deptId).get();
+        } else {
+            coursesSnap = await db.collection('courses').get();
+        }
+        const courseIds = coursesSnap.docs.map(d => d.id);
+
+        if (courseIds.length === 0) return res.status(200).json([]);
+
+        // Firestore 'in' supports up to 30 items
+        const chunks = [];
+        for (let i = 0; i < courseIds.length; i += 30) chunks.push(courseIds.slice(i, i + 30));
+
+        const examsList = [];
+        for (const chunk of chunks) {
+            const snap = await db.collection('exams').where('courseId', 'in', chunk).get();
+            snap.docs
+                .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
+                .forEach(doc => examsList.push(applySchema(EXAM_SCHEMA, { id: doc.id, ...doc.data() })));
+        }
+
+        res.status(200).json(examsList);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Get ALL courses in teacher's department
+export const getCoursesByDept = async (req, res) => {
+    try {
+        const teacherDoc = await db.collection('users').doc(req.user.uid).get();
+        const deptId = teacherDoc.data()?.department_id;
+
+        let snap;
+        if (deptId) {
+            snap = await db.collection('courses').where('department', '==', deptId).get();
+        } else {
+            snap = await db.collection('courses').get();
+        }
+
+        const courses = snap.docs
+            .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
+            .map(doc => applySchema(COURSE_SCHEMA, { id: doc.id, ...doc.data() }));
+
+        res.status(200).json(courses);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Get ALL students in teacher's department
+export const getStudentsByDept = async (req, res) => {
+    try {
+        const teacherDoc = await db.collection('users').doc(req.user.uid).get();
+        const deptId = teacherDoc.data()?.department_id;
+
+        let snap;
+        if (deptId) {
+            snap = await db.collection('users')
+                .where('role', '==', 'student')
+                .where('department_id', '==', deptId)
+                .get();
+        } else {
+            snap = await db.collection('users').where('role', '==', 'student').get();
+        }
+
+        const students = snap.docs
+            .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
+            .map(doc => applySchema(USER_SCHEMA, { uid: doc.id, ...doc.data() }));
+
+        res.status(200).json(students);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Create a new course (teacher can create for their department)
+export const createCourseByTeacher = async (req, res) => {
+    try {
+        const teacherDoc = await db.collection('users').doc(req.user.uid).get();
+        const deptId = teacherDoc.data()?.department_id || '';
+
+        const courseData = applySchema(COURSE_SCHEMA, {
+            ...req.body,
+            department: req.body.department || deptId,
+            createdBy: req.user.uid,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        });
+
+        const docRef = await db.collection('courses').add(courseData);
+        res.status(201).json({ id: docRef.id, ...courseData });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

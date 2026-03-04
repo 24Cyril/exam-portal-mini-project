@@ -5,6 +5,7 @@ import { protect, authorize } from '../middlewares/auth.js';
 const router = express.Router();
 
 router.get('/my-notes', protect, noteController.getStudentNotes);
+router.get('/department', protect, noteController.getStudentNotes);
 router.get('/course/:courseId', protect, noteController.getNotesByCourse);
 router.post('/add', protect, authorize('teacher'), noteController.addNote);
 
