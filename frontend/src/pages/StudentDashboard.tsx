@@ -58,7 +58,7 @@ export default function StudentDashboard() {
                 const res = await api.get('/student/available-courses');
                 setCourses(res.data);
             }
-            if (activeTab === 'main-exam') {
+            if (activeTab === 'home' || activeTab === 'main-exam' || activeTab === 'mock-exams' || activeTab === 'test-exams') {
                 const res = await api.get('/student/my-exams');
                 setExams(res.data);
             }
@@ -70,7 +70,7 @@ export default function StudentDashboard() {
                 const res = await api.get('/student/notes');
                 setNotes(res.data);
             }
-            if (activeTab === 'results') {
+            if (activeTab === 'home' || activeTab === 'results') {
                 const res = await api.get('/student/my-results');
                 setResults(res.data);
             }
@@ -202,17 +202,31 @@ export default function StudentDashboard() {
                                     <p className="stat-number">{profile?.enrolled_count || courses.filter(c => c.enrollmentStatus === 'Enrolled_Active').length}</p>
                                 </div>
                                 <div className="stat-card">
-                                    <h3>Exams Completed</h3>
-                                    <p className="stat-number">0</p>
+                                    <h3>Mock Exams</h3>
+                                    <p className="stat-number">{exams.filter(ex => ex.exam_type === 'Mock').length}</p>
                                 </div>
                                 <div className="stat-card">
-                                    <h3>Overall Grade</h3>
-                                    <p className="stat-text">--</p>
+                                    <h3>Main Exams</h3>
+                                    <p className="stat-number">{exams.filter(ex => ex.exam_type === 'Main' || !ex.exam_type).length}</p>
+                                </div>
+                                <div className="stat-card">
+                                    <h3>Total Completed</h3>
+                                    <p className="stat-number">{results.length}</p>
                                 </div>
                             </div>
                             <div className="dashboard-notifications card">
                                 <h3>Upcoming Exams</h3>
-                                <p className="no-data">No upcoming exams scheduled.</p>
+                                {exams.filter(ex => new Date(ex.exam_date) > new Date()).length > 0 ? (
+                                    <ul>
+                                        {exams.filter(ex => new Date(ex.exam_date) > new Date()).map(ex => (
+                                            <li key={ex.id}>
+                                                <strong>{ex.title}</strong> - {new Date(ex.exam_date).toLocaleDateString()}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="no-data">No upcoming exams scheduled.</p>
+                                )}
                             </div>
                         </div>
                     )}
@@ -359,13 +373,26 @@ export default function StudentDashboard() {
                                             <input type="text" value={editData.roll_number || ''} onChange={e => setEditData({ ...editData, roll_number: e.target.value })} />
                                         </div>
                                         <div className="form-group">
+                                            <label>Department</label>
+                                            <select value={editData.department_id || ''} onChange={e => setEditData({ ...editData, department_id: e.target.value })}>
+                                                <option value="">Select Department</option>
+                                                <option value="Computer Science">Computer Science</option>
+                                                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                                                <option value="Electrical Engineering">Electrical Engineering</option>
+                                                <option value="Civil Engineering">Civil Engineering</option>
+                                                <option value="Business Administration">Business Administration</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="form-row">
+                                        <div className="form-group">
                                             <label>Semester</label>
                                             <input type="number" value={editData.semester || ''} onChange={e => setEditData({ ...editData, semester: e.target.value })} />
                                         </div>
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Institute Name</label>
-                                        <input type="text" value={editData.institute_name || ''} onChange={e => setEditData({ ...editData, institute_name: e.target.value })} />
+                                        <div className="form-group">
+                                            <label>Institute Name</label>
+                                            <input type="text" value={editData.institute_name || ''} onChange={e => setEditData({ ...editData, institute_name: e.target.value })} />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -383,9 +410,10 @@ export default function StudentDashboard() {
                                 <div key={course.id} className="card course-card animate-fade-in">
                                     <h4>{course.name}</h4>
                                     <p className="code">{course.code}</p>
-                                    <div className="fee">₹{course.fee}</div>
-                                    <div className={`status-badge ${course.enrollmentStatus.toLowerCase().replace(' ', '-')}`}>
-                                        {course.enrollmentStatus}
+                                    <p className="dept-tag">{course.department}</p>
+                                    <div className="fee">{course.fee && course.fee !== '0' ? `₹${course.fee}` : 'Free'}</div>
+                                    <div className={`status-badge ${(course.enrollmentStatus || 'Not Enrolled').toLowerCase().replace(/ /g, '-')}`}>
+                                        {course.enrollmentStatus || 'Not Enrolled'}
                                     </div>
                                     <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
                                         {course.enrollmentStatus === 'Pending' && (

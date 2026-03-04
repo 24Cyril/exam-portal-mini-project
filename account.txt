@@ -1,0 +1,12 @@
+
+stud@gmail.com
+stdstd
+
+tut@gmail.com
+tonton
+
+abc@gmail.com
+addadd
+
+
+i see no table named student in firestre db.  in tables,the "table do not delete " content is showing up in most tables in the webpages
