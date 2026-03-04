@@ -50,11 +50,15 @@ export default function TeacherDashboard() {
         .sort((a, b) => a.full_name.localeCompare(b.full_name));
 
     const filteredCourses = courses
-        .filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.code.toLowerCase().includes(searchTerm.toLowerCase()))
+        .filter(c => (c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.code.toLowerCase().includes(searchTerm.toLowerCase())) && (filterDept === 'All' || c.department === filterDept))
         .sort((a, b) => a.name.localeCompare(b.name));
 
     const filteredExams = exams
-        .filter(ex => ex.title.toLowerCase().includes(searchTerm.toLowerCase()) || ex.courseId.toLowerCase().includes(searchTerm.toLowerCase()));
+        .filter(ex => ex.title?.toLowerCase().includes(searchTerm.toLowerCase()) || ex.name?.toLowerCase().includes(searchTerm.toLowerCase()))
+        .sort((a, b) => {
+            if (sortBy === 'name') return (a.title || a.name || '').localeCompare(b.title || b.name || '');
+            return (a.date || '').localeCompare(b.date || '');
+        });
 
     const filteredEnrollments = (pendingEnrollments || [])
         .filter(e => e.studentId.toLowerCase().includes(searchTerm.toLowerCase()) || e.courseId.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -189,17 +193,7 @@ export default function TeacherDashboard() {
         } catch (error) { alert('Update failed'); }
     };
 
-    // Filter Logic
-    const filteredExams = exams
-        .filter(ex => ex.title?.toLowerCase().includes(searchTerm.toLowerCase()) || ex.name?.toLowerCase().includes(searchTerm.toLowerCase()))
-        .sort((a, b) => {
-            if (sortBy === 'name') return (a.title || a.name || '').localeCompare(b.title || b.name || '');
-            return (a.date || '').localeCompare(b.date || '');
-        });
 
-    const filteredStudents = students.filter(s => s.full_name.toLowerCase().includes(searchTerm.toLowerCase()) || s.email.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    const filteredCourses = courses.filter(c => (c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.code.toLowerCase().includes(searchTerm.toLowerCase())) && (filterDept === 'All' || c.department === filterDept));
 
     return (
         <div className="teacher-dashboard">
@@ -439,7 +433,7 @@ export default function TeacherDashboard() {
                                     <table className="admin-table">
                                         <thead><tr><th>Title</th><th>Course</th><th>Time</th><th>Status</th><th>Actions</th></tr></thead>
                                         <tbody>
-                                            {filteredExams.map(ex => (
+                                            {.map(ex => (
                                                 <tr key={ex.id}><td>{ex.title || ex.name}</td><td>{ex.courseId || ex.course_id}</td><td>{ex.timeInMinutes || ex.time_limit}m</td><td>{ex.status || 'Active'}</td>
                                                     <td><button className="btn-edit-sm">Edit</button><button className="btn-delete-sm">Del</button></td></tr>
                                             ))}

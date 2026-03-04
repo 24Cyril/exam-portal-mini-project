@@ -3,7 +3,20 @@ import * as Note from '../models/Note.js';
 
 export const getStudentNotes = async (req, res) => {
     try {
-        const notes = await Note.getAllNotes();
+        // Fetch student profile to get department
+        const studentDoc = await admin.firestore().collection('users').doc(req.user.uid).get();
+        const studentDept = studentDoc.exists ? studentDoc.data().department_id : null;
+
+        let notes;
+        if (studentDept) {
+            // Fetch only notes for this department
+            const snapshot = await admin.firestore().collection('notes').where('department_id', '==', studentDept).get();
+            notes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } else {
+            // Fallback: if no department set, maybe show nothing or all (let's go with all for now but warn)
+            notes = await Note.getAllNotes();
+        }
+
         // Enrich notes with course names
         const enrichedNotes = await Promise.all(notes.map(async (note) => {
             if (note.courseId) {

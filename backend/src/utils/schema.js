@@ -87,6 +87,7 @@ export const EXAM_SCHEMA = {
     title: '',
     description: '',
     courseId: '',
+    exam_type: 'Main', // Main, Mock, Test
     total_questions: 0,
     timeInMinutes: 30,
     passing_score: 40,
@@ -112,6 +113,7 @@ export const NOTES_SCHEMA = {
     title: '',
     description: '',
     courseId: '',
+    department_id: '',
     file_path: '',
     createdBy: '',
     createdAt: new Date().toISOString()

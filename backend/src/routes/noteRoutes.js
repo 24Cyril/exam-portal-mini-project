@@ -1,11 +1,11 @@
 import express from 'express';
 import * as noteController from '../controllers/noteController.js';
-import { verifyToken, isAdmin, isTeacher } from '../middlewares/authMiddleware.js';
+import { protect, authorize } from '../middlewares/auth.js';
 
 const router = express.Router();
 
-router.get('/my-notes', verifyToken, noteController.getStudentNotes);
-router.get('/course/:courseId', verifyToken, noteController.getNotesByCourse);
-router.post('/add', verifyToken, isTeacher, noteController.addNote);
+router.get('/my-notes', protect, noteController.getStudentNotes);
+router.get('/course/:courseId', protect, noteController.getNotesByCourse);
+router.post('/add', protect, authorize('teacher'), noteController.addNote);
 
 export default router;

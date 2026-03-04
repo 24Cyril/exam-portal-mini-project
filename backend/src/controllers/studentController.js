@@ -17,7 +17,17 @@ export const getAvailableCourses = async (req, res) => {
         const studentDoc = await db.collection('users').doc(req.user.uid).get();
         if (!studentDoc.exists) return res.status(404).json({ error: 'Student not found' });
 
-        const coursesSnapshot = await db.collection('courses').get();
+        const studentData = applySchema(USER_SCHEMA, studentDoc.data());
+        const studentDept = studentData.department_id || '';
+
+        // Filter courses by student's department
+        let coursesSnapshot;
+        if (studentDept) {
+            coursesSnapshot = await db.collection('courses').where('department', '==', studentDept).get();
+        } else {
+            coursesSnapshot = await db.collection('courses').get();
+        }
+
         const studentEnrollments = await db.collection('student_courses').where('studentId', '==', req.user.uid).get();
 
         const enrolledMap = {};

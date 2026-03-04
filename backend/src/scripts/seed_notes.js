@@ -29,9 +29,9 @@ const seedNotes = async () => {
     ];
 
     const notesToCreate = [
-        { title: 'Python Basics & Advanced', courseCode: 'PY101', description: 'Core Python concepts, decorators, and generators.' },
-        { title: 'Web Architecture & Frontend', courseCode: 'WEB101', description: 'Responsive design and modern frameworks.' },
-        { title: 'Manufacturing Systems', courseCode: 'ME101', description: 'Automation and robotics in manufacturing.' }
+        { title: 'Python Basics & Advanced', courseCode: 'PY101', dept: 'Computer Science', file: 'computer science/python pgm 1.pdf', description: 'Core Python concepts, decorators, and generators.' },
+        { title: 'Web Architecture & Frontend', courseCode: 'WEB101', dept: 'Computer Science', file: 'computer science/web pgm note 1.pdf', description: 'Responsive design and modern frameworks.' },
+        { title: 'Manufacturing Systems', courseCode: 'ME101', dept: 'Mechanical Engineering', file: 'mechanical engineering/advance manufacture eng 1.pdf', description: 'Automation and robotics in manufacturing.' }
     ];
 
     try {
@@ -61,10 +61,16 @@ const seedNotes = async () => {
                     title: nData.title,
                     description: nData.description,
                     courseId: courseId,
-                    file_path: `/notes/${nData.courseCode.toLowerCase()}.pdf`
+                    department_id: nData.dept,
+                    file_path: `/notes/${nData.file}`
                 }));
             } else {
-                console.log(`✓ Note already exists: ${nData.title}`);
+                console.log(`📝 Updating existing note: ${nData.title}`);
+                await db.collection('notes').doc(snap.docs[0].id).update({
+                    department_id: nData.dept,
+                    file_path: `/notes/${nData.file}`,
+                    updatedAt: new Date().toISOString()
+                });
             }
         }
 
