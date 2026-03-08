@@ -26,6 +26,28 @@ export default function TeacherDashboard() {
     const [filterDept, setFilterDept] = useState('All');
     const [showAddForm, setShowAddForm] = useState(false);
 
+const handleInputChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+) => {
+  const { name, value } = e.target;
+
+  setEditData({
+    ...editData,
+    [name]: value
+  });
+};
+
+const handleStudentChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+) => {
+  const { name, value } = e.target;
+
+  setNewStudent({
+    ...newStudent,
+    [name]: value
+  });
+};
+
     // Form Models matching HTML templates
     const [newExam, setNewExam] = useState({
         name: '', course_id: '', date: '', time_limit: '30',
@@ -187,13 +209,25 @@ export default function TeacherDashboard() {
         e.preventDefault();
         try {
             // Mapping newStudent state to API payload
-            await api.post('/admin/users', { ...newStudent, role: 'student' });
+          await api.post('/auth/sync-profile', {
+  uid: newStudent.username,
+  email: newStudent.email,
+  role: "student",
+  full_name: newStudent.full_name,
+  department: newStudent.department,
+  course: newStudent.course,
+  year: newStudent.year
+});
             alert('Student Registered!');
             setShowAddForm(false);
             fetchData();
-        } catch (error) { alert('Registration failed'); }
-    };
+        }catch (error: any) {
+  console.error('Error registering student:', error);
+  console.error('Server response:', error?.response?.data);
 
+  alert(error?.response?.data?.message || "Registration failed");
+}
+    }
     const handleEditInitiate = (item: any, type: string) => {
         setEditingItem({ ...item, type });
         setEditForm(item);
@@ -292,6 +326,10 @@ export default function TeacherDashboard() {
                                     <tbody>
                                         <tr><td>Full Name</td><td>{profile.full_name}</td></tr>
                                         <tr><td>Email</td><td>{profile.email}</td></tr>
+                                        <tr>
+<td>Gender</td>
+<td>{profile.gender || "--"}</td>
+</tr>
                                         <tr><td>Department</td><td>{profile.department_id}</td></tr>
                                         <tr><td>Specialization</td><td>{profile.specialization || '--'}</td></tr>
                                         <tr><td>Employee ID</td><td>{profile.employee_id || '--'}</td></tr>
@@ -308,6 +346,12 @@ export default function TeacherDashboard() {
                             <h3>Update Profile</h3>
                             <form className="edit-profile-form" onSubmit={handleUpdateProfile}>
                                 <div className="form-group"><label>Full Name</label><input type="text" value={editData.full_name} onChange={e => setEditData({ ...editData, full_name: e.target.value })} required /></div>
+                                <div className="form-group"> <label>Gender</label>  <select  name="gender" value={editData.gender || ""} onChange={handleInputChange}> <option value="">Select Gender</option>
+    <option value="Male">Male</option>
+    <option value="Female">Female</option>
+    <option value="Other">Other</option>
+  </select>
+</div>
                                 <div className="form-group"><label>Specialization</label><input type="text" value={editData.specialization} onChange={e => setEditData({ ...editData, specialization: e.target.value })} /></div>
                                 <div className="form-group"><label>Joining Date</label><input type="date" value={editData.joining_date} onChange={e => setEditData({ ...editData, joining_date: e.target.value })} /></div>
                                 <div className="form-group"><label>Department</label>
@@ -386,10 +430,50 @@ export default function TeacherDashboard() {
                                 <div className="animate-fade-in">
                                     <h3>🎓 Register New Student</h3>
                                     <form className="edit-profile-form" onSubmit={handleAddStudent}>
-                                        <div className="form-row">
-                                            <div className="form-group"><label>Full Name</label><input type="text" required value={newStudent.full_name} onChange={e => setNewStudent({ ...newStudent, full_name: e.target.value })} /></div>
-                                            <div className="form-group"><label>Email</label><input type="email" required value={newStudent.email} onChange={e => setNewStudent({ ...newStudent, email: e.target.value })} /></div>
-                                        </div>
+                                        <div className="form-group">
+                                            <label>full name</label>
+
+<input
+  type="text"
+  name="full_name"
+  required
+  value={newStudent.full_name}
+  onChange={handleStudentChange}
+  />
+</div>
+
+     <div className="form-group">
+<label>Username</label>
+<input
+  type="text"
+  name="username"
+  required
+  value={newStudent.username}
+  onChange={handleStudentChange}
+/>
+</div>
+
+                                        <div className="form-group">
+<label>email</label>
+
+
+<input
+  type="email"
+  name="email"
+  required
+  value={newStudent.email}
+  onChange={handleStudentChange}
+/>                                        </div>
+                                        <div className="form-group">
+<label>Password</label>
+<input
+  type="password"
+  name="password"
+  value={newStudent.password || ""}
+  onChange={handleStudentChange}
+  required
+/>
+</div>
                                         <div className="form-row">
                                             <div className="form-group"><label>Phone</label><input type="tel" required value={newStudent.phone} onChange={e => setNewStudent({ ...newStudent, phone: e.target.value })} /></div>
                                             <div className="form-group"><label>Gender</label>
@@ -636,4 +720,3 @@ export default function TeacherDashboard() {
         </div>
     );
 }
-
