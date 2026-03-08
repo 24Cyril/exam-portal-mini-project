@@ -148,28 +148,33 @@ export default function StudentDashboard() {
         navigate('/');
     };
 
-    // Timer functions
-    const toggleTimer = (noteId: string) => {
-        setTimers(prev => {
-            const current = prev[noteId] || { time: 0, isRunning: false };
-            const isRunning = !current.isRunning;
+   // Timer functions
+const toggleTimer = (noteId: string) => {
+    setTimers(prev => {
+        const current = prev[noteId] || { time: 0, isRunning: false };
+        const isRunning = !current.isRunning;
 
-            if (isRunning) {
-                const id = setInterval(() => {
-                    setTimers(t => ({
-                        ...t,
-                        [noteId]: { ...t[noteId], time: (t[noteId]?.time || 0) + 1 }
-                    }));
-                }, 1000);
-                setIntervalIds(ids => ({ ...ids, [noteId]: id }));
-            } else {
-                if (intervalIds[noteId]) clearInterval(intervalIds[noteId]);
-            }
+        if (isRunning) {
+            const id = setInterval(() => {
+                setTimers(t => ({
+                    ...t,
+                    [noteId]: { ...t[noteId], time: (t[noteId]?.time || 0) + 1 }
+                }));
+            }, 1000);
+            setIntervalIds(ids => ({ ...ids, [noteId]: id }));
+        } else {
+            // Clear the interval properly
+            setIntervalIds(ids => {
+                if (ids[noteId]) {
+                    clearInterval(ids[noteId]);
+                }
+                return ids;
+            });
+        }
 
-            return { ...prev, [noteId]: { ...current, isRunning } };
-        });
-    };
-
+        return { ...prev, [noteId]: { ...current, isRunning } };
+    });
+};
     const resetTimer = (noteId: string) => {
         if (intervalIds[noteId]) clearInterval(intervalIds[noteId]);
         setTimers(prev => ({ ...prev, [noteId]: { time: 0, isRunning: false } }));
