@@ -23,7 +23,7 @@ export default function StudentDashboard() {
 
     // Note Timer State
     const [timers, setTimers] = useState<{ [key: string]: { time: number, isRunning: boolean } }>({});
-    const [intervalIds, setIntervalIds] = useState<{ [key: string]: NodeJS.Timeout }>({});
+    const [intervalIds, setIntervalIds] = useState<{ [key: string]:number }>({});
 
     // Search & Sort States
     const [searchTerm, setSearchTerm] = useState('');
