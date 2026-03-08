@@ -1,0 +1,31 @@
+roject
+You currently have two main folders: frontend and backend. You should run them in separate terminals.
+
+1. Running the Frontend (React + Vite)
+powershell
+cd c:\Users\anna\projects\exam-portal-mini-project\frontend
+npm run dev
+Access at: http://localhost:5173 (by default)
+2. Running the Backend (Node.js + Express)
+First, make sure you have a .env file in the backend folder with your MongoDB URI.
+
+powershell
+cd c:\Users\anna\projects\exam-portal-mini-project\backend
+npm run dev
+API Base: http://localhost:5000/api
+
+
+
+
+
+
+
+
+npm cache verify
+
+
+npm install --prefer-offline
+
+or
+
+npm install --no-audit
