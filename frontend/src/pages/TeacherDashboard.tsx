@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import './TeacherDashboard.css';
 import { useAuth } from '../config/AuthContext';
 import api from '../config/api';
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../config/firebase";
+
 
 export default function TeacherDashboard() {
     const { user, logout, role } = useAuth();
@@ -101,10 +104,13 @@ const handleStudentChange = (
             setProfile(profileRes.data);
             setEditData(profileRes.data);
 
-            if (activeTab === 'home' || activeTab === 'registration') {
-                const res = await api.get('/teacher/pending-enrollments');
-                setPendingEnrollments(res.data);
-            }
+
+            
+if (activeTab === 'home' || activeTab === 'registration' || activeTab === 'payment') {
+    const res = await api.get('/teacher/pending-enrollments');
+    console.log("Enrollments received:", res.data);
+    setPendingEnrollments(res.data);
+}
             if (activeTab === 'home' || activeTab === 'payment') {
                 const res = await api.get('/teacher/pending-payments');
                 setPendingPayments(res.data);
@@ -205,29 +211,43 @@ const handleStudentChange = (
         } catch (error: any) { alert(error.response?.data?.error || 'Course creation failed'); }
     };
 
-    const handleAddStudent = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            // Mapping newStudent state to API payload
-          await api.post('/auth/sync-profile', {
-  uid: newStudent.username,
-  email: newStudent.email,
-  role: "student",
-  full_name: newStudent.full_name,
-  department: newStudent.department,
-  course: newStudent.course,
-  year: newStudent.year
-});
-            alert('Student Registered!');
-            setShowAddForm(false);
-            fetchData();
-        }catch (error: any) {
-  console.error('Error registering student:', error);
-  console.error('Server response:', error?.response?.data);
+   const handleAddStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  alert(error?.response?.data?.message || "Registration failed");
-}
+    try {
+
+        const userCredential = await createUserWithEmailAndPassword(
+            auth,
+            newStudent.email,
+            newStudent.password
+        );
+
+        const uid = userCredential.user.uid;
+
+        await api.post('/auth/sync-profile', {
+            uid,
+            email: newStudent.email,
+            role: "student",
+            full_name: newStudent.full_name,
+            department: newStudent.department,
+            course: newStudent.course,
+            year: newStudent.year
+        });
+
+        alert("Student Registered Successfully!");
+
+        setShowAddForm(false);
+        fetchData();
+
+    } catch (error:any) {
+        console.error(error);
+        alert(error.message);
     }
+};
+
+
+
+
     const handleEditInitiate = (item: any, type: string) => {
         setEditingItem({ ...item, type });
         setEditForm(item);
@@ -475,30 +495,59 @@ const handleStudentChange = (
 />
 </div>
                                         <div className="form-row">
-                                            <div className="form-group"><label>Phone</label><input type="tel" required value={newStudent.phone} onChange={e => setNewStudent({ ...newStudent, phone: e.target.value })} /></div>
+                                            <div className="form-group"><label>Phone</label>
+<input
+ type="tel"
+ name="phone"
+ required
+ value={newStudent.phone}
+ onChange={handleStudentChange}
+/>                                            </div>
                                             <div className="form-group"><label>Gender</label>
-                                                <select value={newStudent.gender} onChange={e => setNewStudent({ ...newStudent, gender: e.target.value })}>
-                                                    <option>Select</option><option>Male</option><option>Female</option>
+<select
+ name="gender"
+ value={newStudent.gender}
+ onChange={handleStudentChange}
+>                                                    <option>Select</option><option>Male</option><option>Female</option>
                                                 </select>
                                             </div>
                                             <div className="form-group"><label>Department</label>
-                                                <select value={newStudent.department} onChange={e => setNewStudent({ ...newStudent, department: e.target.value })}>
-                                                    <option>Select</option>
+<select
+ name="department"
+ value={newStudent.department}
+ onChange={handleStudentChange}
+>                                                    <option>Select</option>
                                                     <option value="Computer Science">Computer Science</option>
                                                     <option value="Mechanical Engineering">Mechanical Engineering</option>
                                                 </select>
                                             </div>
                                         </div>
                                         <div className="form-row">
-                                            <div className="form-group"><label>Course</label><input type="text" required value={newStudent.course} onChange={e => setNewStudent({ ...newStudent, course: e.target.value })} /></div>
+                                            <div className="form-group"><label>Course</label>
+<input
+ type="text"
+ name="course"
+ required
+ value={newStudent.course}
+ onChange={handleStudentChange}
+/>                                            </div>
                                             <div className="form-group"><label>Year</label>
-                                                <select value={newStudent.year} onChange={e => setNewStudent({ ...newStudent, year: e.target.value })}>
-                                                    <option value="1">1st Year</option><option value="2">2nd Year</option>
+<select
+ name="year"
+ value={newStudent.year}
+ onChange={handleStudentChange}
+>                                                    <option value="1">1st Year</option><option value="2">2nd Year</option>
                                                     <option value="3">3rd Year</option><option value="4">4th Year</option>
                                                 </select>
                                             </div>
                                         </div>
-                                        <div className="form-group"><label>Address</label><textarea value={newStudent.address} onChange={e => setNewStudent({ ...newStudent, address: e.target.value })} /></div>
+                                        <div className="form-group"><label>Address</label>
+<textarea
+ name="address"
+ value={newStudent.address}
+ onChange={handleStudentChange}
+/>                                            
+                                        </div>
                                         <div className="form-actions">
                                             <button type="button" className="btn-cancel" onClick={() => setShowAddForm(false)}>Cancel</button>
                                             <button type="submit" className="btn-next">Add Student</button>
@@ -546,8 +595,17 @@ const handleStudentChange = (
                                             <div className="form-group"><label>Time Limit (Min)</label><input type="number" defaultValue="30" onChange={e => setNewExam({ ...newExam, time_limit: e.target.value })} /></div>
                                         </div>
                                         <div className="form-row">
-                                            <div className="form-group"><label>Question Paper</label><input type="file" /></div>
-                                            <div className="form-group"><label>Answer Key</label><input type="file" /></div>
+                                            <div className="form-group"><label>Question Paper</label>
+<input
+ type="file"
+ onChange={(e)=>setNewExam({...newExam,question_file:e.target.files?.[0]})}
+/>                                            </div>
+                                            <div className="form-group"><label>Answer Key</label>
+<input
+ type="file"
+ onChange={(e)=>setNewExam({...newExam,question_file:e.target.files?.[0]})}
+/>                                            </div>
+                               
                                         </div>
                                         <div className="form-actions">
                                             <button type="button" className="btn-cancel" onClick={() => setShowAddForm(false)}>Cancel</button>

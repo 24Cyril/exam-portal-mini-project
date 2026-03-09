@@ -7,3 +7,7 @@ tonton
 
 abc@gmail.com
 addadd
+
+tree backend /F /A > backend_structure.txt
+
+tree frontend /F /A > frontend_structure.txt
