@@ -79,6 +79,9 @@ export const enrollInCourse = async (req, res) => {
     }
 };
 
+
+
+
 // Unenroll from a course (Only if Pending or Rejected)
 export const unenrollFromCourse = async (req, res) => {
     try {

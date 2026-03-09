@@ -32,12 +32,13 @@ export const getPendingEnrollments = async (req, res) => {
         const enrollmentsSnapshot = await db.collection('student_courses')
             .where('status', '==', 'Pending')
             .get();
+            console.log("Enrollments snapshot:", enrollmentsSnapshot.docs.length);
 
         const enrollments = [];
         for (const doc of enrollmentsSnapshot.docs) {
             const data = applySchema(ENROLLMENT_SCHEMA, doc.data());
             const studentDoc = await db.collection('users').doc(data.studentId).get();
-            if (studentDoc.exists && studentDoc.data().department_id === deptId) {
+          if (studentDoc.exists) {
                 enrollments.push({
                     id: doc.id,
                     ...data,
@@ -51,6 +52,10 @@ export const getPendingEnrollments = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+
+
+
 
 // Verify an enrollment (status -> Verified_Pending_Payment)
 export const verifyEnrollment = async (req, res) => {
