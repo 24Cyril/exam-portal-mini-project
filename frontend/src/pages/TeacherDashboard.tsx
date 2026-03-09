@@ -105,7 +105,7 @@ const handleStudentChange = (
             setEditData(profileRes.data);
 
 
-            
+
 if (activeTab === 'home' || activeTab === 'registration' || activeTab === 'payment') {
     const res = await api.get('/teacher/pending-enrollments');
     console.log("Enrollments received:", res.data);
@@ -574,7 +574,44 @@ if (activeTab === 'home' || activeTab === 'registration' || activeTab === 'payme
                             )}
                         </div>
                     )}
+{activeTab === 'registration' && (
+    <div className="card glass animate-slide-up">
+        <h3>Pending Enrollment Approvals</h3>
+        <table className="admin-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Course</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {filteredEnrollments.map(e => (
+                    <tr key={e.id}>
+                        <td>{e.studentName || e.studentId}</td>
+                        <td>{e.courseId}</td>
+                        <td>
+                            <span className="badge pending">{e.status}</span>
+                        </td>
+                        <td>
+                            <button
+                                className="btn-verify"
+                                onClick={() => handleVerifyEnrollment(e.id)}
+                            >
+                                ✅ Verify
+                            </button>
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
 
+        {filteredEnrollments.length === 0 && (
+            <div className="no-data">No pending enrollment requests.</div>
+        )}
+    </div>
+)}
                     {activeTab === 'exam' && (
                         <div className="card glass animate-slide-up">
                             {showAddForm ? (
@@ -661,23 +698,7 @@ if (activeTab === 'home' || activeTab === 'registration' || activeTab === 'payme
                     {activeTab === 'payment' && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                             <div className="card glass animate-slide-up">
-                                <h3>Pending Enrollment Approvals</h3>
-                                <table className="admin-table">
-                                    <thead><tr><th>Student</th><th>Course</th><th>Status</th><th>Action</th></tr></thead>
-                                    <tbody>
-                                        {filteredEnrollments.map(e => (
-                                            <tr key={e.id}>
-                                                <td>{e.studentName || e.studentId}</td>
-                                                <td>{e.courseId}</td>
-                                                <td><span className="badge pending">{e.status}</span></td>
-                                                <td><button className="btn-verify" onClick={() => handleVerifyEnrollment(e.id)}>✅ Verify</button></td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                                {filteredEnrollments.length === 0 && <div className="no-data">No pending enrollment requests.</div>}
-                            </div>
-                            <div className="card glass animate-slide-up">
+                             
                                 <h3>Pending Payment Verifications</h3>
                                 <table className="admin-table">
                                     <thead><tr><th>Student</th><th>Course</th><th>Amount</th><th>Transaction ID</th><th>Action</th></tr></thead>
