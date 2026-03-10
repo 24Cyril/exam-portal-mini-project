@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import './LiveExam.css';
 import api from '../config/api';
 import { useAuth } from '../config/AuthContext';
-
 export default function LiveExam() {
     const { examId } = useParams();
     const { user } = useAuth();

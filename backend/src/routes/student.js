@@ -26,6 +26,7 @@ router.get('/available-courses', getAvailableCourses);
 router.post('/enroll', enrollInCourse);
 router.delete('/unenroll/:courseId', unenrollFromCourse);
 
+
 // Payments
 router.post('/pay', submitPayment);
 router.post('/submit-payment', submitPayment);

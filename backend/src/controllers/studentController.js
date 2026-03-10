@@ -60,6 +60,7 @@ export const enrollInCourse = async (req, res) => {
 
         const enrollmentRef = db.collection('student_courses').doc(enrollmentId);
         const existing = await enrollmentRef.get();
+const courseDoc = await db.collection('courses').doc(data.courseId).get();
 
         if (existing.exists) {
             return res.status(400).json({ error: 'Enrollment already exists' });
@@ -109,8 +110,7 @@ export const unenrollFromCourse = async (req, res) => {
 // Submit a manual payment for a course
 export const submitPayment = async (req, res) => {
     try {
-        const { courseId, paymentType, transactionId, amount } = req.body;
-
+const { courseId, paymentType = 'Registration', transactionId, amount } = req.body;
         const paymentData = applySchema(PAYMENT_SCHEMA, {
             studentId: req.user.uid,
             courseId,
@@ -180,11 +180,24 @@ export const getMyExams = async (req, res) => {
 export const startExam = async (req, res) => {
     try {
         const { examId } = req.body;
+
+        if (!examId) {
+            return res.status(400).json({ error: "Exam ID missing" });
+        }
+
         const examDoc = await db.collection('exams').doc(examId).get();
-        if (!examDoc.exists) return res.status(404).json({ error: 'Exam not found' });
+
+        if (!examDoc.exists) {
+            return res.status(404).json({ error: 'Exam not found' });
+        }
 
         const examData = applySchema(EXAM_SCHEMA, examDoc.data());
-        res.status(200).json({ sessionId: Date.now().toString(), ...examData });
+
+        res.status(200).json({
+            sessionId: Date.now().toString(),
+            ...examData
+        });
+
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
