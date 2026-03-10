@@ -19,8 +19,12 @@ export default function StudentDashboard() {
     const [performance, setPerformance] = useState<any[]>([]);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [selectedPayment, setSelectedPayment] = useState<any>(null);
-    const [paymentData, setPaymentData] = useState({ courseId: '', amount: 0, transactionId: '', method: 'UPI' });
-
+const [paymentData, setPaymentData] = useState({
+   courseId: '',
+   amount: '',
+   paymentType: 'Registration',
+   transactionId: ''
+});
     // Note Timer State
     const [timers, setTimers] = useState<{ [key: string]: { time: number, isRunning: boolean } }>({});
     const [intervalIds, setIntervalIds] = useState<{ [key: string]:number }>({});
@@ -112,16 +116,16 @@ export default function StudentDashboard() {
         }
     };
 
-    const handleUnenroll = async (courseId: string) => {
-        if (!window.confirm('Are you sure you want to cancel your enrollment request?')) return;
-        try {
-            await api.post('/student/unenroll', { courseId });
-            alert('Enrollment request cancelled');
-            fetchData();
-        } catch (error: any) {
-            alert(error.response?.data?.error || 'Operation failed');
-        }
-    };
+  const handleUnenroll = async (courseId: string) => {
+    if (!window.confirm('Are you sure you want to cancel your enrollment request?')) return;
+    try {
+        await api.delete(`/student/unenroll/${courseId}`);
+        alert('Enrollment request cancelled');
+        fetchData();
+    } catch (error: any) {
+        alert(error.response?.data?.error || 'Operation failed');
+    }
+};
 
     const calculateGrade = (score: number, total: number) => {
         const perc = (score / total) * 100;
@@ -252,6 +256,7 @@ const toggleTimer = (noteId: string) => {
                             </select>
                         </div>
                     )}
+                    
                     {activeTab === 'home' && (
                         <div className="tab-home animate-fade-in">
                             <div className="dashboard-stats">
@@ -473,6 +478,11 @@ const toggleTimer = (noteId: string) => {
                                     <div className={`status-badge ${(course.enrollmentStatus || 'Not Enrolled').toLowerCase().replace(/ /g, '-')}`}>
                                         {course.enrollmentStatus || 'Not Enrolled'}
                                     </div>
+                                  {course.enrollmentStatus && course.enrollmentStatus !== 'Not Enrolled' && (
+    <button className="btn-unenroll" onClick={() => handleUnenroll(course.id)}>
+        ❌ Unenroll
+    </button>
+)}
                                     <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
                                         {course.enrollmentStatus === 'Pending' && (
                                             <button className="btn-cancel" onClick={() => handleUnenroll(course.id)}>Cancel Request</button>
@@ -543,7 +553,7 @@ const toggleTimer = (noteId: string) => {
                                         {filteredPayments.map(p => (
                                             <tr key={p.id} onClick={() => setSelectedPayment(p)} style={{ cursor: 'pointer' }}>
                                                 <td>{new Date(p.createdAt).toLocaleDateString()}</td>
-                                                <td>{p.courseId}</td>
+                                                <td>{p.courseName}</td>
                                                 <td>₹{p.amount}</td>
                                                 <td>{p.transactionId}</td>
                                                 <td><span className={`badge ${p.status.toLowerCase()}`}>{p.status}</span></td>
@@ -602,8 +612,13 @@ const toggleTimer = (noteId: string) => {
                                                 <td>{new Date(ex.date || ex.exam_date).toLocaleDateString()}</td>
                                                 <td>{ex.timeInMinutes || ex.time_limit} mins</td>
                                                 <td>
-                                                    <button className="btn-verify" onClick={() => navigate(`/exam/${ex.id}`)}>Start Exam</button>
-                                                </td>
+                                                   <button
+  className="btn-start"
+  onClick={() => navigate(`/live-exam/${ex.id}`)}
+>
+  ▶ Start Exam
+</button>
+                                                     </td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -692,13 +707,12 @@ const toggleTimer = (noteId: string) => {
                     <div className="modal-content glass animate-zoom-in">
                         <h3>Secure Fee Payment</h3>
                         <p>You are paying for Course ID: <strong>{paymentData.courseId}</strong></p>
-                        <div className="payment-amount">Amount Duo: ₹{paymentData.amount}</div>
+                        <div className="payment-amount">Amount Due: ₹{paymentData.amount}</div>
 
                         <form onSubmit={handlePay} className="edit-profile-form">
                             <div className="form-group">
                                 <label>Payment Method</label>
-                                <select value={paymentData.method} onChange={e => setPaymentData({ ...paymentData, method: e.target.value })}>
-                                    <option value="UPI">UPI / GPay / PhonePe</option>
+                    <select value={paymentData.paymentType} onChange={e => setPaymentData({ ...paymentData, paymentType: e.target.value })}>                                    <option value="UPI">UPI / GPay / PhonePe</option>
                                     <option value="Bank Transfer">Bank Transfer (IMPS/NEFT)</option>
                                     <option value="Card">Debit/Credit Card</option>
                                 </select>
@@ -743,7 +757,7 @@ const toggleTimer = (noteId: string) => {
                                         ['Email', profile?.email],
                                         ['Course ID', selectedPayment.courseId],
                                         ['Amount', `₹${selectedPayment.amount}`],
-                                        ['Method', selectedPayment.method],
+                                        ['Method', selectedPayment.paymentType],
                                         ['Transaction ID', selectedPayment.transactionId],
                                         ['Status', selectedPayment.status]
                                     ].map(([label, val]) => (
@@ -764,5 +778,6 @@ const toggleTimer = (noteId: string) => {
             )}
         </div>
     );
+
 }
 

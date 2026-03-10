@@ -6,7 +6,7 @@ import RegisterPage from './pages/RegisterPage';
 import HomePage from './pages/HomePage';
 import ExamPage from './pages/ExamPage';
 import ResultPage from './pages/ResultPage';
-
+import LiveExam from './pages/LiveExam';
 import { AuthProvider } from './config/AuthContext';
 import ProtectedRoute from './config/ProtectedRoute';
 
@@ -34,6 +34,7 @@ function App() {
             <Route path="/student/*" element={<StudentDashboard />} />
             <Route path="/exam" element={<ExamPage />} />
             <Route path="/result" element={<ResultPage />} />
+            <Route path="/live-exam/:examId" element={<LiveExam />} />
           </Route>
 
           {/* Fallback */}
