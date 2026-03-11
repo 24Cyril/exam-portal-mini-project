@@ -152,6 +152,9 @@ const [paymentData, setPaymentData] = useState({
         navigate('/');
     };
 
+
+
+    
    // Timer functions
 const toggleTimer = (noteId: string) => {
     setTimers(prev => {
@@ -179,10 +182,16 @@ const toggleTimer = (noteId: string) => {
         return { ...prev, [noteId]: { ...current, isRunning } };
     });
 };
+
+
+
+
     const resetTimer = (noteId: string) => {
         if (intervalIds[noteId]) clearInterval(intervalIds[noteId]);
         setTimers(prev => ({ ...prev, [noteId]: { time: 0, isRunning: false } }));
     };
+
+
 
     const recordTime = async (noteId: string, courseId: string) => {
         const timeSpent = timers[noteId]?.time || 0;
@@ -576,7 +585,7 @@ const toggleTimer = (noteId: string) => {
                                 <tbody>
                                     {results.map(r => (
                                         <tr key={r.id}>
-                                            <td>{r.examId}</td>
+                                            <td>{r.examTitle}</td>
                                             <td>{r.score} / {r.total}</td>
                                             <td><span style={{ fontWeight: 700 }}>{calculateGrade(r.score, r.total)}</span></td>
                                             <td style={{ fontWeight: 700, color: (r.score / r.total) >= 0.4 ? 'var(--success)' : 'var(--danger)' }}>
@@ -608,7 +617,7 @@ const toggleTimer = (noteId: string) => {
                                         }).map(ex => (
                                             <tr key={ex.id}>
                                                 <td>{ex.title || ex.name}</td>
-                                                <td>{ex.courseId || ex.course_id}</td>
+                                                <td>{ex.courseName || ex.courseId}</td>
                                                 <td>{new Date(ex.date || ex.exam_date).toLocaleDateString()}</td>
                                                 <td>{ex.timeInMinutes || ex.time_limit} mins</td>
                                                 <td>
@@ -637,6 +646,7 @@ const toggleTimer = (noteId: string) => {
                                         <h3>Total Tests Taken</h3>
                                         <p className="stat-number">{results.length}</p>
                                     </div>
+
                                     <div className="stat-card">
                                         <h3>Average Score</h3>
                                         <p className="stat-number" style={{ color: 'var(--primary)' }}>
@@ -645,11 +655,21 @@ const toggleTimer = (noteId: string) => {
                                                 : '0'}%
                                         </p>
                                     </div>
+
                                     <div className="stat-card">
                                         <h3>Highest Score</h3>
                                         <p className="stat-number" style={{ color: 'var(--success)' }}>
                                             {results.length > 0
                                                 ? Math.max(...results.map(r => (r.score / r.total) * 100)).toFixed(1)
+                                                : '0'}%
+                                        </p>
+                                    </div>
+
+                                    <div className="stat-card">
+                                        <h3>Pass Rate</h3>
+                                        <p className="stat-number">
+                                            {results.length > 0
+                                                ? ((results.filter(r => (r.score / r.total) >= 0.4).length / results.length) * 100).toFixed(1)
                                                 : '0'}%
                                         </p>
                                     </div>
@@ -663,7 +683,7 @@ const toggleTimer = (noteId: string) => {
                                     <tbody>
                                         {results.slice(0, 10).map(r => (
                                             <tr key={r.id}>
-                                                <td>{r.examId}</td>
+                                                <td>{r.examTitle}</td>
                                                 <td>{r.score} / {r.total}</td>
                                                 <td style={{ fontWeight: 700, color: (r.score / r.total) >= 0.4 ? 'var(--success)' : 'var(--danger)' }}>
                                                     {((r.score / r.total) * 100).toFixed(1)}%
@@ -697,6 +717,7 @@ const toggleTimer = (noteId: string) => {
                                 )}
                             </div>
                         </div>
+                        
                     )}
 
                 </section>

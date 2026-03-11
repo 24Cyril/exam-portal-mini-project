@@ -9,6 +9,7 @@ import {
     submitPayment,
     getMyPayments,
     updatePerformance,
+    getMyResults,
     getMyPerformance
 } from '../controllers/studentController.js';
 import { protect, authorize } from '../middlewares/auth.js';
@@ -43,5 +44,9 @@ router.post('/submit-result', submitResult);
 // Performance
 router.post('/performance', updatePerformance);
 router.get('/performance', getMyPerformance);
+
+
+
+router.get('/my-results', getMyResults);
 
 export default router;

@@ -60,7 +60,6 @@ export const enrollInCourse = async (req, res) => {
 
         const enrollmentRef = db.collection('student_courses').doc(enrollmentId);
         const existing = await enrollmentRef.get();
-const courseDoc = await db.collection('courses').doc(data.courseId).get();
 
         if (existing.exists) {
             return res.status(400).json({ error: 'Enrollment already exists' });
@@ -141,9 +140,20 @@ const { courseId, paymentType = 'Registration', transactionId, amount } = req.bo
 export const getMyPayments = async (req, res) => {
     try {
         const snapshot = await db.collection('payments').where('studentId', '==', req.user.uid).get();
-        const payments = snapshot.docs
+        const payments = await Promise.all(snapshot.docs
             .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
-            .map(doc => applySchema(PAYMENT_SCHEMA, { id: doc.id, ...doc.data() }));
+            .map(async doc => {
+                const paymentData = applySchema(PAYMENT_SCHEMA, { id: doc.id, ...doc.data() });
+                // Fetch course name
+                let courseName = paymentData.courseId;
+                if (paymentData.courseId) {
+                    const courseDoc = await db.collection('courses').doc(paymentData.courseId).get();
+                    if (courseDoc.exists) {
+                        courseName = courseDoc.data().name || paymentData.courseId;
+                    }
+                }
+                return { ...paymentData, courseName };
+            }));
         res.status(200).json(payments);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -236,7 +246,7 @@ export const submitResult = async (req, res) => {
             total,
             percentage: total > 0 ? (score / total) * 100 : 0,
             answers: userAnswers,
-            submittedAt: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
             status: 'Evaluated'
         });
 
@@ -270,5 +280,37 @@ export const getMyPerformance = async (req, res) => {
         res.status(200).json(data);
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+};
+
+
+export const getMyResults = async (req, res) => {
+    try {
+        const snapshot = await db.collection('results')
+            .where('studentId', '==', req.user.uid)
+            .get();
+
+     const results = [];
+
+for (const doc of snapshot.docs) {
+    const data = doc.data();
+
+    let examTitle = data.examId;
+
+    const examDoc = await db.collection('exams').doc(data.examId).get();
+    if (examDoc.exists) {
+        examTitle = examDoc.data().title || data.examId;
+    }
+
+    results.push({
+        id: doc.id,
+        ...data,
+        examTitle
+    });
+}
+
+        res.status(200).json(results);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 };
