@@ -40,6 +40,18 @@ def get_student_profile(user_id):
 def update_student_profile(user_id, data):
     db = get_db_connection()
     cur = db.cursor()
+    # use .get to avoid KeyError when some fields are missing
+    full_name = data.get("full_name")
+    age = data.get("age")
+    gender = data.get("gender")
+    email = data.get("email")
+    phone = data.get("phone")
+    address = data.get("address")
+    course = data.get("course")
+    department = data.get("department")
+    institute_name = data.get("institute_name")
+    year_of_study = data.get("year_of_study")
+
     cur.execute("""
         UPDATE student SET
             full_name=%s, age=%s, gender=%s, email=%s,
@@ -47,10 +59,9 @@ def update_student_profile(user_id, data):
             department=%s, institute_name=%s, year_of_study=%s
         WHERE user_id=%s
     """, (
-        data["full_name"], data["age"], data["gender"], data["email"],
-        data["phone"], data["address"], data["course"],
-        data["department"], data["institute_name"],
-        data["year_of_study"], user_id
+        full_name, age, gender, email,
+        phone, address, course,
+        department, institute_name, year_of_study, user_id
     ))
     db.commit()
     cur.close()
