@@ -40,6 +40,12 @@ const [paymentData, setPaymentData] = useState({
         setSearchTerm('');
         fetchData();
     }, [activeTab]);
+    
+    useEffect(() => {
+    return () => {
+        Object.values(intervalIds).forEach(id => clearInterval(id));
+    };
+}, [intervalIds]);
 
     // Filtering & Sorting Logic
     const filteredCourses = courses
@@ -154,42 +160,70 @@ const [paymentData, setPaymentData] = useState({
 
 
 
-    
+
    // Timer functions
+
 const toggleTimer = (noteId: string) => {
     setTimers(prev => {
         const current = prev[noteId] || { time: 0, isRunning: false };
-        const isRunning = !current.isRunning;
 
-        if (isRunning) {
+        if (current.isRunning) {
+            // STOP TIMER
+            if (intervalIds[noteId]) {
+                clearInterval(intervalIds[noteId]);
+            }
+
+            setIntervalIds(ids => {
+                const updated = { ...ids };
+                delete updated[noteId];   // remove interval completely
+                return updated;
+            });
+
+            return {
+                ...prev,
+                [noteId]: { ...current, isRunning: false }
+            };
+
+        } else {
+            // START TIMER
             const id = setInterval(() => {
                 setTimers(t => ({
                     ...t,
-                    [noteId]: { ...t[noteId], time: (t[noteId]?.time || 0) + 1 }
+                    [noteId]: {
+                        ...t[noteId],
+                        time: (t[noteId]?.time || 0) + 1
+                    }
                 }));
             }, 1000);
-            setIntervalIds(ids => ({ ...ids, [noteId]: id }));
-        } else {
-            // Clear the interval properly
-            setIntervalIds(ids => {
-                if (ids[noteId]) {
-                    clearInterval(ids[noteId]);
-                }
-                return ids;
-            });
-        }
 
-        return { ...prev, [noteId]: { ...current, isRunning } };
+            setIntervalIds(ids => ({ ...ids, [noteId]: id }));
+
+            return {
+                ...prev,
+                [noteId]: { ...current, isRunning: true }
+            };
+        }
     });
 };
 
 
 
+const resetTimer = (noteId: string) => {
+    if (intervalIds[noteId]) {
+        clearInterval(intervalIds[noteId]);
+    }
 
-    const resetTimer = (noteId: string) => {
-        if (intervalIds[noteId]) clearInterval(intervalIds[noteId]);
-        setTimers(prev => ({ ...prev, [noteId]: { time: 0, isRunning: false } }));
-    };
+    setIntervalIds(ids => {
+        const updated = { ...ids };
+        delete updated[noteId];
+        return updated;
+    });
+
+    setTimers(prev => ({
+        ...prev,
+        [noteId]: { time: 0, isRunning: false }
+    }));
+};
 
 
 
