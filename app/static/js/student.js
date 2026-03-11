@@ -2,473 +2,417 @@
 // TAB SWITCH HANDLER
 // ===============================
 function openTab(tabName) {
-
+    // 1. Title update
     document.getElementById("page-title").innerText = tabName.toUpperCase();
 
+    // 2. Sidebar active state
     document.querySelectorAll(".sidebar li").forEach(tab => {
         tab.classList.remove("active");
     });
-
     const activeTab = document.getElementById(`tab-${tabName}`);
     if (activeTab) activeTab.classList.add("active");
 
+    // 3. Tab content toggling
+    document.querySelectorAll(".tab-content").forEach(content => {
+        content.style.display = "none";
+    });
+
+    const targetContent = document.getElementById(tabName);
+    if (targetContent) {
+        targetContent.style.display = "block";
+    }
+
+    // 4. Data loading
     if (tabName === "home") loadHome();
     else if (tabName === "profile") loadProfile();
     else if (tabName === "courses") loadCourses();
-    else if (tabName === "exam") loadExams();
-    else if (tabName === "result") loadResults();
-    else if (tabName === "certificate") loadCertificates();
+    else if (tabName === "notes") loadNotes();
+    else if (tabName === "mock-exams") loadMockExams();
+    else if (tabName === "test-exams") loadTestExams();
+    else if (tabName === "main-exam") loadMainExam();
+    else if (tabName === "results") loadResults();
     else if (tabName === "payment") loadPayments();
+    else if (tabName === "performance") loadPerformance();
     else {
-        document.getElementById("tab-content").innerHTML =
-            `<h3>${tabName} section coming soon...</h3>`;
+        // Fallback for sections coming soon
+        if (targetContent && targetContent.innerHTML.trim() === "") {
+            targetContent.innerHTML = `<div class="card"><h3>${tabName} section coming soon...</h3></div>`;
+        }
     }
 }
 
 // ===============================
-// PROFILE
-// ===============================
-function loadProfile() {
-
-    const data = studentData || {};
-
-    document.getElementById("tab-content").innerHTML = `
-        <h3>Student Profile</h3>
-        <table class="profile-table">
-            <tr><td>Full Name</td><td>${data.full_name || "-"}</td></tr>
-            <tr><td>Age</td><td>${data.age || "-"}</td></tr>
-            <tr><td>Gender</td><td>${data.gender || "-"}</td></tr>
-            <tr><td>Email</td><td>${data.email || "-"}</td></tr>
-            <tr><td>Phone</td><td>${data.phone || "-"}</td></tr>
-            <tr><td>Address</td><td>${data.address || "-"}</td></tr>
-            <tr><td>Course</td><td>${data.course || "-"}</td></tr>
-            <tr><td>Department</td><td>${data.department || "-"}</td></tr>
-            <tr><td>Year</td><td>${data.year_of_study || "-"}</td></tr>
-        </table>
-        <a href="/editpro" class="update-btn">✏️ Update Profile</a>
-    `;
-}
-
-// ===============================
-// HOME (Student dashboard)
+// HOME TAB
 // ===============================
 function loadHome() {
-    const name = (studentData && studentData.full_name) ? studentData.full_name.split(' ')[0] : 'Student';
+    fetch("/api/student/courses")
+        .then(res => res.json())
+        .then(data => {
+            const enrolled = data.filter(c => c.enrollment_status === 'Enrolled_Active').length;
+            document.getElementById("courses-enrolled").innerText = enrolled;
+        });
 
-    // fetch courses and exams to build quick stats
-    Promise.all([
-        fetch('/api/student/courses').then(r => r.json()).catch(() => []),
-        fetch('/api/student/exams').then(r => r.json()).catch(() => [])
-    ]).then(([courses, exams]) => {
+    fetch("/api/student/exams")
+        .then(res => res.json())
+        .then(data => {
+            const exams = data.exams || [];
+            const completed = exams.filter(e => e.score !== null);
+            document.getElementById("exams-completed").innerText = completed.length;
 
-        const enrolled = (courses || []).filter(c => c.enrollment_status !== 'Not Enrolled').length;
-        const verifiedPayments = (courses || []).filter(c => c.payment_verification_status === 'Verified').length;
-        const pendingPayments = (courses || []).filter(c => c.payment_verification_status === 'Submitted' || c.payment_verification_status === 'Pending').length;
+            // Calculate Overall Grade
+            if (completed.length > 0) {
+                const totalScore = completed.reduce((sum, e) => sum + e.score, 0);
+                const avg = totalScore / completed.length;
+                document.getElementById("overall-grade").innerText = calculateGrade(avg) + ` (${avg.toFixed(1)}%)`;
+                renderHomePerformanceChart(completed);
+            }
 
-        // upcoming exams (unique by course + future date)
-        const upcoming = (exams || []).filter(e => e.exam_date).length;
+            // Upcoming Exams list
+            const upcomingList = document.getElementById("upcoming-exams");
+            const upcoming = exams.filter(e => e.score === null);
 
-        document.getElementById('tab-content').innerHTML = `
-            <div class="card">
-                <h3>Welcome back, ${name} 👋</h3>
-                <p>Quick overview of your account and activity.</p>
+            if (upcoming.length > 0) {
+                upcomingList.innerHTML = upcoming.map(e => `
+                    <li>
+                        <strong>${e.course_name}</strong> - ${e.exam_date}
+                        <button class="attend-btn btn-small" onclick="goToExam(${e.exam_id})">Attend Now</button>
+                    </li>
+                `).join("");
+            } else {
+                upcomingList.innerHTML = '<li class="no-data">No upcoming exams</li>';
+            }
+        });
+}
 
-                <div style="display:flex; gap:14px; margin-top:18px; flex-wrap:wrap;">
-                    <div class="stat-card">
-                        <div class="stat-value">${enrolled}</div>
-                        <div class="stat-label">Enrolled Courses</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${upcoming}</div>
-                        <div class="stat-label">Upcoming Exams</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${verifiedPayments}</div>
-                        <div class="stat-label">Payments Verified</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${pendingPayments}</div>
-                        <div class="stat-label">Pending Payments</div>
-                    </div>
-                </div>
+function renderHomePerformanceChart(completed) {
+    const ctx = document.getElementById('homePerformanceChart').getContext('2d');
+    if (window.homeChartIns) window.homeChartIns.destroy();
 
-                <div style="margin-top:20px; display:flex; gap:8px;">
-                    <button class="attend-btn" onclick="openTab('courses')">View Courses</button>
-                    <button class="pay-btn" onclick="openTab('payment')">Payment</button>
-                    <button class="result-btn" onclick="openTab('exam')">Exams</button>
-                </div>
-            </div>
-        `;
+    window.homeChartIns = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: completed.map(e => e.exam_name || e.course_name),
+            datasets: [{
+                label: 'Score History',
+                data: completed.map(e => e.score),
+                borderColor: '#2563eb',
+                tension: 0.4,
+                fill: true,
+                backgroundColor: 'rgba(37, 99, 235, 0.1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true, max: 100 } }
+        }
     });
 }
 
 // ===============================
-// COURSES
+// PROFILE TAB
 // ===============================
-let allCourses = [];
+function loadProfile() {
+    const data = studentData || {};
 
+    // Header info
+    document.getElementById("profile-name").innerText = data.full_name || "Name not set";
+    document.getElementById("profile-email").innerText = data.email || "";
+    document.getElementById("profile-course").innerText = data.course || "";
+    document.getElementById("profile-year").innerText = data.year_of_study ? `Year ${data.year_of_study}` : "";
+
+    // Personal 
+    document.getElementById("dob").innerText = data.dob || "--";
+    document.getElementById("age").innerText = data.age || "--";
+    document.getElementById("gender").innerText = data.gender || "--";
+    document.getElementById("blood-group").innerText = data.blood_group || "--";
+    document.getElementById("nationality").innerText = data.nationality || "--";
+
+    // Contact
+    document.getElementById("contact-email").innerText = data.email || "--";
+    document.getElementById("phone").innerText = data.phone || "--";
+    document.getElementById("emergency-contact").innerText = data.emergency_contact || "--";
+
+    // Address
+    document.getElementById("address").innerText = data.address || "--";
+    document.getElementById("city").innerText = data.city || "--";
+    document.getElementById("state").innerText = data.state || "--";
+    document.getElementById("pincode").innerText = data.pincode || "--";
+    document.getElementById("country").innerText = data.country || "--";
+
+    // Academic
+    document.getElementById("academic-course").innerText = data.course || "--";
+    document.getElementById("department").innerText = data.department || "--";
+    document.getElementById("institute").innerText = data.institute_name || "--";
+    document.getElementById("year-of-study").innerText = data.year_of_study || "--";
+    document.getElementById("semester").innerText = data.semester || "--";
+    document.getElementById("roll-number").innerText = data.roll_number || "--";
+}
+
+function editProfile() {
+    window.location.href = "/editpro";
+}
+
+// ===============================
+// COURSES TAB
+// ===============================
 function loadCourses() {
-
-    document.getElementById("tab-content").innerHTML = `
-        <div class="card">
-            <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <input type="text" id="searchCourse" placeholder="Search..." onkeyup="applyFilters()">
-                <select id="sortCourse" onchange="applyFilters()">
-                    <option value="">Sort</option>
-                    <option value="az">A-Z</option>
-                    <option value="za">Z-A</option>
-                </select>
-                <select id="statusFilter" onchange="applyFilters()">
-                    <option value="">Status</option>
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                </select>
-            </div>
-            <div id="course-list" class="course-grid"></div>
-        </div>
-    `;
+    const grid = document.getElementById("courses-grid");
+    grid.innerHTML = '<div class="loader">Loading courses...</div>';
 
     fetch("/api/student/courses")
         .then(res => res.json())
         .then(data => {
-            allCourses = data;
-            renderCourses(data);
-        });
-}
-
-function renderCourses(courses) {
-
-    const container = document.getElementById("course-list");
-    container.innerHTML = "";
-
-    courses.forEach(c => {
-
-        let buttons = "";
-        let statusText = "";
-
-        if (c.enrollment_status === "Not Enrolled") {
-
-            statusText = `<span class="badge inactive">Not Enrolled</span>`;
-            buttons = `
-                <button class="attend-btn" onclick="enroll(${c.course_id})">
-                    Enroll
-                </button>
-            `;
-
-        } else {
-
-            statusText = `
-                <span class="badge active">Enrolled</span>
-                <span class="badge ${c.enrollment_verification_status === "Verified" ? "active" : c.enrollment_verification_status === "Rejected" ? "inactive" : "pending"}">
-                    Enrollment: ${c.enrollment_verification_status || "Pending"}
-                </span>
-            `;
-
-            // Only show payment status if enrollment is verified
-            if (c.enrollment_verification_status === "Verified") {
-                statusText += `
-                    <span class="badge ${c.payment_verification_status === "Verified" ? "active" : "inactive"}">
-                        Payment: ${c.payment_verification_status || "Pending"}
-                    </span>
-                `;
-
-                // Show pay button only if enrollment is verified and payment is not verified
-                if (c.payment_verification_status !== "Verified") {
-                    buttons += `
-                        <button class="pay-btn" onclick="openTab('payment')">
-                            Pay
-                        </button>
-                    `;
-                }
-            }
-
-            buttons += `
-                <button class="unenroll-btn" onclick="unenroll(${c.course_id})">
-                    Unenroll
-                </button>
-            `;
-        }
-
-        container.innerHTML += `
-            <div class="course-card">
-                <h4>${c.course_name}</h4>
-                <p>${c.description || ""}</p>
-                <p><b>Fee:</b> ₹${c.fee}</p>
-                ${statusText}
-                <div class="btn-group">${buttons}</div>
-            </div>
-        `;
-    });
-}
-
-function applyFilters() {
-
-    let filtered = [...allCourses];
-
-    const search = document.getElementById("searchCourse").value.toLowerCase();
-    const sort = document.getElementById("sortCourse").value;
-    const status = document.getElementById("statusFilter").value;
-
-    if (search)
-        filtered = filtered.filter(c => c.course_name.toLowerCase().includes(search));
-
-    if (status)
-        filtered = filtered.filter(c => c.status === status);
-
-    if (sort === "az") filtered.sort((a,b)=>a.course_name.localeCompare(b.course_name));
-    if (sort === "za") filtered.sort((a,b)=>b.course_name.localeCompare(a.course_name));
-
-    renderCourses(filtered);
-}
-
-// ===============================
-// PAYMENTS (FIXED)
-// ===============================
-function loadPayments() {
-
-    fetch("/api/student/payments")
-        .then(res => res.json())
-        .then(data => {
-
-            if (!data || !data.length) {
-                document.getElementById("tab-content").innerHTML =
-                    "<h3>No payment records found</h3>";
+            if (!data.length) {
+                grid.innerHTML = '<div class="no-data">No courses available at this time.</div>';
                 return;
             }
 
-            let rows = data.map((p, i) => {
+            grid.innerHTML = data.map(c => {
+                let statusBadge = "";
+                let buttons = "";
+                const enrollmentStatus = c.enrollment_status;
 
-                let actionCell = "";
-                const receiptBtn = p.payment_id ? `<button class="edit-btn" onclick="window.open('/payment/receipt/${p.payment_id}','_blank')">Receipt</button>` : '';
-
-                if (p.payment_verification_status === "Pending") {
-                    actionCell = `
-                        <div style="display:flex; gap:8px; align-items:center;">
-                            <button class="pay-btn" onclick="submitPayment(${p.course_id})">
-                                Submit Payment
-                            </button>
-                            ${receiptBtn}
-                        </div>
-                    `;
+                if (!enrollmentStatus || enrollmentStatus === "Not Enrolled") {
+                    statusBadge = '<span class="badge inactive">Not Enrolled</span>';
+                    buttons = `<button class="attend-btn" onclick="enroll(${c.course_id})">Enroll Now</button>`;
                 } else {
-                    actionCell = `
-                        <div style="display:flex; gap:8px; align-items:center;">
-                            <span class="status done">${p.payment_verification_status}</span>
-                            ${receiptBtn}
-                        </div>
-                    `;
+                    let badgeClass = "pending";
+                    let statusLabel = enrollmentStatus.replace(/_/g, " ");
+
+                    if (enrollmentStatus === "Enrolled_Active") badgeClass = "active";
+                    else if (enrollmentStatus === "Rejected") badgeClass = "inactive";
+                    else if (enrollmentStatus === "Verified_Pending_Payment") badgeClass = "warning";
+
+                    statusBadge = `<span class="badge ${badgeClass}">${statusLabel}</span>`;
+
+                    if (enrollmentStatus === "Verified_Pending_Payment") {
+                        buttons = `<button class="pay-btn" onclick="showPaymentModal(${c.course_id}, ${c.fee})">💰 Pay Fee (₹${c.fee})</button>`;
+                    } else if (enrollmentStatus === "Pending") {
+                        buttons = `<button class="unenroll-btn" onclick="unenroll(${c.course_id})">Cancel Request</button>`;
+                    }
                 }
 
                 return `
-                    <tr>
-                        <td>${i + 1}</td>
-                        <td>${p.course_name}</td>
-                        <td>₹${p.amount || "-"}</td>
-                        <td>${p.payment_method || "-"}</td>
-                        <td>${p.transaction_id || "-"}</td>
-                        <td>${actionCell}</td>
-                        <td>${p.payment_date || "-"}</td>
-                    </tr>
+                    <div class="course-card">
+                        <div class="course-icon">📚</div>
+                        <div class="course-content">
+                            <h3>${c.course_name}</h3>
+                            <p class="course-desc">${c.description || "No description available."}</p>
+                            <div class="course-meta">
+                                <span><b>Fee:</b> ₹${c.fee}</span>
+                                <span><b>Code:</b> ${c.course_code}</span>
+                            </div>
+                            <div class="course-status">${statusBadge}</div>
+                            <div class="course-actions">${buttons}</div>
+                        </div>
+                    </div>
                 `;
             }).join("");
-
-            document.getElementById("tab-content").innerHTML = `
-                <div class="table-wrapper">
-                    <h3>Payment History</h3>
-                    <table class="common-table">
-                        <thead>
-                            <tr>
-                                <th>Sl No</th>
-                                <th>Course</th>
-                                <th>Amount</th>
-                                <th>Method</th>
-                                <th>Transaction ID</th>
-                                <th>Status</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rows}</tbody>
-                    </table>
-                </div>
-            `;
-        })
-        .catch(() => {
-            document.getElementById("tab-content").innerHTML =
-                "<h3>Error loading payments</h3>";
         });
 }
 
-function submitPayment(courseId) {
+function enroll(courseId) {
+    fetch("/api/student/enroll", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ course_id: courseId })
+    }).then(() => loadCourses());
+}
+
+function unenroll(courseId) {
+    if (!confirm("Are you sure you want to unenroll?")) return;
+    fetch("/api/student/unenroll", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ course_id: courseId })
+    }).then(() => loadCourses());
+}
+
+// ===============================
+// EXAMS TABS (MOCK / TEST / MAIN)
+// ===============================
+function loadMockExams() {
+    fetchExamsByType("Mock", "mock-exams-list");
+}
+
+function loadTestExams() {
+    fetchExamsByType("Test", "test-exams-list");
+}
+
+function loadMainExam() {
+    fetchExamsByType("Main", "main-exam-container");
+}
+
+function fetchExamsByType(type, elementId) {
+    const list = document.getElementById(elementId);
+    list.innerHTML = '<div class="no-data">Loading...</div>';
+
+    fetch("/api/student/exams")
+        .then(res => res.json())
+        .then(data => {
+            const filtered = data.filter(e => e.exam_type === type);
+            if (!filtered.length) {
+                list.innerHTML = `<div class="no-data">No ${type} exams available.</div>`;
+                return;
+            }
+
+            // Using existing list class if it's a list, or just grid
+            list.innerHTML = filtered.map(e => `
+                <div class="exam-card">
+                    <h4>${e.exam_name}</h4>
+                    <p>Course: ${e.course_name}</p>
+                    <p>Date: ${e.exam_date}</p>
+                    <p>Questions: ${e.total_questions}</p>
+                    <p>Status: <strong>${e.attended}</strong></p>
+                    ${e.attended !== "Attended"
+                    ? `<button class="attend-btn" onclick="goToExam(${e.exam_id})">Start Exam</button>`
+                    : `<button class="result-btn" onclick="openTab('results')">View Result</button>`}
+                </div>
+            `).join("");
+        });
+}
+
+function goToExam(examId) {
+    window.location.href = `/exam/${examId}`;
+}
+
+// ===============================
+// NOTES TAB
+// ===============================
+function loadNotes() {
+    const container = document.getElementById("notes-container");
+    container.innerHTML = '<div class="loader">Loading your materials...</div>';
+
+    fetch("/api/student/notes")
+        .then(res => res.json())
+        .then(data => {
+            const notes = data.notes || [];
+            if (!notes.length) {
+                container.innerHTML = '<div class="no-data">No course materials available for your enrolled courses.</div>';
+                return;
+            }
+
+            container.innerHTML = notes.map(n => `
+                <div class="card note-card" style="margin-bottom:15px; border-left: 5px solid #4a90e2;">
+                    <h4 style="margin-bottom:5px;">${n.title}</h4>
+                    <p style="color:#666; font-size:0.9em; margin-bottom:10px;">Subject: ${n.course_name}</p>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.85em; color:#888;">Added: ${n.created_at || ""}</span>
+                        <a href="${n.file_path}" target="_blank" class="attend-btn btn-small" style="text-decoration:none;">📄 View / Download</a>
+                    </div>
+                </div>
+            `).join("");
+        });
+}
+
+// ===============================
+// RESULTS TAB
+// ===============================
+function loadResults() {
+    const tbody = document.getElementById("results-tbody");
+    tbody.innerHTML = '<tr><td colspan="6">Loading results...</td></tr>';
+
+    fetch("/api/student/exams")
+        .then(res => res.json())
+        .then(data => {
+            const attended = (data.exams || []).filter(e => e.score !== null);
+            if (!attended.length) {
+                tbody.innerHTML = '<tr><td colspan="6">No results available yet. Complete exams and wait for publication.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = attended.map(r => `
+                <tr>
+                    <td>${r.exam_name}</td>
+                    <td>${r.course_name}</td>
+                    <td>${r.submitted_at || "--"}</td>
+                    <td>${r.score || "0"}</td>
+                    <td>${calculateGrade(r.score)}</td>
+                    <td><span class="badge ${r.evaluation_status === 'Evaluated' && r.score >= 50 ? 'active' : 'inactive'}">${r.evaluation_status || "Pending"}</span></td>
+                </tr>
+            `).join("");
+        });
+}
+
+function calculateGrade(score) {
+    if (score >= 90) return 'A+';
+    if (score >= 80) return 'A';
+    if (score >= 70) return 'B';
+    if (score >= 60) return 'C';
+    if (score >= 50) return 'D';
+    return 'F';
+}
+
+// ===============================
+// PAYMENT TAB & MODAL
+// ===============================
+let currentPayCourseId = null;
+
+function showPaymentModal(courseId, amount) {
+    currentPayCourseId = courseId;
+    document.getElementById("paymentCourseName").innerText = "Course ID: " + courseId;
+    document.getElementById("paymentAmount").innerText = "Grand Total: ₹" + amount;
+    document.getElementById("paymentModal").style.display = "block";
+}
+
+function closePaymentModal() {
+    document.getElementById("paymentModal").style.display = "none";
+}
+
+function confirmPayment() {
+    const method = document.getElementById("payMethod").value;
+    const txn = document.getElementById("txnId").value;
+    if (!txn) return alert("Please enter Transaction ID / UTR");
 
     fetch("/api/payment/manual", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            course_id: courseId,
-            payment_method: "UPI",
-            transaction_id: "REF" + Date.now()
+            course_id: currentPayCourseId,
+            payment_type: "Registration",
+            transaction_id: txn,
+            payment_method: method
         })
     })
-    .then(res => res.json())
-    .then(() => {
-        alert("Payment submitted. Waiting for admin verification.");
-        loadPayments();
-        loadCourses(); // sync badge state
-    });
-}
-
-// ===============================
-// ENROLL / UNENROLL
-// ===============================
-function enroll(courseId) {
-    fetch("/api/student/enroll", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ course_id: courseId })
-    })
-    .then(() => loadCourses());
-}
-
-function unenroll(courseId) {
-    fetch("/api/student/unenroll", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ course_id: courseId })
-    })
-    .then(() => loadCourses());
-}
-
-// ===============================
-// EXAMS (FETCH FROM DB + REMOVE DUPES)
-// ===============================
-function loadExams() {
-
-    fetch("/api/student/exams")
         .then(res => res.json())
         .then(data => {
+            alert(data.message || "Payment Submitted");
+            closePaymentModal();
+            loadCourses();
+            loadPayments();
+        });
+}
 
-            // 🔥 REMOVE DUPLICATES (course + date)
-            const unique = {};
-            data.forEach(e => {
-                const key = e.course_name + e.exam_date;
-                if (!unique[key]) unique[key] = e;
-            });
+function loadPayments() {
+    const tbody = document.getElementById("payment-tbody");
+    tbody.innerHTML = '<tr><td colspan="6">Loading...</td></tr>';
 
-            const exams = Object.values(unique);
+    fetch("/api/student/payments")
+        .then(res => res.json())
+        .then(data => {
+            if (!data.length) {
+                tbody.innerHTML = '<tr><td colspan="6">No payment history found.</td></tr>';
+                return;
+            }
 
-            let rows = exams.map((e, i) => `
+            tbody.innerHTML = data.map(p => `
                 <tr>
-                    <td>${i + 1}</td>
-                    <td>${e.course_name}</td>
-                    <td>--</td>
-                    <td>${e.exam_date}</td>
-                    <td>
-                        <span class="attendance ${e.attended === "Attended" ? "yes" : "no"}">
-                            ${e.attended}
-                        </span>
-                    </td>
-                    <td>--</td>
-                    <td>--</td>
-                    <td>
-                        ${
-                            e.attended === "Attended"
-                            ? `<button class="result-btn" onclick="openTab('result')">View Result</button>`
-                            : `<button class="attend-btn" onclick="goToExam(${e.exam_id})">Attend</button>`
-                        }
-                    </td>
+                    <td>${p.course_name}</td>
+                    <td>₹${p.amount}</td>
+                    <td>${p.payment_type}</td>
+                    <td><span class="badge ${p.status === 'Verified' ? 'active' : 'pending'}">${p.status}</span></td>
+                    <td>${p.transaction_id || "--"}</td>
+                    <td>${p.created_at || "--"}</td>
                 </tr>
             `).join("");
-
-            document.getElementById("tab-content").innerHTML = `
-                <div class="table-wrapper">
-                    <h3>Exam Status</h3>
-                    <table class="common-table">
-                        <thead>
-                            <tr>
-                                <th>Sl No</th>
-                                <th>Course</th>
-                                <th>Duration</th>
-                                <th>Date</th>
-                                <th>Attendance</th>
-                                <th>Start</th>
-                                <th>End</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rows}</tbody>
-                    </table>
-                </div>
-            `;
         });
 }
 
 // ===============================
-// RESULTS (FROM SAME TABLE)
+// INITIALIZATION
 // ===============================
-function loadResults() {
-
-    fetch("/api/student/exams")
-        .then(res => res.json())
-        .then(data => {
-
-            let rows = data.map((r, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td>${r.course_name}</td>
-                    <td>${r.exam_date}</td>
-                    <td>${r.marks}</td>
-                    <td>${r.grade}</td>
-                    <td>
-                        <span class="attendance ${r.attended === "Attended" ? "yes" : "no"}">
-                            ${r.attended}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="status ${r.status === "Pass" ? "done" : "pending"}">
-                            ${r.status}
-                        </span>
-                    </td>
-                </tr>
-            `).join("");
-
-            document.getElementById("tab-content").innerHTML = `
-                <div class="table-wrapper">
-                    <h3>Exam Results</h3>
-                    <table class="common-table">
-                        <thead>
-                            <tr>
-                                <th>Sl No</th>
-                                <th>Course</th>
-                                <th>Date</th>
-                                <th>Marks</th>
-                                <th>Grade</th>
-                                <th>Attendance</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rows}</tbody>
-                    </table>
-                </div>
-            `;
-        });
-}
-
-// ===============================
-// OTHERS
-// ===============================
-function loadCertificates() {
-    document.getElementById("tab-content").innerHTML = "<h3>Certificates</h3>";
-}
-
-function logout() {
-    window.location.href = "/logout";
-}
-
-function goToExam(examId) {
-    // navigate to exam page which will start the attempt
-    window.location = `/exam/${examId}`;
-}
-
 document.addEventListener("DOMContentLoaded", () => {
-    openTab("home");
+    // Check URL hash for tab navigation
+    const hash = window.location.hash.replace("#", "");
+    openTab(hash || "home");
 });

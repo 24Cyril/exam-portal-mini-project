@@ -90,12 +90,14 @@ body {
   color: #333;
   cursor: pointer;
   font-weight: 600;
+  opacity: 0.3;
 }
 
 .tab.active {
   background-color: #1e88e5; /* active tab */
   color: white;
   border-color: #1e88e5;
+  opacity: 1;
 }
 
 /* Remove any hover effect on tabs */
@@ -132,7 +134,7 @@ input {
 }
 
 .login-form button:hover {
-  background-color: #1565c0;
+  background-color: #c0151d;
 }
 
 .login-links {

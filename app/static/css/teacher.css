@@ -1,0 +1,342 @@
+:root {
+    /* Colors */
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --secondary: #64748b;
+    --sidebar-bg: #111827;
+    --sidebar-hover: #1f2937;
+    --sidebar-active: #3b82f6;
+    --bg-main: #f8fafc;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --white: #ffffff;
+    --border: #e2e8f0;
+
+    /* Semantic Colors */
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+    /* Radius */
+    --radius-sm: 0.25rem;
+    --radius: 0.5rem;
+    --radius-lg: 0.75rem;
+
+    /* Fonts */
+    --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--font-main);
+}
+
+.teacher-dashboard {
+    display: flex;
+    min-height: 100vh;
+    background: var(--bg-main);
+    color: var(--text-main);
+}
+
+/* ===============================
+   TEACHER SIDEBAR
+================================ */
+.teacher-sidebar {
+    width: 260px;
+    background: var(--sidebar-bg);
+    color: var(--white);
+    height: 100vh;
+    padding: 24px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 100;
+}
+
+.teacher-sidebar h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--sidebar-active);
+}
+
+.teacher-sidebar ul {
+    list-style: none;
+}
+
+.teacher-sidebar ul li {
+    margin: 4px 0;
+    cursor: pointer;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.teacher-sidebar ul li:hover {
+    background: var(--sidebar-hover);
+}
+
+.teacher-sidebar li.active {
+    background: var(--sidebar-active);
+    font-weight: 600;
+}
+
+.teacher-sidebar a {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+}
+
+.teacher-user-info {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.teacher-logout-btn {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    margin-top: 10px;
+    transition: all 0.2s;
+}
+
+.teacher-logout-btn:hover {
+    background: var(--danger);
+    color: var(--white);
+}
+
+/* ===============================
+   TEACHER MAIN CONTENT
+================================ */
+.teacher-main {
+    margin-left: 260px;
+    padding: 40px;
+    flex: 1;
+}
+
+.teacher-header {
+    margin-bottom: 32px;
+}
+
+.teacher-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+/* ===============================
+   TEACHER DASHBOARD STATS
+================================ */
+.teacher-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.teacher-stat-card {
+    background: var(--white);
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    text-align: center;
+    border: 1px solid var(--border);
+    transition: transform 0.2s ease;
+}
+
+.teacher-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.teacher-stat-number {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 4px;
+}
+
+.teacher-stat-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+/* ===============================
+   TEACHER SECTIONS
+================================ */
+.teacher-section {
+    background: var(--white);
+    padding: 32px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    margin-bottom: 32px;
+    border: 1px solid var(--border);
+}
+
+.teacher-section h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* ===============================
+   TEACHER COURSES GRID
+================================ */
+.teacher-courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.teacher-course-card {
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    transition: all 0.3s ease;
+}
+
+.teacher-course-card:hover {
+    background: var(--white);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary);
+}
+
+.teacher-course-card h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 12px;
+}
+
+.teacher-course-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 16px 0;
+}
+
+/* ===============================
+   TEACHER BUTTONS
+================================ */
+.teacher-btn {
+    padding: 10px 16px;
+    border-radius: var(--radius);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    font-size: 14px;
+    background: var(--primary);
+    color: var(--white);
+    text-decoration: none;
+    display: inline-block;
+}
+
+.teacher-btn:hover {
+    background: var(--primary-hover);
+    box-shadow: var(--shadow-sm);
+}
+
+.teacher-btn-edit {
+    background: var(--secondary);
+}
+
+.teacher-btn-delete {
+    background: var(--danger);
+}
+
+.teacher-btn-students {
+    background: var(--success);
+}
+
+/* ===============================
+   TEACHER EXAMS LIST
+================================ */
+.teacher-exams-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.teacher-exam-item {
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.teacher-exam-item:hover {
+    background: var(--white);
+    border-color: var(--primary);
+    box-shadow: var(--shadow);
+}
+
+/* ===============================
+   STATUS BADGES
+================================ */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-badge.draft {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge.expired {
+    background: #fce7f3;
+    color: #9d174d;
+}
+
+@media (max-width: 900px) {
+    .teacher-sidebar {
+        display: none;
+    }
+
+    .teacher-main {
+        margin-left: 0;
+        padding: 20px;
+    }
+}

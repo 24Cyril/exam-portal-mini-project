@@ -1,34 +1,54 @@
-const registerForm = document.getElementById("registerForm");
-const studentRadio = document.getElementById("student");
-const adminRadio = document.getElementById("admin");
-const studentFields = document.getElementById("studentFields");
+const studentForm = document.getElementById("studentForm");
+const teacherForm = document.getElementById("teacherForm");
+const adminForm = document.getElementById("adminForm");
+const roleRadios = document.querySelectorAll("input[name='role']");
 
-// ------------------------------
-// SHOW / HIDE STUDENT FIELDS
-// ------------------------------
-function toggleStudentFields() {
-  if (studentRadio.checked) {
-    studentFields.style.display = "block";
-  } else {
-    studentFields.style.display = "none";
-  }
+function updateRequiredFields(role) {
+    // Reset all
+    document.querySelectorAll(".form-section input, .form-section select, .form-section textarea").forEach(field => {
+        field.required = false;
+    });
+
+    if (role === "student") {
+        document.querySelector("input[name='s_full_name']").required = true;
+        document.querySelector("input[name='age']").required = true;
+        document.querySelector("select[name='gender']").required = true;
+        document.querySelector("input[name='phone']").required = true;
+    } else if (role === "teacher") {
+        document.querySelector("input[name='full_name']").required = true;
+        document.querySelector("select[name='tutor_gender']").required = true;
+        document.querySelector("input[name='tutor_phone']").required = true;
+        document.querySelector("input[name='department']").required = true;
+    } else if (role === "admin") {
+        document.querySelector("input[name='a_full_name']").required = true;
+        document.querySelector("input[name='dob']").required = true;
+        document.querySelector("select[name='a_gender']").required = true;
+        document.querySelector("input[name='contact_number']").required = true;
+    }
 }
 
-studentRadio.addEventListener("change", toggleStudentFields);
-adminRadio.addEventListener("change", toggleStudentFields);
+roleRadios.forEach(radio => {
+    radio.addEventListener("change", () => {
+        // Hide all forms first
+        studentForm.classList.remove("active");
+        teacherForm.classList.remove("active");
+        adminForm.classList.remove("active");
 
-// default state
-toggleStudentFields();
+        // Show the selected form
+        if (radio.value === "student") {
+            studentForm.classList.add("active");
+        } else if (radio.value === "teacher") {
+            teacherForm.classList.add("active");
+        } else if (radio.value === "admin") {
+            adminForm.classList.add("active");
+        }
 
-// ------------------------------
-// PASSWORD MATCH CHECK
-// ------------------------------
-registerForm.addEventListener("submit", function (e) {
-  const password = document.getElementById("password").value;
-  const confirmPassword = document.getElementById("confirmPassword").value;
-
-  if (password !== confirmPassword) {
-    e.preventDefault();
-    alert("Passwords do not match!");
-  }
+        updateRequiredFields(radio.value);
+    });
 });
+
+// Initial required fields check for default selection (usually student)
+const checkedRole = document.querySelector("input[name='role']:checked");
+if (checkedRole) {
+    updateRequiredFields(checkedRole.value);
+}

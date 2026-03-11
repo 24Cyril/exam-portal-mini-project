@@ -1,0 +1,185 @@
+/* Notes Styles */
+.notes-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.note-card {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 1rem;
+    border-left: 4px solid #007bff;
+    transition: all 0.3s ease;
+}
+
+.note-card:hover {
+    background: #e9ecef;
+    transform: translateY(-2px);
+}
+
+.note-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.note-title {
+    font-weight: bold;
+    color: #333;
+}
+
+.note-meta {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.note-content {
+    color: #555;
+    line-height: 1.6;
+}
+
+.note-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.btn-edit-note, .btn-delete-note {
+    padding: 0.25rem 0.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.btn-edit-note {
+    background: #28a745;
+    color: white;
+}
+
+.btn-delete-note {
+    background: #dc3545;
+    color: white;
+}
+
+.no-notes {
+    text-align: center;
+    color: #999;
+    padding: 2rem;
+}
+
+.add-note-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 1rem;
+    transition: background 0.3s ease;
+}
+
+.add-note-btn:hover {
+    background: #0056b3;
+}
+
+.note-form {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.note-form input, .note-form textarea {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.note-form textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.note-form .form-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.btn-save-note, .btn-cancel-note {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.btn-save-note {
+    background: #007bff;
+    color: white;
+}
+
+.btn-cancel-note {
+    background: #6c757d;
+    color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .notes-container {
+        padding: 0.5rem;
+    }
+    
+    .note-card {
+        padding: 0.75rem;
+    }
+    
+    .note-actions {
+        flex-direction: column;
+    }
+    
+    .btn-edit-note, .btn-delete-note {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Loading States */
+.note-loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.note-saving {
+    position: relative;
+    padding-right: 2rem;
+}
+
+.note-saving::after {
+    content: '';
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    width: 16px;
+    height: 16px;
+    margin-top: -8px;
+    border: 2px solid #007bff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}

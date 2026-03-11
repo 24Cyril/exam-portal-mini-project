@@ -1,0 +1,45 @@
+1️⃣  users — Authentication & Role Gateway
+- Entry point for login.
+- Stores login credentials (username, password).
+- Stores role (student / admin / teacher).
+- Every account must exist here first.
+
+2️⃣ admin — Admin Profile
+- Stores admin personal info.
+- Linked by username to users table.
+- Primary management for departments and teachers.
+
+3️⃣ teacher — Teacher Profile
+- Stores teacher profile details (specialization, employee id).
+- Linked by user_id to users table.
+- Manages courses, students within their department, and exams.
+
+4️⃣ student — Student Master Profile
+- Core student identity.
+- Linked by user_id to users table.
+- Maps to departments and courses.
+
+5️⃣ department — Academic Organization
+- Defines departments in the institution.
+- Used to group students, teachers, and courses.
+
+6️⃣ course — Course Catalog
+- Defines available courses.
+- Linked to departments.
+- Includes duration and fees.
+
+7️⃣ student_course — Enrollment Records
+- Tracks student ↔ course relationship.
+- Stores enrollment and verification status.
+
+8️⃣ payments — Payment Lifecycle
+- Tracks fee payments for course enrollments.
+- Stores amount, method, and transaction id.
+
+9️⃣ exams — Exam Metadata
+- Defines exams for courses.
+- Stores date, time limit, and question/answer files.
+
+🔟 exam_questions — Question Bank
+- Stores questions for each exam.
+- Includes options and correct answers.

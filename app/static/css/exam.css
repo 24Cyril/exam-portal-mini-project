@@ -1,0 +1,149 @@
+:root {
+    /* Colors */
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --secondary: #64748b;
+    --sidebar-bg: #111827;
+    --sidebar-hover: #1f2937;
+    --sidebar-active: #3b82f6;
+    --bg-main: #f8fafc;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --white: #ffffff;
+    --border: #e2e8f0;
+
+    /* Semantic Colors */
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --info: #3b82f6;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+    /* Radius */
+    --radius-sm: 0.25rem;
+    --radius: 0.5rem;
+    --radius-lg: 0.75rem;
+
+    /* Fonts */
+    --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--font-main);
+}
+
+body {
+    background: var(--bg-main);
+    color: var(--text-main);
+    padding: 40px;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.container {
+    width: 100%;
+    max-width: 800px;
+}
+
+h2 {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 24px;
+    color: var(--sidebar-bg);
+}
+
+#timer {
+    background: var(--sidebar-bg);
+    color: var(--white);
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    display: inline-block;
+    font-weight: 700;
+    margin-bottom: 32px;
+    box-shadow: var(--shadow);
+}
+
+.question-box {
+    background: var(--white);
+    padding: 32px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+}
+
+.question-text {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.options-list {
+    list-style: none;
+}
+
+.option-item {
+    margin-bottom: 12px;
+}
+
+.option-item label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.option-item label:hover {
+    border-color: var(--primary);
+    background: var(--white);
+}
+
+.option-item input:checked+span {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+button {
+    padding: 12px 24px;
+    border-radius: var(--radius);
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+#btn-submit {
+    background: var(--primary);
+    color: var(--white);
+    margin-right: 12px;
+}
+
+#btn-submit:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+#btn-cancel {
+    background: var(--bg-main);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+}
+
+#btn-cancel:hover {
+    background: var(--border);
+}

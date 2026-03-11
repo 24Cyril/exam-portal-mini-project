@@ -1,83 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Add Student — Admin</title>
-    <link rel="stylesheet" href="/static/css/admin.css">
+
+
+
+
+
     <link rel="stylesheet" href="/static/css/add_student.css">
 </head>
+
 <body>
 
-<div class="sidebar">
-    <h2 class="logo">Admin Panel</h2>
-    <ul class="nav-list">
-        <li><a href="/admin">🏠 Home</a></li>
-        <li><a href="/admin/update">👤 Profile</a></li>
-        <li class="active"><a href="/admin/students">🎓 Students</a></li>
-        <li><a href="/admin/courses">📚 Student Courses</a></li>
-        <li><a href="/admin/enrollments">📝 Registration</a></li>
-        <li><a href="/admin/exams">🧪 Exam</a></li>
-        <li><a href="/admin/registrations">📊 Result</a></li>
-        <li><a href="/admin/payments">💳 Payment</a></li>
-        <li class="logout"><a href="/logout">🚪 Logout</a></li>
-    </ul>
-</div>
-
-<div class="main-content">
-    <h2 id="tab-title">Add Student</h2>
-    <div class="card">
-        <form method="POST" style="max-width:780px;">
-            <div style="display:flex; gap:18px; flex-wrap:wrap;">
-                <div style="flex:1; min-width:260px;">
-                    <label class="small">Username</label>
-                    <input type="text" name="username" placeholder="Username" required>
-
-                    <label class="small">Password</label>
-                    <input type="password" name="password" placeholder="Password" required>
-
-                    <label class="small">Full Name</label>
-                    <input type="text" name="full_name" placeholder="Full Name" required>
-
-                    <label class="small">Email</label>
-                    <input type="email" name="email" placeholder="Email" required>
-                </div>
-
-                <div style="flex:1; min-width:260px;">
-                    <label class="small">Phone</label>
-                    <input type="tel" name="phone" placeholder="Phone Number" required>
-
-                    <label class="small">Gender</label>
-                    <select name="gender" required>
-                        <option value="">Select Gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                    </select>
-
-                    <label class="small">Course</label>
-                    <input type="text" name="course" placeholder="Course" required>
-
-                    <label class="small">Department</label>
-                    <input type="text" name="department" placeholder="Department" required>
-
-                    <label class="small">Year</label>
-                    <select name="year" required>
-                        <option value="">Select Year</option>
-                        <option value="1">1st Year</option>
-                        <option value="2">2nd Year</option>
-                        <option value="3">3rd Year</option>
-                        <option value="4">4th Year</option>
-                    </select>
-                </div>
-            </div>
-
-            <div style="margin-top:12px; display:flex; gap:10px;">
-                <button type="submit" class="update-btn">Add Student</button>
-                <a href="/admin" class="update-btn" style="background:#6b7280;">Cancel</a>
-            </div>
-        </form>
+    <div class="sidebar">
+        <h2 class="logo">Teacher Panel</h2>
+        <ul class="nav-list">
+            <li><a href="/teacher">🏠 Home</a></li>
+            <li><a href="/teacher/update">👤 Profile</a></li>
+            <li class="active"><a href="/teacher/students">🎓 Students</a></li>
+            <li><a href="/teacher/courses">📚 Student Courses</a></li>
+            <li><a href="/teacher/enrollments">📝 Registration</a></li>
+            <li><a href="/teacher/exams">🧪 Exam</a></li>
+            <li><a href="/teacher/registrations">📊 Result</a></li>
+            <li><a href="/teacher/payments">💳 Payment</a></li>
+            <li class="logout"><a href="/logout">🚪 Logout</a></li>
+        </ul>
     </div>
-</div>
+
+    <div class="main-content">
+        <h2 id="tab-title">Add Student</h2>
+        <div class="card">
+            <form method="POST" style="max-width:780px;">
+                <div style="display:flex; gap:18px; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:260px;">
+                        <label class="small">Username</label>
+                        <input type="text" name="username" placeholder="Username" required>
+
+                        <label class="small">Password</label>
+                        <input type="password" name="password" placeholder="Password" required>
+
+                        <label class="small">Full Name</label>
+                        <input type="text" name="full_name" placeholder="Full Name" required>
+
+                        <label class="small">Email</label>
+                        <input type="email" name="email" placeholder="Email" required>
+                    </div>
+
+                    <div style="flex:1; min-width:260px;">
+                        <label class="small">Phone</label>
+                        <input type="tel" name="phone" placeholder="Phone Number" required>
+
+                        <label class="small">Age</label>
+                        <input type="number" name="age" placeholder="Age" value="0">
+
+                        <label class="small">Gender</label>
+                        <select name="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+
+                        <label class="small">Address</label>
+                        <textarea name="address" placeholder="Address" style="width:100%; height:80px;"></textarea>
+                    </div>
+
+                    <div style="flex:1; min-width:260px;">
+                        <label class="small">Institute Name</label>
+                        <input type="text" name="institute_name" placeholder="Institute Name">
+
+                        <label class="small">Course</label>
+                        <input type="text" name="course" placeholder="Course" required>
+
+                        <label class="small">Department</label>
+                        <input type="text" name="department" placeholder="Department" required>
+
+                        <label class="small">Year</label>
+                        <select name="year" required>
+                            <option value="">Select Year</option>
+                            <option value="1">1st Year</option>
+                            <option value="2">2nd Year</option>
+                            <option value="3">3rd Year</option>
+                            <option value="4">4th Year</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="margin-top:12px; display:flex; gap:10px;">
+                    <button type="submit" class="update-btn">Add Student</button>
+                    <a href="/teacher" class="update-btn" style="background:#6b7280;">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
 
 </body>
+
 </html>

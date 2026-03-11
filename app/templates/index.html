@@ -2,96 +2,108 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Exam Portal | Home</title>
-  <link rel="stylesheet" href="../static/css/style.css">
+  <title>EduAssess | Home</title>
+  
+    
+    
+    
+    <link rel="stylesheet" href="/static/css/index.css">
 </head>
 
 <body class="home-page">
 
 <header class="top-notification">
-  <p>📢 Notification: Exam Portal maintenance on Sunday (10 AM – 12 PM)</p>
+  <p>📢 Notice: Platform update scheduled on Sunday (10:00 AM – 12:00 PM)</p>
 </header>
 
 <section class="urgent-bar">
-  <marquee>⚠️ Urgent: Final year mock exam starts tomorrow at 9 AM.</marquee>
+  <marquee>⚠️ Important: Academic assessment window opens tomorrow at 9:00 AM.</marquee>
 </section>
 
 <main class="main-content">
 
  <section class="info-section">
 
-  <h1>Welcome to the Exam Portal</h1>
+  <h1>Welcome to EduAssess</h1>
   <p class="subtitle">
-    A secure platform for online exams, learning, and performance tracking.
+    A unified digital environment for learning, assessment, and academic growth.
   </p>
 
   <div class="feature-box">
-    <h3>✨ What You Can Do</h3>
-    <ul>
-      <li>✔ Attend online exams & mock tests</li>
-      <li>✔ Track exam scores and results</li>
-      <li>✔ Enroll in certified courses</li>
-      <li>✔ Secure payment & verification</li>
-      <li>✔ Download certificates after completion</li>
-    </ul>
-  </div>
-
-  <div class="feature-box">
-    <h3>📘 Why Use This Portal?</h3>
+    <h3>🌐 About the Platform</h3>
     <p>
-      Designed for students and institutions to manage exams efficiently,
-      with transparent enrollment, payment tracking, and result evaluation.
+      EduAssess is designed to support institutions and learners through
+      structured academic workflows, continuous evaluation, and outcome-based
+      performance monitoring.
     </p>
   </div>
 
   <div class="feature-box">
-    <h3>❓ FAQ</h3>
-    <p><strong>Q:</strong> Is my exam data secure?<br>
-       <strong>A:</strong> Yes. All data is stored securely with role-based access.</p>
-
-    <p><strong>Q:</strong> Can I take exams from home?<br>
-       <strong>A:</strong> Yes, exams are fully online.</p>
+    <h3>🎓 Academic Experience</h3>
+    <p>
+      From course enrollment to assessments and result analysis,
+      the platform ensures a smooth and transparent academic journey
+      for students, faculty, and administrators.
+    </p>
   </div>
 
   <div class="feature-box">
-    <h3>📞 Contact Us</h3>
-    <p>Email: support@examportal.com</p>
+    <h3>📊 Learning & Evaluation</h3>
+    <p>
+      Assessments are integrated with performance insights,
+      helping learners understand their progress and helping
+      institutions maintain academic standards.
+    </p>
+  </div>
+
+  <div class="feature-box">
+    <h3>❓ Support & Assistance</h3>
+    <p>
+      Need help navigating the platform or understanding evaluation outcomes?
+      Our academic support system ensures timely assistance and guidance.
+    </p>
+  </div>
+
+  <div class="feature-box">
+    <h3>📞 Contact</h3>
+    <p>Email: support@eduassess.in</p>
     <p>Phone: +91 90000 00000</p>
   </div>
 
 </section>
 
+<section class="login-section">
 
-  <section class="login-section">
 
-    <div class="login-tabs">
-      <button type="button" id="studentTab" class="tab active">Student Login</button>
-      <button type="button" id="adminTab" class="tab">Admin Login</button>
-    </div>
+  <form id="loginForm" class="login-form" method="POST" action="/login">
+    
+  <div class="login-tabs">
+    <button type="button" id="studentTab" class="tab active">Learner Login</button>
+    <button type="button" id="teacherTab" class="tab">Tutor Login</button>
+    <button type="button" id="adminTab" class="tab">Administrator Login</button>
+  </div>
+    <input type="hidden" name="role" id="role" value="student">
 
-    <form id="loginForm" class="login-form" method="POST" action="/login">
-      <input type="hidden" name="role" id="role" value="student">
+    <label>Username</label>
+    <input type="text" name="username" required>
 
-      <label>Username</label>
-      <input type="text" name="username" required>
+    <label>Password</label>
+    <input type="password" name="password" required>
+    <br>
 
-      <label>Password</label>
-      <input type="password" name="password" required>
-<br>
+    <button type="submit">Access Portal</button>
+  </form>
 
-      <button type="submit">Login</button>
-      <div class="login-links">
-      </div>
-    </form>
-        <a href="/register">Sign Up</a>
+  <a href="/register">Create an Academic Account</a>
 
-  </section>
+</section>
+
 </main>
 
 <button id="settingsBtn" class="settings-btn">⚙️</button>
 
 <aside id="settingsPanel" class="settings-panel hidden">
-  <h3>Settings</h3>
+  <h3>Preferences</h3>
   <label>Theme</label>
   <select id="themeSelect">
     <option>Light</option>
