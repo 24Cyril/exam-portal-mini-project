@@ -109,7 +109,7 @@ export const unenrollFromCourse = async (req, res) => {
 // Submit a manual payment for a course
 export const submitPayment = async (req, res) => {
     try {
-const { courseId, paymentType = 'Registration', transactionId, amount } = req.body;
+        const { courseId, paymentType = 'Registration', transactionId, amount } = req.body;
         const paymentData = applySchema(PAYMENT_SCHEMA, {
             studentId: req.user.uid,
             courseId,
@@ -177,9 +177,21 @@ export const getMyExams = async (req, res) => {
 
         // 2. Fetch exams for those courses
         const examsSnapshot = await db.collection('exams').where('courseId', 'in', courseIds).get();
-        const examsList = examsSnapshot.docs
-            .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
-            .map(doc => applySchema(EXAM_SCHEMA, { id: doc.id, ...doc.data() }));
+        const examsList = [];
+
+        for (const doc of examsSnapshot.docs) {
+            if (doc.id === 'TEMPLATE_DO_NOT_DELETE') continue;
+            const examData = applySchema(EXAM_SCHEMA, { id: doc.id, ...doc.data() });
+
+            let courseName = examData.courseId;
+            if (examData.courseId) {
+                const courseDoc = await db.collection('courses').doc(examData.courseId).get();
+                if (courseDoc.exists) {
+                    courseName = courseDoc.data().name || examData.courseId;
+                }
+            }
+            examsList.push({ ...examData, courseName });
+        }
 
         res.status(200).json(examsList);
     } catch (error) {
@@ -276,8 +288,16 @@ export const updatePerformance = async (req, res) => {
 export const getMyPerformance = async (req, res) => {
     try {
         const snapshot = await db.collection('performance').where('studentId', '==', req.user.uid).get();
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        res.status(200).json(data);
+        const dataList = [];
+        for (const doc of snapshot.docs) {
+            let pData = { id: doc.id, ...doc.data() };
+            if (pData.examId && !pData.examId.startsWith('note_')) {
+                const eDoc = await db.collection('exams').doc(pData.examId).get();
+                if (eDoc.exists) pData.examTitle = eDoc.data().title || pData.examId;
+            }
+            dataList.push(pData);
+        }
+        res.status(200).json(dataList);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -290,24 +310,24 @@ export const getMyResults = async (req, res) => {
             .where('studentId', '==', req.user.uid)
             .get();
 
-     const results = [];
+        const results = [];
 
-for (const doc of snapshot.docs) {
-    const data = doc.data();
+        for (const doc of snapshot.docs) {
+            const data = doc.data();
 
-    let examTitle = data.examId;
+            let examTitle = data.examId;
 
-    const examDoc = await db.collection('exams').doc(data.examId).get();
-    if (examDoc.exists) {
-        examTitle = examDoc.data().title || data.examId;
-    }
+            const examDoc = await db.collection('exams').doc(data.examId).get();
+            if (examDoc.exists) {
+                examTitle = examDoc.data().title || data.examId;
+            }
 
-    results.push({
-        id: doc.id,
-        ...data,
-        examTitle
-    });
-}
+            results.push({
+                id: doc.id,
+                ...data,
+                examTitle
+            });
+        }
 
         res.status(200).json(results);
     } catch (error) {

@@ -11,7 +11,9 @@ import {
     getCoursesByDept,
     getStudentsByDept,
     getAllExamsForDept,
-    createCourseByTeacher
+    createCourseByTeacher,
+    updateCourseByTeacher,
+    deleteCourseByTeacher
 } from '../controllers/teacherController.js';
 import { protect, authorize } from '../middlewares/auth.js';
 
@@ -37,6 +39,8 @@ router.get('/all-exams', getAllExamsForDept);
 // Courses (teacher-scoped)
 router.get('/courses', getCoursesByDept);
 router.post('/courses', createCourseByTeacher);
+router.patch('/course/:courseId', updateCourseByTeacher);
+router.delete('/course/:courseId', deleteCourseByTeacher);
 
 // Students (teacher-scoped)
 router.get('/students', getStudentsByDept);

@@ -167,9 +167,24 @@ export const deleteCourse = async (req, res) => {
 export const getAllEnrollments = async (req, res) => {
     try {
         const snapshot = await db.collection('student_courses').get();
-        const enrollments = snapshot.docs
-            .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
-            .map(doc => applySchema(ENROLLMENT_SCHEMA, { id: doc.id, ...doc.data() }));
+        const enrollments = [];
+        for (const doc of snapshot.docs) {
+            if (doc.id === 'TEMPLATE_DO_NOT_DELETE') continue;
+            let data = applySchema(ENROLLMENT_SCHEMA, { id: doc.id, ...doc.data() });
+
+            // Get student name
+            if (data.studentId) {
+                const sDoc = await db.collection('users').doc(data.studentId).get();
+                if (sDoc.exists) data.studentId = sDoc.data().full_name || data.studentId;
+            }
+
+            // Get course name
+            if (data.courseId) {
+                const cDoc = await db.collection('courses').doc(data.courseId).get();
+                if (cDoc.exists) data.courseId = cDoc.data().name || data.courseId;
+            }
+            enrollments.push(data);
+        }
         res.status(200).json(enrollments);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -199,9 +214,24 @@ export const updateEnrollmentStatus = async (req, res) => {
 export const getAllPayments = async (req, res) => {
     try {
         const snapshot = await db.collection('payments').get();
-        const payments = snapshot.docs
-            .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
-            .map(doc => applySchema(PAYMENT_SCHEMA, { id: doc.id, ...doc.data() }));
+        const payments = [];
+        for (const doc of snapshot.docs) {
+            if (doc.id === 'TEMPLATE_DO_NOT_DELETE') continue;
+            let data = applySchema(PAYMENT_SCHEMA, { id: doc.id, ...doc.data() });
+
+            // Get student name
+            if (data.studentId) {
+                const sDoc = await db.collection('users').doc(data.studentId).get();
+                if (sDoc.exists) data.studentId = sDoc.data().full_name || data.studentId;
+            }
+
+            // Get course name
+            if (data.courseId) {
+                const cDoc = await db.collection('courses').doc(data.courseId).get();
+                if (cDoc.exists) data.courseId = cDoc.data().name || data.courseId;
+            }
+            payments.push(data);
+        }
         res.status(200).json(payments);
     } catch (error) {
         res.status(500).json({ error: error.message });

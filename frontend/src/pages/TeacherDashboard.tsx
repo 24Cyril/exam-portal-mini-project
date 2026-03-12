@@ -29,27 +29,27 @@ export default function TeacherDashboard() {
     const [filterDept, setFilterDept] = useState('All');
     const [showAddForm, setShowAddForm] = useState(false);
 
-const handleInputChange = (
-  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-) => {
-  const { name, value } = e.target;
+    const handleInputChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    ) => {
+        const { name, value } = e.target;
 
-  setEditData({
-    ...editData,
-    [name]: value
-  });
-};
+        setEditData({
+            ...editData,
+            [name]: value
+        });
+    };
 
-const handleStudentChange = (
-  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-) => {
-  const { name, value } = e.target;
+    const handleStudentChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    ) => {
+        const { name, value } = e.target;
 
-  setNewStudent({
-    ...newStudent,
-    [name]: value
-  });
-};
+        setNewStudent({
+            ...newStudent,
+            [name]: value
+        });
+    };
 
     // Form Models matching HTML templates
     const [newExam, setNewExam] = useState({
@@ -106,11 +106,11 @@ const handleStudentChange = (
 
 
 
-if (activeTab === 'home' || activeTab === 'registration' || activeTab === 'payment') {
-    const res = await api.get('/teacher/pending-enrollments');
-    console.log("Enrollments received:", res.data);
-    setPendingEnrollments(res.data);
-}
+            if (activeTab === 'home' || activeTab === 'registration' || activeTab === 'payment') {
+                const res = await api.get('/teacher/pending-enrollments');
+                console.log("Enrollments received:", res.data);
+                setPendingEnrollments(res.data);
+            }
             if (activeTab === 'home' || activeTab === 'payment') {
                 const res = await api.get('/teacher/pending-payments');
                 setPendingPayments(res.data);
@@ -119,7 +119,7 @@ if (activeTab === 'home' || activeTab === 'registration' || activeTab === 'payme
                 const res = await api.get('/teacher/courses');
                 setCourses(res.data);
             }
-            if (activeTab === 'students') {
+            if (activeTab === 'students' || activeTab === 'home') {
                 const res = await api.get('/teacher/students');
                 setStudents(res.data);
             }
@@ -179,7 +179,7 @@ if (activeTab === 'home' || activeTab === 'registration' || activeTab === 'payme
     const handleDeleteCourse = async (id: string) => {
         if (!window.confirm('Delete this course?')) return;
         try {
-            await api.delete(`/admin/course/${id}`);
+            await api.delete(`/teacher/course/${id}`);
             fetchData();
         } catch (error) { alert('Delete failed'); }
     };
@@ -211,39 +211,39 @@ if (activeTab === 'home' || activeTab === 'registration' || activeTab === 'payme
         } catch (error: any) { alert(error.response?.data?.error || 'Course creation failed'); }
     };
 
-   const handleAddStudent = async (e: React.FormEvent) => {
-    e.preventDefault();
+    const handleAddStudent = async (e: React.FormEvent) => {
+        e.preventDefault();
 
-    try {
+        try {
 
-        const userCredential = await createUserWithEmailAndPassword(
-            auth,
-            newStudent.email,
-            newStudent.password
-        );
+            const userCredential = await createUserWithEmailAndPassword(
+                auth,
+                newStudent.email,
+                newStudent.password
+            );
 
-        const uid = userCredential.user.uid;
+            const uid = userCredential.user.uid;
 
-        await api.post('/auth/sync-profile', {
-            uid,
-            email: newStudent.email,
-            role: "student",
-            full_name: newStudent.full_name,
-            department: newStudent.department,
-            course: newStudent.course,
-            year: newStudent.year
-        });
+            await api.post('/auth/sync-profile', {
+                uid,
+                email: newStudent.email,
+                role: "student",
+                full_name: newStudent.full_name,
+                department: newStudent.department,
+                course: newStudent.course,
+                year: newStudent.year
+            });
 
-        alert("Student Registered Successfully!");
+            alert("Student Registered Successfully!");
 
-        setShowAddForm(false);
-        fetchData();
+            setShowAddForm(false);
+            fetchData();
 
-    } catch (error:any) {
-        console.error(error);
-        alert(error.message);
-    }
-};
+        } catch (error: any) {
+            console.error(error);
+            alert(error.message);
+        }
+    };
 
 
 
@@ -256,7 +256,7 @@ if (activeTab === 'home' || activeTab === 'registration' || activeTab === 'payme
     const handleUpdateItem = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const url = editingItem.type === 'course' ? `/admin/course/${editingItem.id}` : `/auth/profile/${editingItem.uid}`;
+            const url = editingItem.type === 'course' ? `/teacher/course/${editingItem.id}` : `/auth/profile/${editingItem.uid}`;
             await api.patch(url, editForm);
             alert(`${editingItem.type.toUpperCase()} Updated!`);
             setEditingItem(null);
@@ -347,9 +347,9 @@ if (activeTab === 'home' || activeTab === 'registration' || activeTab === 'payme
                                         <tr><td>Full Name</td><td>{profile.full_name}</td></tr>
                                         <tr><td>Email</td><td>{profile.email}</td></tr>
                                         <tr>
-<td>Gender</td>
-<td>{profile.gender || "--"}</td>
-</tr>
+                                            <td>Gender</td>
+                                            <td>{profile.gender || "--"}</td>
+                                        </tr>
                                         <tr><td>Department</td><td>{profile.department_id}</td></tr>
                                         <tr><td>Specialization</td><td>{profile.specialization || '--'}</td></tr>
                                         <tr><td>Employee ID</td><td>{profile.employee_id || '--'}</td></tr>
@@ -366,12 +366,12 @@ if (activeTab === 'home' || activeTab === 'registration' || activeTab === 'payme
                             <h3>Update Profile</h3>
                             <form className="edit-profile-form" onSubmit={handleUpdateProfile}>
                                 <div className="form-group"><label>Full Name</label><input type="text" value={editData.full_name} onChange={e => setEditData({ ...editData, full_name: e.target.value })} required /></div>
-                                <div className="form-group"> <label>Gender</label>  <select  name="gender" value={editData.gender || ""} onChange={handleInputChange}> <option value="">Select Gender</option>
-    <option value="Male">Male</option>
-    <option value="Female">Female</option>
-    <option value="Other">Other</option>
-  </select>
-</div>
+                                <div className="form-group"> <label>Gender</label>  <select name="gender" value={editData.gender || ""} onChange={handleInputChange}> <option value="">Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                </div>
                                 <div className="form-group"><label>Specialization</label><input type="text" value={editData.specialization} onChange={e => setEditData({ ...editData, specialization: e.target.value })} /></div>
                                 <div className="form-group"><label>Joining Date</label><input type="date" value={editData.joining_date} onChange={e => setEditData({ ...editData, joining_date: e.target.value })} /></div>
                                 <div className="form-group"><label>Department</label>
@@ -453,70 +453,70 @@ if (activeTab === 'home' || activeTab === 'registration' || activeTab === 'payme
                                         <div className="form-group">
                                             <label>full name</label>
 
-<input
-  type="text"
-  name="full_name"
-  required
-  value={newStudent.full_name}
-  onChange={handleStudentChange}
-  />
-</div>
-
-     <div className="form-group">
-<label>Username</label>
-<input
-  type="text"
-  name="username"
-  required
-  value={newStudent.username}
-  onChange={handleStudentChange}
-/>
-</div>
+                                            <input
+                                                type="text"
+                                                name="full_name"
+                                                required
+                                                value={newStudent.full_name}
+                                                onChange={handleStudentChange}
+                                            />
+                                        </div>
 
                                         <div className="form-group">
-<label>email</label>
+                                            <label>Username</label>
+                                            <input
+                                                type="text"
+                                                name="username"
+                                                required
+                                                value={newStudent.username}
+                                                onChange={handleStudentChange}
+                                            />
+                                        </div>
 
-
-<input
-  type="email"
-  name="email"
-  required
-  value={newStudent.email}
-  onChange={handleStudentChange}
-/>                                        </div>
                                         <div className="form-group">
-<label>Password</label>
-<input
-  type="password"
-  name="password"
-  value={newStudent.password || ""}
-  onChange={handleStudentChange}
-  required
-/>
-</div>
+                                            <label>email</label>
+
+
+                                            <input
+                                                type="email"
+                                                name="email"
+                                                required
+                                                value={newStudent.email}
+                                                onChange={handleStudentChange}
+                                            />                                        </div>
+                                        <div className="form-group">
+                                            <label>Password</label>
+                                            <input
+                                                type="password"
+                                                name="password"
+                                                value={newStudent.password || ""}
+                                                onChange={handleStudentChange}
+                                                required
+                                            />
+                                        </div>
                                         <div className="form-row">
                                             <div className="form-group"><label>Phone</label>
-<input
- type="tel"
- name="phone"
- required
- value={newStudent.phone}
- onChange={handleStudentChange}
-/>                                            </div>
+                                                <input
+                                                    type="tel"
+                                                    name="phone"
+                                                    required
+                                                    value={newStudent.phone}
+                                                    onChange={handleStudentChange}
+                                                />                                            </div>
                                             <div className="form-group"><label>Gender</label>
-<select
- name="gender"
- value={newStudent.gender}
- onChange={handleStudentChange}
->                                                    <option>Select</option><option>Male</option><option>Female</option>
+                                                <select
+                                                    name="gender"
+                                                    value={newStudent.gender}
+                                                    onChange={handleStudentChange}
+                                                >                                                    <option>Select</option><option>Male</option><option>Female</option>
                                                 </select>
                                             </div>
                                             <div className="form-group"><label>Department</label>
-<select
- name="department"
- value={newStudent.department}
- onChange={handleStudentChange}
->                                                    <option>Select</option>
+                                                <select
+                                                    name="department"
+                                                    value={newStudent.department}
+                                                    onChange={handleStudentChange}
+                                                >                                                    <option>Select</option>
                                                     <option value="Computer Science">Computer Science</option>
                                                     <option value="Mechanical Engineering">Mechanical Engineering</option>
                                                 </select>
@@ -524,29 +524,29 @@ if (activeTab === 'home' || activeTab === 'registration' || activeTab === 'payme
                                         </div>
                                         <div className="form-row">
                                             <div className="form-group"><label>Course</label>
-<input
- type="text"
- name="course"
- required
- value={newStudent.course}
- onChange={handleStudentChange}
-/>                                            </div>
+                                                <input
+                                                    type="text"
+                                                    name="course"
+                                                    required
+                                                    value={newStudent.course}
+                                                    onChange={handleStudentChange}
+                                                />                                            </div>
                                             <div className="form-group"><label>Year</label>
-<select
- name="year"
- value={newStudent.year}
- onChange={handleStudentChange}
->                                                    <option value="1">1st Year</option><option value="2">2nd Year</option>
+                                                <select
+                                                    name="year"
+                                                    value={newStudent.year}
+                                                    onChange={handleStudentChange}
+                                                >                                                    <option value="1">1st Year</option><option value="2">2nd Year</option>
                                                     <option value="3">3rd Year</option><option value="4">4th Year</option>
                                                 </select>
                                             </div>
                                         </div>
                                         <div className="form-group"><label>Address</label>
-<textarea
- name="address"
- value={newStudent.address}
- onChange={handleStudentChange}
-/>                                            
+                                            <textarea
+                                                name="address"
+                                                value={newStudent.address}
+                                                onChange={handleStudentChange}
+                                            />
                                         </div>
                                         <div className="form-actions">
                                             <button type="button" className="btn-cancel" onClick={() => setShowAddForm(false)}>Cancel</button>
@@ -574,44 +574,46 @@ if (activeTab === 'home' || activeTab === 'registration' || activeTab === 'payme
                             )}
                         </div>
                     )}
-{activeTab === 'registration' && (
-    <div className="card glass animate-slide-up">
-        <h3>Pending Enrollment Approvals</h3>
-        <table className="admin-table">
-            <thead>
-                <tr>
-                    <th>Student</th>
-                    <th>Course</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {filteredEnrollments.map(e => (
-                    <tr key={e.id}>
-                        <td>{e.studentName || e.studentId}</td>
-                        <td>{e.courseId}</td>
-                        <td>
-                            <span className="badge pending">{e.status}</span>
-                        </td>
-                        <td>
-                            <button
-                                className="btn-verify"
-                                onClick={() => handleVerifyEnrollment(e.id)}
-                            >
-                                ✅ Verify
-                            </button>
-                        </td>
-                    </tr>
-                ))}
-            </tbody>
-        </table>
+                    {activeTab === 'registration' && (
+                        <div className="card glass animate-slide-up">
+                            <h3>Enrollment Approvals</h3>
+                            <table className="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Course</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredEnrollments.map(e => (
+                                        <tr key={e.id}>
+                                            <td>{e.studentName || e.studentId}</td>
+                                            <td>{e.courseId}</td>
+                                            <td>
+                                                <span className={`badge ${e.status === 'Pending' ? 'pending' : 'success'}`}>{e.status}</span>
+                                            </td>
+                                            <td>
+                                                {e.status === 'Pending' && (
+                                                    <button
+                                                        className="btn-verify"
+                                                        onClick={() => handleVerifyEnrollment(e.id)}
+                                                    >
+                                                        ✅ Verify
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
 
-        {filteredEnrollments.length === 0 && (
-            <div className="no-data">No pending enrollment requests.</div>
-        )}
-    </div>
-)}
+                            {filteredEnrollments.length === 0 && (
+                                <div className="no-data">No enrollment requests.</div>
+                            )}
+                        </div>
+                    )}
                     {activeTab === 'exam' && (
                         <div className="card glass animate-slide-up">
                             {showAddForm ? (
@@ -633,16 +635,16 @@ if (activeTab === 'home' || activeTab === 'registration' || activeTab === 'payme
                                         </div>
                                         <div className="form-row">
                                             <div className="form-group"><label>Question Paper</label>
-<input
- type="file"
- onChange={(e)=>setNewExam({...newExam,question_file:e.target.files?.[0]})}
-/>                                            </div>
+                                                <input
+                                                    type="file"
+                                                    onChange={(e) => setNewExam({ ...newExam, question_file: e.target.files?.[0] })}
+                                                />                                            </div>
                                             <div className="form-group"><label>Answer Key</label>
-<input
- type="file"
- onChange={(e)=>setNewExam({...newExam,question_file:e.target.files?.[0]})}
-/>                                            </div>
-                               
+                                                <input
+                                                    type="file"
+                                                    onChange={(e) => setNewExam({ ...newExam, question_file: e.target.files?.[0] })}
+                                                />                                            </div>
+
                                         </div>
                                         <div className="form-actions">
                                             <button type="button" className="btn-cancel" onClick={() => setShowAddForm(false)}>Cancel</button>
@@ -698,8 +700,8 @@ if (activeTab === 'home' || activeTab === 'registration' || activeTab === 'payme
                     {activeTab === 'payment' && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                             <div className="card glass animate-slide-up">
-                             
-                                <h3>Pending Payment Verifications</h3>
+
+                                <h3>Payment Verifications</h3>
                                 <table className="admin-table">
                                     <thead><tr><th>Student</th><th>Course</th><th>Amount</th><th>Transaction ID</th><th>Action</th></tr></thead>
                                     <tbody>
@@ -709,12 +711,17 @@ if (activeTab === 'home' || activeTab === 'registration' || activeTab === 'payme
                                                 <td>{p.courseId}</td>
                                                 <td style={{ fontWeight: 700 }}>₹{p.amount}</td>
                                                 <td><code>{p.transactionId}</code></td>
-                                                <td><button className="btn-verify" onClick={() => handleVerifyPayment(p.id)}>✅ Verify</button></td>
+                                                <td><span className={`badge ${p.status === 'Verified' ? 'success' : 'pending'}`}>{p.status}</span></td>
+                                                <td>
+                                                    {p.status === 'Pending_Approval' && (
+                                                        <button className="btn-verify" onClick={() => handleVerifyPayment(p.id)}>✅ Verify</button>
+                                                    )}
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
-                                {filteredPayments.length === 0 && <div className="no-data">No pending payment verifications.</div>}
+                                {filteredPayments.length === 0 && <div className="no-data">No payment verifications found.</div>}
                             </div>
                         </div>
                     )}
@@ -729,11 +736,11 @@ if (activeTab === 'home' || activeTab === 'registration' || activeTab === 'payme
                                 <tbody>
                                     {performance.map((p, i) => (
                                         <tr key={i}>
-                                            <td style={{ fontWeight: 600 }}>{students.find(s => s.uid === p.studentId)?.full_name || p.studentId || "Unknown"}</td>
-                                            <td>{p.examId}</td>
-                                            <td style={{ color: 'var(--primary)', fontWeight: 700 }}>{p.noteReadTime || 0} s</td>
-                                            <td style={{ color: 'var(--accent)', fontWeight: 700 }}>{p.examDuration || 0} s</td>
-                                            <td style={{ fontWeight: 800 }}>{p.score || 0}</td>
+                                            <td style={{ fontWeight: 600 }}>{students.find(s => s.uid === p.studentId)?.full_name || p.studentName || p.studentId || "Unknown"}</td>
+                                            <td>{p.examTitle || (p.examId ? p.examId.replace('note_', 'Note #') : 'Unknown')}</td>
+                                            <td style={{ color: 'var(--primary)', fontWeight: 700 }}>{p.noteReadTime === '--' ? '--' : `${p.noteReadTime || 0} s`}</td>
+                                            <td style={{ color: 'var(--accent)', fontWeight: 700 }}>{p.examDuration === '--' ? '--' : `${p.examDuration || 0} s`}</td>
+                                            <td style={{ fontWeight: 800 }}>{p.score !== undefined ? p.score : 0}</td>
                                         </tr>
                                     ))}
                                 </tbody>

@@ -19,15 +19,15 @@ export default function StudentDashboard() {
     const [performance, setPerformance] = useState<any[]>([]);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [selectedPayment, setSelectedPayment] = useState<any>(null);
-const [paymentData, setPaymentData] = useState({
-   courseId: '',
-   amount: '',
-   paymentType: 'Registration',
-   transactionId: ''
-});
+    const [paymentData, setPaymentData] = useState({
+        courseId: '',
+        amount: '',
+        paymentType: 'Registration',
+        transactionId: ''
+    });
     // Note Timer State
     const [timers, setTimers] = useState<{ [key: string]: { time: number, isRunning: boolean } }>({});
-    const [intervalIds, setIntervalIds] = useState<{ [key: string]:number }>({});
+    const [intervalIds, setIntervalIds] = useState<{ [key: string]: number }>({});
 
     // Search & Sort States
     const [searchTerm, setSearchTerm] = useState('');
@@ -40,12 +40,12 @@ const [paymentData, setPaymentData] = useState({
         setSearchTerm('');
         fetchData();
     }, [activeTab]);
-    
+
     useEffect(() => {
-    return () => {
-        Object.values(intervalIds).forEach(id => clearInterval(id));
-    };
-}, [intervalIds]);
+        return () => {
+            Object.values(intervalIds).forEach(id => clearInterval(id));
+        };
+    }, [intervalIds]);
 
     // Filtering & Sorting Logic
     const filteredCourses = courses
@@ -122,16 +122,16 @@ const [paymentData, setPaymentData] = useState({
         }
     };
 
-  const handleUnenroll = async (courseId: string) => {
-    if (!window.confirm('Are you sure you want to cancel your enrollment request?')) return;
-    try {
-        await api.delete(`/student/unenroll/${courseId}`);
-        alert('Enrollment request cancelled');
-        fetchData();
-    } catch (error: any) {
-        alert(error.response?.data?.error || 'Operation failed');
-    }
-};
+    const handleUnenroll = async (courseId: string) => {
+        if (!window.confirm('Are you sure you want to cancel your enrollment request?')) return;
+        try {
+            await api.delete(`/student/unenroll/${courseId}`);
+            alert('Enrollment request cancelled');
+            fetchData();
+        } catch (error: any) {
+            alert(error.response?.data?.error || 'Operation failed');
+        }
+    };
 
     const calculateGrade = (score: number, total: number) => {
         const perc = (score / total) * 100;
@@ -161,69 +161,69 @@ const [paymentData, setPaymentData] = useState({
 
 
 
-   // Timer functions
+    // Timer functions
 
-const toggleTimer = (noteId: string) => {
-    setTimers(prev => {
-        const current = prev[noteId] || { time: 0, isRunning: false };
+    const toggleTimer = (noteId: string) => {
+        setTimers(prev => {
+            const current = prev[noteId] || { time: 0, isRunning: false };
 
-        if (current.isRunning) {
-            // STOP TIMER
-            if (intervalIds[noteId]) {
-                clearInterval(intervalIds[noteId]);
+            if (current.isRunning) {
+                // STOP TIMER
+                if (intervalIds[noteId]) {
+                    clearInterval(intervalIds[noteId]);
+                }
+
+                setIntervalIds(ids => {
+                    const updated = { ...ids };
+                    delete updated[noteId];   // remove interval completely
+                    return updated;
+                });
+
+                return {
+                    ...prev,
+                    [noteId]: { ...current, isRunning: false }
+                };
+
+            } else {
+                // START TIMER
+                const id = setInterval(() => {
+                    setTimers(t => ({
+                        ...t,
+                        [noteId]: {
+                            ...t[noteId],
+                            time: (t[noteId]?.time || 0) + 1
+                        }
+                    }));
+                }, 1000);
+
+                setIntervalIds(ids => ({ ...ids, [noteId]: id }));
+
+                return {
+                    ...prev,
+                    [noteId]: { ...current, isRunning: true }
+                };
             }
+        });
+    };
 
-            setIntervalIds(ids => {
-                const updated = { ...ids };
-                delete updated[noteId];   // remove interval completely
-                return updated;
-            });
 
-            return {
-                ...prev,
-                [noteId]: { ...current, isRunning: false }
-            };
 
-        } else {
-            // START TIMER
-            const id = setInterval(() => {
-                setTimers(t => ({
-                    ...t,
-                    [noteId]: {
-                        ...t[noteId],
-                        time: (t[noteId]?.time || 0) + 1
-                    }
-                }));
-            }, 1000);
-
-            setIntervalIds(ids => ({ ...ids, [noteId]: id }));
-
-            return {
-                ...prev,
-                [noteId]: { ...current, isRunning: true }
-            };
+    const resetTimer = (noteId: string) => {
+        if (intervalIds[noteId]) {
+            clearInterval(intervalIds[noteId]);
         }
-    });
-};
 
+        setIntervalIds(ids => {
+            const updated = { ...ids };
+            delete updated[noteId];
+            return updated;
+        });
 
-
-const resetTimer = (noteId: string) => {
-    if (intervalIds[noteId]) {
-        clearInterval(intervalIds[noteId]);
-    }
-
-    setIntervalIds(ids => {
-        const updated = { ...ids };
-        delete updated[noteId];
-        return updated;
-    });
-
-    setTimers(prev => ({
-        ...prev,
-        [noteId]: { time: 0, isRunning: false }
-    }));
-};
+        setTimers(prev => ({
+            ...prev,
+            [noteId]: { time: 0, isRunning: false }
+        }));
+    };
 
 
 
@@ -299,7 +299,7 @@ const resetTimer = (noteId: string) => {
                             </select>
                         </div>
                     )}
-                    
+
                     {activeTab === 'home' && (
                         <div className="tab-home animate-fade-in">
                             <div className="dashboard-stats">
@@ -521,11 +521,11 @@ const resetTimer = (noteId: string) => {
                                     <div className={`status-badge ${(course.enrollmentStatus || 'Not Enrolled').toLowerCase().replace(/ /g, '-')}`}>
                                         {course.enrollmentStatus || 'Not Enrolled'}
                                     </div>
-                                  {course.enrollmentStatus && course.enrollmentStatus !== 'Not Enrolled' && (
-    <button className="btn-unenroll" onClick={() => handleUnenroll(course.id)}>
-        ❌ Unenroll
-    </button>
-)}
+                                    {course.enrollmentStatus && course.enrollmentStatus !== 'Not Enrolled' && (
+                                        <button className="btn-unenroll" onClick={() => handleUnenroll(course.id)}>
+                                            ❌ Unenroll
+                                        </button>
+                                    )}
                                     <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
                                         {course.enrollmentStatus === 'Pending' && (
                                             <button className="btn-cancel" onClick={() => handleUnenroll(course.id)}>Cancel Request</button>
@@ -655,13 +655,13 @@ const resetTimer = (noteId: string) => {
                                                 <td>{new Date(ex.date || ex.exam_date).toLocaleDateString()}</td>
                                                 <td>{ex.timeInMinutes || ex.time_limit} mins</td>
                                                 <td>
-                                                   <button
-  className="btn-start"
-  onClick={() => navigate(`/live-exam/${ex.id}`)}
->
-  ▶ Start Exam
-</button>
-                                                     </td>
+                                                    <button
+                                                        className="btn-start"
+                                                        onClick={() => navigate(`/live-exam/${ex.id}`)}
+                                                    >
+                                                        ▶ Start Exam
+                                                    </button>
+                                                </td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -739,7 +739,7 @@ const resetTimer = (noteId: string) => {
                                     <tbody>
                                         {performance.filter(p => (p.examId || '').startsWith('note_')).map(p => (
                                             <tr key={p.id}>
-                                                <td style={{ fontWeight: '600', color: 'var(--primary)' }}>{p.examId.replace('note_', 'Note #')}</td>
+                                                <td style={{ fontWeight: '600', color: 'var(--primary)' }}>{p.examTitle || p.examId.replace('note_', 'Note #')}</td>
                                                 <td style={{ fontFamily: 'monospace', fontSize: '1.1em' }}>{p.noteReadTime}s</td>
                                                 <td>{new Date(p.createdAt).toLocaleDateString()}</td>
                                             </tr>
@@ -751,7 +751,7 @@ const resetTimer = (noteId: string) => {
                                 )}
                             </div>
                         </div>
-                        
+
                     )}
 
                 </section>
@@ -767,7 +767,7 @@ const resetTimer = (noteId: string) => {
                         <form onSubmit={handlePay} className="edit-profile-form">
                             <div className="form-group">
                                 <label>Payment Method</label>
-                    <select value={paymentData.paymentType} onChange={e => setPaymentData({ ...paymentData, paymentType: e.target.value })}>                                    <option value="UPI">UPI / GPay / PhonePe</option>
+                                <select value={paymentData.paymentType} onChange={e => setPaymentData({ ...paymentData, paymentType: e.target.value })}>                                    <option value="UPI">UPI / GPay / PhonePe</option>
                                     <option value="Bank Transfer">Bank Transfer (IMPS/NEFT)</option>
                                     <option value="Card">Debit/Credit Card</option>
                                 </select>

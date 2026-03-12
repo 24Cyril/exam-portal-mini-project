@@ -29,20 +29,28 @@ export const getPendingEnrollments = async (req, res) => {
         const teacherDoc = await db.collection('users').doc(req.user.uid).get();
         const deptId = teacherDoc.data().department_id;
 
-        const enrollmentsSnapshot = await db.collection('student_courses')
-            .where('status', '==', 'Pending')
-            .get();
-            console.log("Enrollments snapshot:", enrollmentsSnapshot.docs.length);
+        const enrollmentsSnapshot = await db.collection('student_courses').get();
+        console.log("Enrollments snapshot:", enrollmentsSnapshot.docs.length);
 
         const enrollments = [];
         for (const doc of enrollmentsSnapshot.docs) {
             const data = applySchema(ENROLLMENT_SCHEMA, doc.data());
             const studentDoc = await db.collection('users').doc(data.studentId).get();
-          if (studentDoc.exists) {
+            if (studentDoc.exists) {
+                if (deptId && studentDoc.data().department_id !== deptId) continue;
+                let studentName = studentDoc.data().full_name || 'Unknown Student';
+
+                let courseName = data.courseId;
+                if (data.courseId) {
+                    const cDoc = await db.collection('courses').doc(data.courseId).get();
+                    if (cDoc.exists) courseName = cDoc.data().name || data.courseId;
+                }
+
                 enrollments.push({
                     id: doc.id,
                     ...data,
-                    studentName: studentDoc.data().full_name || 'Unknown Student'
+                    studentName,
+                    courseId: courseName // Overwrite courseId with courseName to avoid UID
                 });
             }
         }
@@ -77,19 +85,26 @@ export const getPendingPayments = async (req, res) => {
         const teacherDoc = await db.collection('users').doc(req.user.uid).get();
         const deptId = teacherDoc.data().department_id;
 
-        const paymentsSnapshot = await db.collection('payments')
-            .where('status', '==', 'Pending_Approval')
-            .get();
+        const paymentsSnapshot = await db.collection('payments').get();
 
         const paymentsList = [];
         for (const doc of paymentsSnapshot.docs) {
             const data = applySchema(PAYMENT_SCHEMA, doc.data());
             const studentDoc = await db.collection('users').doc(data.studentId).get();
-            if (studentDoc.exists && studentDoc.data().department_id === deptId) {
+
+            if (studentDoc.exists) {
+                if (deptId && studentDoc.data().department_id !== deptId) continue;
+                let courseName = data.courseId;
+                if (data.courseId) {
+                    const cDoc = await db.collection('courses').doc(data.courseId).get();
+                    if (cDoc.exists) courseName = cDoc.data().name || data.courseId;
+                }
+
                 paymentsList.push({
                     id: doc.id,
                     ...data,
-                    studentName: studentDoc.data().full_name || 'Unknown Student'
+                    studentName: studentDoc.data().full_name || 'Unknown Student',
+                    courseId: courseName // Overwrite courseId with courseName
                 });
             }
         }
@@ -151,9 +166,16 @@ export const createExam = async (req, res) => {
 export const getExams = async (req, res) => {
     try {
         const examsSnapshot = await db.collection('exams').where('createdBy', '==', req.user.uid).get();
-        const examsList = examsSnapshot.docs
-            .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
-            .map(doc => applySchema(EXAM_SCHEMA, { id: doc.id, ...doc.data() }));
+        const examsList = [];
+        for (const doc of examsSnapshot.docs) {
+            if (doc.id === 'TEMPLATE_DO_NOT_DELETE') continue;
+            let examData = applySchema(EXAM_SCHEMA, { id: doc.id, ...doc.data() });
+            if (examData.courseId) {
+                const cDoc = await db.collection('courses').doc(examData.courseId).get();
+                if (cDoc.exists) examData.courseId = cDoc.data().name || examData.courseId;
+            }
+            examsList.push(examData);
+        }
         res.status(200).json(examsList);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -184,9 +206,15 @@ export const getAllExamsForDept = async (req, res) => {
         const examsList = [];
         for (const chunk of chunks) {
             const snap = await db.collection('exams').where('courseId', 'in', chunk).get();
-            snap.docs
-                .filter(doc => doc.id !== 'TEMPLATE_DO_NOT_DELETE')
-                .forEach(doc => examsList.push(applySchema(EXAM_SCHEMA, { id: doc.id, ...doc.data() })));
+            for (const doc of snap.docs) {
+                if (doc.id === 'TEMPLATE_DO_NOT_DELETE') continue;
+                let examData = applySchema(EXAM_SCHEMA, { id: doc.id, ...doc.data() });
+                if (examData.courseId) {
+                    const cDoc = await db.collection('courses').doc(examData.courseId).get();
+                    if (cDoc.exists) examData.courseId = cDoc.data().name || examData.courseId;
+                }
+                examsList.push(examData);
+            }
         }
 
         res.status(200).json(examsList);
@@ -268,10 +296,100 @@ export const createCourseByTeacher = async (req, res) => {
 // Get all performance logs (for teacher's view)
 export const getPerformance = async (req, res) => {
     try {
+        const teacherDoc = await db.collection('users').doc(req.user.uid).get();
+        const deptId = teacherDoc.data()?.department_id;
+
         const snapshot = await db.collection('performance').get();
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        res.json({ performance: data });
+        const dataList = [];
+
+        for (const doc of snapshot.docs) {
+            let pData = { id: doc.id, ...doc.data() };
+
+            // Get student name
+            if (pData.studentId) {
+                const sDoc = await db.collection('users').doc(pData.studentId).get();
+                if (sDoc.exists) {
+                    if (deptId && sDoc.data().department_id !== deptId) continue;
+                    pData.studentName = sDoc.data().full_name || pData.studentId;
+                }
+            }
+
+            // Get exam title
+            if (pData.examId && !pData.examId.startsWith('note_')) {
+                const eDoc = await db.collection('exams').doc(pData.examId).get();
+                if (eDoc.exists) pData.examTitle = eDoc.data().title || pData.examId;
+            } else if (pData.examId && pData.examId.startsWith('note_')) {
+                const noteId = pData.examId.replace('note_', '');
+                const nDoc = await db.collection('notes').doc(noteId).get();
+                if (nDoc.exists) pData.examTitle = `Note: ${nDoc.data().title || noteId}`;
+                else pData.examTitle = `Note: ${noteId}`;
+            }
+
+            dataList.push(pData);
+        }
+
+        const resultsSnapshot = await db.collection('results').get();
+        for (const doc of resultsSnapshot.docs) {
+            let rData = { id: doc.id, ...doc.data() };
+
+            // Get student name
+            if (rData.studentId) {
+                const sDoc = await db.collection('users').doc(rData.studentId).get();
+                if (sDoc.exists) {
+                    if (deptId && sDoc.data().department_id !== deptId) continue;
+                    rData.studentName = sDoc.data().full_name || rData.studentId;
+                }
+            }
+
+            // Get exam title
+            if (rData.examId) {
+                const eDoc = await db.collection('exams').doc(rData.examId).get();
+                if (eDoc.exists) rData.examTitle = eDoc.data().title || rData.examId;
+            }
+
+            dataList.push({
+                ...rData,
+                noteReadTime: '--',
+                examDuration: '--',
+                score: `${rData.score} / ${rData.total}`
+            });
+        }
+
+        res.json({ performance: dataList });
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+};
+
+// Update a course (teacher can only update courses in their dept)
+export const updateCourseByTeacher = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        const courseData = req.body;
+
+        const courseRef = db.collection('courses').doc(courseId);
+        const doc = await courseRef.get();
+        if (!doc.exists) return res.status(404).json({ error: 'Course not found' });
+
+        const updatedData = {
+            ...courseData,
+            updatedAt: new Date().toISOString()
+        };
+
+        await courseRef.update(updatedData);
+        res.status(200).json({ message: 'Course updated successfully', data: updatedData });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Delete a course (teacher can only delete courses in their dept)
+export const deleteCourseByTeacher = async (req, res) => {
+    try {
+        const { courseId } = req.params;
+        await db.collection('courses').doc(courseId).delete();
+        res.status(200).json({ message: 'Course deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 };
