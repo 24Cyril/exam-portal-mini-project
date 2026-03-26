@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Payment Receipt - {{ payment.payment_id }}</title>
+  <link rel="stylesheet" href="/static/css/receipt.css">
+</head>
+
+<body>
+  <div class="receipt">
+    <div class="header">
+      <div>
+        <h2>Payment Receipt</h2>
+        <div class="meta">Receipt #: <strong>{{ payment.payment_id }}</strong></div>
+      </div>
+      <div class="small">Date: {{ payment.payment_date or '-' }}</div>
+    </div>
+
+    <table>
+      <tr>
+        <td class="label">Student</td>
+        <td>{{ payment.student_name }}</td>
+      </tr>
+      <tr>
+        <td class="label">Email</td>
+        <td>{{ payment.email }}</td>
+      </tr>
+      <tr>
+        <td class="label">Course</td>
+        <td>{{ payment.course_name }}</td>
+      </tr>
+      <tr>
+        <td class="label">Amount</td>
+        <td>₹{{ payment.amount }}</td>
+      </tr>
+      <tr>
+        <td class="label">Method</td>
+        <td>{{ payment.payment_method or '-' }}</td>
+      </tr>
+      <tr>
+        <td class="label">Transaction ID</td>
+        <td>{{ payment.transaction_id or '-' }}</td>
+      </tr>
+      <tr>
+        <td class="label">Status</td>
+        <td>{{ payment.payment_verification_status or payment.payment_verification_status or '-' }}</td>
+      </tr>
+    </table>
+
+    <div class="actions">
+      <a class="btn" href="#" onclick="window.print(); return false;">Print</a>
+      <a class="btn download" href="?download=1">Download</a>
+      <a class="btn" href="/admin">Close</a>
+    </div>
+  </div>
+</body>
+
+</html>

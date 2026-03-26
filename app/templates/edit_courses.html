@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Course — Admin</title>
+
+
+
+
+
+    <link rel="stylesheet" href="/static/css/edit_courses.css">
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h2 class="logo">Admin Panel</h2>
+        <ul class="nav-list">
+            <li><a href="/teacher">🏠 Home</a></li>
+            <li><a href="/teacher/update">👤 Profile</a></li>
+            <li><a href="/teacher/students">🎓 Students</a></li>
+            <li class="active"><a href="/teacher/courses">📚 Student Courses</a></li>
+            <li><a href="/teacher/enrollments">📝 Registration</a></li>
+            <li><a href="/teacher/exams">🧪 Exam</a></li>
+            <li><a href="/teacher/registrations">📊 Result</a></li>
+            <li><a href="/teacher/payments">💳 Payment</a></li>
+            <li class="logout"><a href="/logout">🚪 Logout</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <h2 id="tab-title">Edit Course</h2>
+        <div class="card">
+            <form method="post" style="max-width:820px;">
+                <label class="small">Course Name *</label>
+                <input type="text" name="course_name" value="{{ course.course_name }}" required>
+
+                <label class="small">Course Code *</label>
+                <input type="text" name="course_code" value="{{ course.course_code }}" required>
+
+                <label class="small">Department</label>
+                <input type="text" name="department" value="{{ course.department or '' }}">
+
+                <label class="small">Description</label>
+                <textarea name="description" rows="4">{{ course.description or '' }}</textarea>
+
+                <label class="small">Duration</label>
+                <input type="text" name="duration" value="{{ course.duration or '' }}">
+
+                <label class="small">Fee *</label>
+                <input type="number" name="fee" value="{{ course.fee }}" step="0.01" required>
+
+                <label class="small">Status</label>
+                <select name="status">
+                    <option value="Active" {% if course.status=='Active' %}selected{% endif %}>Active</option>
+                    <option value="Inactive" {% if course.status=='Inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+
+                <div style="margin-top:12px; display:flex; gap:10px;">
+                    <button type="submit" class="update-btn">Update Course</button>
+                    <a href="/teacher" class="update-btn" style="background:#6b7280;">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Student — Admin</title>
+
+
+
+
+
+    <link rel="stylesheet" href="/static/css/edit_student.css">
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <h2 class="logo">Teacher Panel</h2>
+        <ul class="nav-list">
+            <li><a href="/teacher">🏠 Home</a></li>
+            <li><a href="/teacher/update">👤 Profile</a></li>
+            <li class="active"><a href="/teacher/students">🎓 Students</a></li>
+            <li><a href="/teacher/courses">📚 Student Courses</a></li>
+            <li><a href="/teacher/enrollments">📝 Registration</a></li>
+            <li><a href="/teacher/exams">🧪 Exam</a></li>
+            <li><a href="/teacher/registrations">📊 Result</a></li>
+            <li><a href="/teacher/payments">💳 Payment</a></li>
+            <li class="logout"><a href="/logout">🚪 Logout</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <h2 id="tab-title">Edit Student</h2>
+
+        <div class="card">
+            <h3>Edit Student Details</h3>
+            <div style="max-width:720px; margin-top:14px;">
+                <form method="POST" style="display:flex; gap:18px; flex-wrap:wrap;">
+                    <div style="flex:1; min-width:260px;">
+                        <label class="small">Full Name</label>
+                        <input type="text" name="full_name" placeholder="Full Name" value="{{ student.full_name }}"
+                            required>
+
+                        <label class="small">Email</label>
+                        <input type="email" name="email" placeholder="Email" value="{{ student.email }}" required>
+
+                        <label class="small">Phone</label>
+                        <input type="tel" name="phone" placeholder="Phone Number" value="{{ student.phone }}" required>
+
+                        <label class="small">Age</label>
+                        <input type="number" name="age" value="{{ student.age or 0 }}">
+
+                        <label class="small">Address</label>
+                        <textarea name="address" style="width:100%; height:80px;">{{ student.address or '' }}</textarea>
+                    </div>
+
+                    <div style="flex:1; min-width:260px;">
+                        <label class="small">Institute Name</label>
+                        <input type="text" name="institute_name" value="{{ student.institute_name or '' }}">
+
+                        <label class="small">Gender</label>
+                        <select name="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="Male" {% if student.gender=='Male' %}selected{% endif %}>Male</option>
+                            <option value="Female" {% if student.gender=='Female' %}selected{% endif %}>Female</option>
+                            <option value="Other" {% if student.gender=='Other' %}selected{% endif %}>Other</option>
+                        </select>
+
+                        <label class="small">Course</label>
+                        <input type="text" name="course" placeholder="Course" value="{{ student.course }}" required>
+
+                        <label class="small">Department</label>
+                        <input type="text" name="department" placeholder="Department" value="{{ student.department }}"
+                            required>
+
+                        <label class="small">Year</label>
+                        <select name="year" required>
+                            <option value="">Select Year</option>
+                            <option value="1" {% if student.year_of_study==1 %}selected{% endif %}>1st Year</option>
+                            <option value="2" {% if student.year_of_study==2 %}selected{% endif %}>2nd Year</option>
+                            <option value="3" {% if student.year_of_study==3 %}selected{% endif %}>3rd Year</option>
+                            <option value="4" {% if student.year_of_study==4 %}selected{% endif %}>4th Year</option>
+                        </select>
+                    </div>
+
+                    <div style="width:100%; display:flex; gap:10px; margin-top:12px;">
+                        <button type="submit" class="update-btn">Update Student</button>
+                        <a href="/teacher" class="update-btn"
+                            style="background:#6b7280; text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

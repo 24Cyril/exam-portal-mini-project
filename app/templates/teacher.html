@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Teacher Dashboard | Exam Portal</title>
+    <link rel="stylesheet" href="/static/css/teacher.css">
+    <link rel="stylesheet" href="/static/css/admin.css"> <!-- Reuse some admin styles for tabs if needed -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Modern Sidebar Styles */
+        .teacher-sidebar ul li {
+            cursor: pointer;
+            padding: 12px 20px;
+            transition: all 0.3s;
+        }
+
+        .teacher-sidebar ul li:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .teacher-sidebar ul li.active {
+            background: var(--primary);
+            border-left: 4px solid #fff;
+        }
+
+        .logout-link {
+            margin-top: auto;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="teacher-dashboard">
+        <div class="teacher-sidebar" style="display: flex; flex-direction: column;">
+            <h2>Teacher Panel</h2>
+            <div class="teacher-user-info" style="margin-bottom: 20px; text-align:center;">
+                <span style="display:block; font-weight:bold;">{{ teacher.full_name }}</span>
+                <span style="font-size: 0.8em; opacity: 0.8;">{{ teacher.department }}</span>
+            </div>
+            <ul>
+                <li id="tab-home" class="active" onclick="openTab('home')">🏠 Dashboard</li>
+                <li id="tab-profile" onclick="openTab('profile')">👤 Profile</li>
+                <li id="tab-courses" onclick="openTab('courses')">📚 Courses</li>
+                <li id="tab-students" onclick="openTab('students')">🎓 Students</li>
+                {% if profile_type == 'admin' %}
+                <li id="tab-teachers" onclick="openTab('teachers')">👨‍🏫 Teachers</li>
+                <li id="tab-departments" onclick="openTab('departments')">🏢 Departments</li>
+                {% endif %}
+                <li id="tab-registration" onclick="openTab('registration')">📝 Registrations</li>
+                <li id="tab-exam" onclick="openTab('exam')">🧪 Exams</li>
+                <li id="tab-payment" onclick="openTab('payment')">💳 Payments</li>
+                <li id="tab-performance" onclick="openTab('performance')">📊 Performance</li>
+            </ul>
+            <div style="margin-top: auto; padding-top: 20px;">
+                <a href="/logout" class="teacher-logout-btn">🚪 Logout</a>
+            </div>
+        </div>
+
+        <div class="teacher-main">
+            <div class="teacher-header">
+                <h1 id="tab-title">Dashboard</h1>
+            </div>
+
+            <div id="tab-content" class="dashboard-content">
+                <!-- Content loaded via teacher.js -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Profile Content for JS to grab -->
+    <div id="profile-content" style="display:none">
+        <div class="card">
+            <h3>My Profile</h3>
+            <table class="profile-table">
+                <tr>
+                    <td>Full Name</td>
+                    <td>{{ teacher.full_name }}</td>
+                </tr>
+                <tr>
+                    <td>Email</td>
+                    <td>{{ teacher.email }}</td>
+                </tr>
+                <tr>
+                    <td>Phone</td>
+                    <td>{{ teacher.phone }}</td>
+                </tr>
+                <tr>
+                    <td>Department</td>
+                    <td>{{ teacher.department }}</td>
+                </tr>
+                <tr>
+                    <td>Specialization</td>
+                    <td>{{ teacher.specialization }}</td>
+                </tr>
+                <tr>
+                    <td>Institute</td>
+                    <td>{{ teacher.institute_name }}</td>
+                </tr>
+                <tr>
+                    <td>Role</td>
+                    <td>{{ profile_type|upper }}</td>
+                </tr>
+            </table>
+            <a href="/teacher/update" class="teacher-btn"
+                style="display:inline-block; margin-top:20px; text-decoration:none;">Update Profile</a>
+        </div>
+    </div>
+
+    <script>
+        const PROFILE_TYPE = "{{ profile_type }}";
+    </script>
+    <script src="/static/js/teacher.js"></script>
+    <script>
+        // Override the default openTab to handle sidebar active state
+        const originalOpenTab = openTab;
+        openTab = function (tabName) {
+            // Remove active class from all
+            document.querySelectorAll('.teacher-sidebar ul li').forEach(li => li.classList.remove('active'));
+            // Add to current
+            const activeTab = document.getElementById('tab-' + tabName);
+            if (activeTab) activeTab.classList.add('active');
+
+            originalOpenTab(tabName);
+        };
+
+        // Initial load
+        window.onload = () => openTab('home');
+    </script>
+</body>
+
+</html>

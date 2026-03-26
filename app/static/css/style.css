@@ -1,0 +1,284 @@
+/* =========================
+   RESET & GLOBAL
+========================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: #f4f6f8;
+  color: #333;
+}
+
+/* =========================
+   TOP NOTIFICATION BAR
+========================= */
+
+.top-notification {
+  background-color: #1e88e5;
+  color: white;
+  padding: 10px 20px;
+  font-size: 14px;
+}
+
+/* =========================
+   URGENT BAR
+========================= */
+
+.urgent-bar {
+  background-color: #ffeb3b;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 8px 0;
+}
+
+.urgent-text {
+  display: inline-block;
+  padding-left: 100%;
+  animation: scroll-left 15s linear infinite;
+  font-weight: bold;
+  color: #000;
+}
+
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+/* =========================
+   MAIN LAYOUT
+========================= */
+
+.main-content {
+  display: flex;
+  padding: 40px;
+  gap: 40px;
+}
+
+.info-section {
+  flex: 1;
+}
+
+.login-section {
+  height: fit-content;
+  flex: 1;
+  max-width: 400px;
+  background: white;
+  padding: 25px;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* =========================
+   LOGIN TABS
+========================= */
+
+.login-tabs {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  background-color: white;   /* inactive tab */
+  color: #333;
+  cursor: pointer;
+  font-weight: 600;
+  opacity: 0.3;
+}
+
+.tab.active {
+  background-color: #1e88e5; /* active tab */
+  color: white;
+  border-color: #1e88e5;
+  opacity: 1;
+}
+
+/* Remove any hover effect on tabs */
+
+/* =========================
+   LOGIN FORM
+========================= */
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.login-form button {
+  width: 100%;
+  padding: 10px;
+  background-color: #1e88e5;
+  color: white;
+  border:none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.login-form button:hover {
+  background-color: #c0151d;
+}
+
+.login-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+/* =========================
+   SETTINGS
+========================= */
+
+
+/* =========================
+   SETTINGS PANEL STYLING
+========================= */
+
+.settings-panel {
+  position: fixed;
+  right: 20px;
+  bottom: 70px; /* a bit above the button */
+  width: 240px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  padding: 20px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  transform: translateY(20px);
+  opacity: 0;
+  z-index: 100;
+}
+
+.settings-panel.visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.settings-panel h3 {
+  margin-bottom: 15px;
+  font-size: 16px;
+  font-weight: bold;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+}
+
+.setting-item {
+  margin-bottom: 12px;
+}
+
+.setting-item label {
+  font-size: 14px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.setting-item select {
+  width: 100%;
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.setting-item select:hover {
+  border-color: #1e88e5;
+}
+
+/* SETTINGS BUTTON */
+.settings-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 48px;
+  height: 48px;
+  font-size: 20px;
+  background-color: #1e88e5;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.settings-btn:hover {
+  background-color: #1565c0;
+  transform: scale(1.05);
+}
+
+/* =========================
+   DARK MODE
+========================= */
+
+body.dark-mode {
+  background-color: #121212;
+  color: white;
+}
+
+body.dark-mode .login-section,
+body.dark-mode .settings-panel {
+  background-color: #1e1e1e;
+}
+
+/* =========================
+   INFO SECTION CONTENT
+========================= */
+
+.info-section h1 {
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  font-size: 15px;
+  margin-bottom: 20px;
+  color: #555;
+}
+
+.feature-box {
+  background: #ffffff;
+  padding: 15px 18px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.feature-box h3 {
+  margin-bottom: 8px;
+  font-size: 16px;
+  color: #1e88e5;
+}
+
+.feature-box ul {
+  padding-left: 18px;
+}
+
+.feature-box li {
+  margin-bottom: 6px;
+}
+
+/* Dark mode adjustments */
+body.dark-mode .feature-box {
+  background-color: #1e1e1e;
+}

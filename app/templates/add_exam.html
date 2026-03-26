@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Add Exam — Admin</title>
+
+
+
+
+
+    <link rel="stylesheet" href="/static/css/add_exam.css">
+</head>
+
+<body>
+    <div class="sidebar">
+        <h2 class="logo">Admin Panel</h2>
+        <ul class="nav-list">
+            <li><a href="/teacher">🏠 Home</a></li>
+            <li><a href="/teacher/update">👤 Profile</a></li>
+            <li><a href="/teacher/students">🎓 Students</a></li>
+            <li><a href="/teacher/courses">📚 Student Courses</a></li>
+            <li><a href="/teacher/enrollments">📝 Registration</a></li>
+            <li class="active"><a href="/teacher/exams">🧪 Exam</a></li>
+            <li><a href="/teacher/registrations">📊 Result</a></li>
+            <li><a href="/teacher/payments">💳 Payment</a></li>
+            <li class="logout"><a href="/logout">🚪 Logout</a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <h2 id="tab-title">Add Exam</h2>
+        <div class="card">
+            <form method="POST" enctype="multipart/form-data" style="max-width:720px;">
+                <label class="small">Exam Name</label>
+                <input type="text" name="exam_name" placeholder="Exam Name" required>
+
+                <label class="small">Course</label>
+                <select name="course_id" required>
+                    <option value="">Select Course</option>
+                    {% for course in courses %}
+                    <option value="{{ course.course_id }}">{{ course.course_name }}</option>
+                    {% endfor %}
+                </select>
+
+                <label class="small">Date</label>
+                <input type="date" name="exam_date" required>
+
+                <label class="small">Time Limit (minutes)</label>
+                <input type="number" name="time_limit" value="30" min="1" max="240">
+
+                <label class="small">Question Paper (TXT preferred)</label>
+                <input type="file" name="question_file" accept=".txt,.pdf,.doc,.docx">
+
+                <label class="small">Answer Key (one answer per line, TXT preferred)</label>
+                <input type="file" name="answer_file" accept=".txt,.pdf,.doc,.docx">
+
+                <div style="margin-top:12px; display:flex; gap:10px;">
+                    <button type="submit" class="update-btn">Add Exam</button>
+                    <a href="/teacher" class="update-btn" style="background:#6b7280;">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+
+</html>

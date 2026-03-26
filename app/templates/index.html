@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>EduAssess | Home</title>
+  
+    
+    
+    
+    <link rel="stylesheet" href="/static/css/index.css">
+</head>
+
+<body class="home-page">
+
+<header class="top-notification">
+  <p>📢 Notice: Platform update scheduled on Sunday (10:00 AM – 12:00 PM)</p>
+</header>
+
+<section class="urgent-bar">
+  <marquee>⚠️ Important: Academic assessment window opens tomorrow at 9:00 AM.</marquee>
+</section>
+
+<main class="main-content">
+
+ <section class="info-section">
+
+  <h1>Welcome to EduAssess</h1>
+  <p class="subtitle">
+    A unified digital environment for learning, assessment, and academic growth.
+  </p>
+
+  <div class="feature-box">
+    <h3>🌐 About the Platform</h3>
+    <p>
+      EduAssess is designed to support institutions and learners through
+      structured academic workflows, continuous evaluation, and outcome-based
+      performance monitoring.
+    </p>
+  </div>
+
+  <div class="feature-box">
+    <h3>🎓 Academic Experience</h3>
+    <p>
+      From course enrollment to assessments and result analysis,
+      the platform ensures a smooth and transparent academic journey
+      for students, faculty, and administrators.
+    </p>
+  </div>
+
+  <div class="feature-box">
+    <h3>📊 Learning & Evaluation</h3>
+    <p>
+      Assessments are integrated with performance insights,
+      helping learners understand their progress and helping
+      institutions maintain academic standards.
+    </p>
+  </div>
+
+  <div class="feature-box">
+    <h3>❓ Support & Assistance</h3>
+    <p>
+      Need help navigating the platform or understanding evaluation outcomes?
+      Our academic support system ensures timely assistance and guidance.
+    </p>
+  </div>
+
+  <div class="feature-box">
+    <h3>📞 Contact</h3>
+    <p>Email: support@eduassess.in</p>
+    <p>Phone: +91 90000 00000</p>
+  </div>
+
+</section>
+
+<section class="login-section">
+
+
+  <form id="loginForm" class="login-form" method="POST" action="/login">
+    
+  <div class="login-tabs">
+    <button type="button" id="studentTab" class="tab active">Learner Login</button>
+    <button type="button" id="teacherTab" class="tab">Tutor Login</button>
+    <button type="button" id="adminTab" class="tab">Administrator Login</button>
+  </div>
+    <input type="hidden" name="role" id="role" value="student">
+
+    <label>Username</label>
+    <input type="text" name="username" required>
+
+    <label>Password</label>
+    <input type="password" name="password" required>
+    <br>
+
+    <button type="submit">Access Portal</button>
+  </form>
+
+  <a href="/register">Create an Academic Account</a>
+
+</section>
+
+</main>
+
+<button id="settingsBtn" class="settings-btn">⚙️</button>
+
+<aside id="settingsPanel" class="settings-panel hidden">
+  <h3>Preferences</h3>
+  <label>Theme</label>
+  <select id="themeSelect">
+    <option>Light</option>
+    <option>Dark</option>
+  </select>
+</aside>
+
+<script src="../static/js/jsauth.js"></script>
+</body>
+</html>

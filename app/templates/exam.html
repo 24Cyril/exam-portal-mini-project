@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Exam | Exam Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --sidebar-width: 320px;
+            --accent: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-body);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Header */
+        .exam-header {
+            height: 60px;
+            background: #1e293b;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .exam-title {
+            font-weight: 700;
+            font-size: 1.1em;
+            letter-spacing: 0.5px;
+        }
+
+        /* Layout */
+        .exam-layout {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+
+        /* Sidebar Mapper */
+        .exam-sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-card);
+            border-left: 1px solid #e2e8f0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.02);
+        }
+
+        .timer-box {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .timer-label {
+            font-size: 0.8em;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        #timer {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #1e293b;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .question-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-y: auto;
+            max-height: 300px;
+        }
+
+        .q-num {
+            width: 100%;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: #f1f5f9;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+        }
+
+        .q-num.answered {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .q-num.not-answered {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .q-num.review {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .q-num.active {
+            border: 2px solid #1e293b;
+            transform: scale(1.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .legend {
+            font-size: 0.8em;
+            color: #64748b;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* Main Viewer */
+        .exam-main {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .question-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 15px;
+        }
+
+        .q-no {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .q-text {
+            font-size: 1.2em;
+            line-height: 1.6;
+            color: #1e293b;
+            margin-bottom: 30px;
+        }
+
+        /* Options */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: 2px solid #f1f5f9;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-item:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .option-item.selected {
+            background: #eff6ff;
+            border-color: var(--primary);
+        }
+
+        .option-radio {
+            margin-right: 15px;
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary);
+            pointer-events: none;
+        }
+
+        .option-label {
+            font-size: 1em;
+            color: #334155;
+            pointer-events: none;
+        }
+
+        /* Footer Controls */
+        .exam-footer {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-prev {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .btn-next {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-review {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-submit {
+            background: #10b981;
+            color: white;
+            width: 100%;
+            margin-top: auto;
+            padding: 15px;
+            font-size: 1.1em;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Utility */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="exam-header">
+        <div class="exam-title">STUDENT EXAM PORTAL</div>
+        <div id="student-name" style="font-size: 0.9em; opacity: 0.8;">Student ID: #{{ student_id if student_id else
+            '...' }}</div>
+    </header>
+
+    <div class="exam-layout">
+        <!-- Questions Viewer -->
+        <main class="exam-main">
+            <div id="exam-loading" style="text-align: center; margin-top: 100px;">
+                <p>Loading exam questions. Please wait...</p>
+            </div>
+
+            <div id="question-viewer" class="question-card hidden">
+                <div class="q-header">
+                    <span class="q-no" id="display-q-no">Question 1</span>
+                    <span id="q-category" style="font-size: 0.8em; color: #64748b;">Multiple Choice</span>
+                </div>
+                <div class="q-text" id="display-q-text">
+                    Question text goes here?
+                </div>
+                <div class="options-list" id="display-options">
+                    <!-- Options injected here -->
+                </div>
+            </div>
+
+            <div class="exam-footer hidden" id="exam-controls">
+                <button class="btn btn-prev" id="prev-btn">← Previous</button>
+                <div style="display: flex; gap:10px;">
+                    <button class="btn btn-review" id="review-btn">Bookmark</button>
+                    <button class="btn btn-next" id="next-btn">Next Question →</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Sidebar Navigation -->
+        <aside class="exam-sidebar">
+            <div class="timer-box">
+                <div class="timer-label">Time Remaining</div>
+                <div id="timer">--:--</div>
+            </div>
+
+            <h4 style="margin-bottom: 12px; font-size: 0.9em; color: #1e293b;">Question Navigator</h4>
+            <div class="question-grid" id="question-grid">
+                <!-- Numbers injected here -->
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="dot" style="background:var(--primary)"></div> Answered
+                </div>
+                <div class="legend-item">
+                    <div class="dot" style="background:#f1f5f9; border:1px solid #e2e8f0"></div> Not Answered
+                </div>
+                <div class="legend-item">
+                    <div class="dot" style="background:var(--accent)"></div> Bookmarked
+                </div>
+                <div class="legend-item">
+                    <div class="dot" style="background:#fee2e2"></div> Not Visited
+                </div>
+            </div>
+
+            <button class="btn btn-submit" id="final-submit">FINISH EXAM</button>
+        </aside>
+    </div>
+
+    <script>
+        const EXAM_ID = {{ exam_id }};
+    </script>
+    <script src="/static/js/jsexam.js"></script>
+</body>
+
+</html>
