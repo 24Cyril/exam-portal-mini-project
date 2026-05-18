@@ -243,4 +243,4 @@ build/
 # TEST / CACHE
 # ======================
 coverage/
-.cache/
+.cache/backend/serviceAccountKey.json
