@@ -196,3 +196,51 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+
+# ======================
+# NODE / BACKEND
+# ======================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files (VERY IMPORTANT)
+.env
+.env.*
+!.env.example
+
+# Firebase secrets
+serviceAccountKey.json
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# ======================
+# FRONTEND (React / Vite)
+# ======================
+dist/
+build/
+.vite/
+*.local
+
+# TypeScript
+*.tsbuildinfo
+
+# ======================
+# IDE / EDITOR
+# ======================
+.vscode/
+.idea/
+
+# ======================
+# TEST / CACHE
+# ======================
+coverage/
+.cache/
