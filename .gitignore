@@ -244,3 +244,6 @@ build/
 # ======================
 coverage/
 .cache/backend/serviceAccountKey.json
+
+backend/serviceAccountKey.json
+.env
